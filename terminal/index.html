@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TalentUP Fichaje</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f1e;
+    --surface: #1a1a2e;
+    --surface2: #25253e;
+    --primary: #FF6B35;
+    --primary-hover: #e85d2c;
+    --teal: #0F766E;
+    --green: #2ed573;
+    --green-hover: #26bf62;
+    --red: #ff4757;
+    --red-hover: #e63e4d;
+    --yellow: #f0c040;
+    --yellow-hover: #d9ad39;
+    --blue: #3b82f6;
+    --blue-hover: #2563eb;
+    --text: #f0f0f5;
+    --text-dim: #8888a0;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --transition: 240ms cubic-bezier(0.16,1,0.3,1);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    padding: 24px;
+    position: absolute;
+    top: 0; left: 0;
+    transition: opacity var(--transition);
+  }
+  .screen.active { display: flex; }
+
+  /* ===== OFFLINE BANNER ===== */
+  .offline-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: var(--yellow);
+    color: #1a1a2e;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 8px 16px;
+    z-index: 200;
+    transform: translateY(-100%);
+    transition: transform var(--transition);
+  }
+  .offline-banner.show { transform: translateY(0); }
+
+  /* ===== LOADING OVERLAY ===== */
+  .loading-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 15, 30, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 90;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .loading-overlay.active { display: flex; }
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--surface2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+  }
+
+  /* ===== LOGO ===== */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--primary);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .logo-text {
+    font-size: 1.3rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo-text span { color: var(--primary); }
+
+  /* ===== CLOCK ===== */
+  .clock {
+    font-size: 8rem;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--text);
+    margin: 16px 0 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .clock-label {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .clock-date {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  /* ===== PIN DISPLAY ===== */
+  .pin-display {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    min-height: 48px;
+    align-items: center;
+  }
+  .pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--text-dim);
+    transition: var(--transition);
+  }
+  .pin-dot.filled {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .pin-dot.cursor {
+    border-color: var(--primary);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .pin-hint {
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  /* ===== KEYPAD ===== */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .key {
+    height: 80px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 2rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background var(--transition), transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .key:active { transform: scale(0.95); }
+  .key:hover { background: var(--surface2); }
+  .key.key-clear {
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 1.1rem;
+  }
+  .key.key-clear:hover { color: var(--red); background: transparent; }
+  .key.key-ok {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 500;
+  }
+  .key.key-ok:hover { background: var(--primary-hover); }
+  .key.key-empty { background: transparent; cursor: default; pointer-events: none; }
+
+  /* ===== CONFIRMATION ===== */
+  .confirm-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 15, 30, 0.92);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .confirm-overlay.active { display: flex; }
+  .confirm-icon {
+    font-size: 5rem;
+    margin-bottom: 16px;
+  }
+  .confirm-text {
+    font-size: 2rem;
+    font-weight: 400;
+    text-align: center;
+  }
+  .confirm-employee {
+    font-size: 1.3rem;
+    font-weight: 300;
+    color: var(--primary);
+    margin-top: 4px;
+  }
+  .confirm-sub {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  /* ===== ERROR ===== */
+  .error-msg {
+    color: var(--red);
+    font-size: 1.1rem;
+    font-weight: 400;
+    min-height: 28px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .error-msg.show { opacity: 1; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 50%, 90% { transform: translateX(-8px); }
+    30%, 70% { transform: translateX(8px); }
+  }
+  .shake { animation: shake 0.4s cubic-bezier(0.16,1,0.3,1); }
+
+  /* ===== LOCKED ===== */
+  .locked-icon { font-size: 4rem; margin-bottom: 16px; }
+  .locked-text { font-size: 1.5rem; font-weight: 400; margin-bottom: 8px; }
+  .locked-timer { font-size: 2.5rem; font-weight: 300; color: var(--primary); font-variant-numeric: tabular-nums; }
+
+  /* ===== ADMIN ===== */
+  .admin-panel {
+    width: 100%;
+    max-width: 500px;
+  }
+  .admin-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .admin-field {
+    margin-bottom: 16px;
+  }
+  .admin-field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .admin-field input {
+    width: 100%;
+    height: 48px;
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 300;
+    padding: 0 16px;
+    outline: none;
+    transition: border-color var(--transition);
+    font-family: var(--font);
+  }
+  .admin-field input:focus { border-color: var(--primary); }
+  .admin-field input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+  .admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .admin-btn {
+    height: 56px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    color: #fff;
+  }
+  .admin-btn:active { transform: scale(0.97); }
+  .admin-btn-save { background: var(--primary); }
+  .admin-btn-save:hover { background: var(--primary-hover); }
+  .admin-btn-exit { background: var(--red); }
+  .admin-btn-exit:hover { background: var(--red-hover); }
+  .admin-btn-close {
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-weight: 300;
+    height: 48px;
+  }
+  .admin-btn-close:hover { color: var(--text); }
+
+  /* ===== SETUP SCREEN (first-time config) ===== */
+  .setup-panel {
+    width: 100%;
+    max-width: 500px;
+  }
+  .setup-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .setup-sub {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .screen { padding: 16px; }
+    .clock { font-size: 5rem; }
+    .keypad { max-width: 320px; gap: 10px; }
+    .key { height: 64px; font-size: 1.6rem; }
+    .confirm-text { font-size: 1.5rem; }
+    .confirm-icon { font-size: 3.5rem; }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .screen { padding: 12px; }
+    .clock { font-size: 4.5rem; margin: 8px 0 4px; }
+    .clock-date { margin-bottom: 12px; }
+    .keypad { max-width: 300px; gap: 8px; }
+    .key { height: 52px; font-size: 1.4rem; }
+    .pin-display { margin-bottom: 12px; min-height: 36px; }
+    .pin-dot { width: 12px; height: 12px; }
+    .logo-icon { width: 28px; height: 28px; font-size: 0.9rem; }
+    .logo-text { font-size: 1rem; }
+  }
+
+  /* ===== SCROLLBAR HIDE ===== */
+  ::-webkit-scrollbar { display: none; }
+
+  /* ===== STATUS BAR (simulated) ===== */
+  .status-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--surface);
+    z-index: 50;
+  }
+  .status-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 1s linear;
+    width: 0%;
+  }
+</style>
+</head>
+<body>
+
+<!-- Status bar -->
+<div class="status-bar"><div class="status-bar-fill" id="statusBarFill"></div></div>
+
+<!-- Offline banner -->
+<div class="offline-banner" id="offlineBanner">⚠️ Sin conexión — <span id="offlineCount">0</span> fichajes pendientes de sincronizar</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Registrando fichaje…</div>
+</div>
+
+<!-- ===== SCREEN 1: PIN ENTRY ===== -->
+<div class="screen active" id="screenPin">
+  <div class="logo" id="logoTrigger">
+    <div class="logo-icon">T</div>
+    <div class="logo-text"><span>Talent</span>UP</div>
+  </div>
+  <div class="clock" id="clockDisplay">00:00:00</div>
+  <div class="clock-date" id="dateDisplay"></div>
+  <div class="pin-hint">Introduce tu PIN</div>
+  <div class="error-msg" id="errorMsg"></div>
+  <div class="pin-display" id="pinDisplay">
+    <div class="pin-dot cursor" data-i="0"></div>
+    <div class="pin-dot" data-i="1"></div>
+    <div class="pin-dot" data-i="2"></div>
+    <div class="pin-dot" data-i="3"></div>
+  </div>
+  <div class="keypad" id="keypad">
+    <button class="key" data-key="1">1</button>
+    <button class="key" data-key="2">2</button>
+    <button class="key" data-key="3">3</button>
+    <button class="key" data-key="4">4</button>
+    <button class="key" data-key="5">5</button>
+    <button class="key" data-key="6">6</button>
+    <button class="key" data-key="7">7</button>
+    <button class="key" data-key="8">8</button>
+    <button class="key" data-key="9">9</button>
+    <button class="key key-clear" data-key="clear">BORRAR</button>
+    <button class="key" data-key="0">0</button>
+    <button class="key key-ok" data-key="ok">OK</button>
+  </div>
+</div>
+
+<!-- ===== CONFIRMATION OVERLAY ===== -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-icon" id="confirmIcon">✓</div>
+  <div class="confirm-text" id="confirmText">Entrada registrada</div>
+  <div class="confirm-employee" id="confirmEmployee"></div>
+  <div class="confirm-sub" id="confirmSub">14:32:05</div>
+</div>
+
+<!-- ===== LOCKED SCREEN ===== -->
+<div class="screen" id="screenLocked">
+  <div class="locked-icon">🔒</div>
+  <div class="locked-text">Demasiados intentos</div>
+  <div class="locked-timer" id="lockedTimer">00:30</div>
+  <div style="font-size:0.9rem;font-weight:300;color:var(--text-dim);margin-top:8px;">Espera para reintentar</div>
+</div>
+
+<!-- ===== ADMIN SCREEN ===== -->
+<div class="screen" id="screenAdmin">
+  <div class="admin-panel">
+    <div class="admin-title">⚙️ Configuración del Terminal</div>
+    <div class="admin-field">
+      <label>URL del Backend</label>
+      <input type="text" id="adminBackendUrl" placeholder="http://localhost:8000">
+    </div>
+    <div class="admin-field">
+      <label>Tenant ID</label>
+      <input type="text" id="adminTenantId" placeholder="uuid-del-tenant">
+    </div>
+    <div class="admin-field">
+      <label>Brillo de pantalla (%)</label>
+      <input type="range" id="adminBrightness" min="10" max="100" value="100" style="width:100%;height:48px;accent-color:var(--primary);">
+    </div>
+    <div class="admin-actions">
+      <button class="admin-btn admin-btn-save" id="adminSave">💾 Guardar configuración</button>
+      <button class="admin-btn admin-btn-exit" id="adminExitKiosk">🚪 Salir del modo kiosk</button>
+      <button class="admin-btn admin-btn-close" id="adminClose">← Cerrar configuración</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP SCREEN (first-time config) ===== -->
+<div class="screen" id="screenSetup">
+  <div class="setup-panel">
+    <div class="logo" style="cursor:default;justify-content:center;margin-bottom:16px;">
+      <div class="logo-icon">T</div>
+      <div class="logo-text"><span>Talent</span>UP</div>
+    </div>
+    <div class="setup-title">Configuración inicial</div>
+    <div class="setup-sub">Conecta este terminal con tu cuenta de TalentUP</div>
+    <div class="admin-field">
+      <label>URL del Backend</label>
+      <input type="text" id="setupBackendUrl" placeholder="http://localhost:8000">
+    </div>
+    <div class="admin-field">
+      <label>Tenant ID</label>
+      <input type="text" id="setupTenantId" placeholder="uuid-del-tenant">
+    </div>
+    <div class="admin-actions">
+      <button class="admin-btn admin-btn-save" id="setupSave">🔗 Conectar terminal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== CONFIG =====
+  const CONFIG_KEY = 'talentup_config';
+  const OFFLINE_QUEUE_KEY = 'talentup_offline_queue';
+
+  const DEFAULT_CONFIG = {
+    backendUrl: 'http://localhost:8000',
+    tenantId: ''
+  };
+
+  const ADMIN_PIN = '0000';
+
+  // ===== STATE =====
+  let config = loadConfig();
+  let currentPin = '';
+  let failedAttempts = 0;
+  let lockedUntil = 0;
+  let logoTapCount = 0;
+  let logoTapTimer = null;
+  let confirmTimer = null;
+  let lockTimer = null;
+  let lockInterval = null;
+  let syncInterval = null;
+  let isSubmitting = false;
+
+  // ===== DOM REFS =====
+  const $ = id => document.getElementById(id);
+  const screenPin = $('screenPin');
+  const screenLocked = $('screenLocked');
+  const screenAdmin = $('screenAdmin');
+  const screenSetup = $('screenSetup');
+  const confirmOverlay = $('confirmOverlay');
+  const loadingOverlay = $('loadingOverlay');
+  const clockDisplay = $('clockDisplay');
+  const dateDisplay = $('dateDisplay');
+  const pinDisplay = $('pinDisplay');
+  const errorMsg = $('errorMsg');
+  const keypad = $('keypad');
+  const confirmIcon = $('confirmIcon');
+  const confirmText = $('confirmText');
+  const confirmEmployee = $('confirmEmployee');
+  const confirmSub = $('confirmSub');
+  const lockedTimer = $('lockedTimer');
+  const logoTrigger = $('logoTrigger');
+  const offlineBanner = $('offlineBanner');
+  const offlineCount = $('offlineCount');
+  const adminBackendUrl = $('adminBackendUrl');
+  const adminTenantId = $('adminTenantId');
+  const adminBrightness = $('adminBrightness');
+  const adminSave = $('adminSave');
+  const adminExitKiosk = $('adminExitKiosk');
+  const adminClose = $('adminClose');
+  const setupBackendUrl = $('setupBackendUrl');
+  const setupTenantId = $('setupTenantId');
+  const setupSave = $('setupSave');
+  const statusBarFill = $('statusBarFill');
+
+  // ===== PERSISTENCE =====
+  function loadConfig() {
+    try {
+      const raw = localStorage.getItem(CONFIG_KEY);
+      return raw ? { ...DEFAULT_CONFIG, ...JSON.parse(raw) } : { ...DEFAULT_CONFIG };
+    } catch { return { ...DEFAULT_CONFIG }; }
+  }
+
+  function saveConfig() {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  }
+
+  function getOfflineQueue() {
+    try {
+      const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  function saveOfflineQueue(queue) {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+    updateOfflineBanner();
+  }
+
+  function addToOfflineQueue(entry) {
+    const queue = getOfflineQueue();
+    queue.push({ ...entry, _queuedAt: new Date().toISOString() });
+    saveOfflineQueue(queue);
+  }
+
+  function removeFromOfflineQueue(index) {
+    const queue = getOfflineQueue();
+    queue.splice(index, 1);
+    saveOfflineQueue(queue);
+  }
+
+  // ===== OFFLINE BANNER =====
+  function updateOfflineBanner() {
+    const queue = getOfflineQueue();
+    const count = queue.length;
+    offlineCount.textContent = count;
+    if (count > 0) {
+      offlineBanner.classList.add('show');
+    } else {
+      offlineBanner.classList.remove('show');
+    }
+  }
+
+  // ===== SYNC PENDING CLOCKS =====
+  async function syncPendingClocks() {
+    const queue = getOfflineQueue();
+    if (queue.length === 0) return;
+
+    let synced = 0;
+    for (let i = queue.length - 1; i >= 0; i--) {
+      const entry = queue[i];
+      try {
+        const resp = await fetch(config.backendUrl + '/api/clock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pin: entry.pin,
+            type: 'auto',
+            tenant_id: config.tenantId
+          })
+        });
+        if (resp.ok) {
+          removeFromOfflineQueue(i);
+          synced++;
+        }
+      } catch {
+        // Still offline, stop trying more for now
+        break;
+      }
+    }
+
+    if (synced > 0) {
+      // Show brief sync confirmation
+      const origText = offlineBanner.textContent;
+      offlineBanner.textContent = '✓ Sincronizado';
+      offlineBanner.style.background = 'var(--green)';
+      offlineBanner.style.color = '#fff';
+      setTimeout(() => {
+        offlineBanner.style.background = '';
+        offlineBanner.style.color = '';
+        updateOfflineBanner();
+      }, 2000);
+    }
+  }
+
+  // ===== CLOCK =====
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    clockDisplay.textContent = `${h}:${m}:${s}`;
+
+    const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    dateDisplay.textContent = `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // ===== SCREEN MANAGEMENT =====
+  function showScreen(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
+  }
+
+  function goToPinScreen() {
+    currentPin = '';
+    updatePinDisplay();
+    errorMsg.classList.remove('show');
+    errorMsg.textContent = '';
+    showScreen(screenPin);
+  }
+
+  // ===== PIN DISPLAY =====
+  function updatePinDisplay() {
+    const dots = pinDisplay.querySelectorAll('.pin-dot');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('filled', i < currentPin.length);
+      dot.classList.toggle('cursor', i === currentPin.length);
+    });
+  }
+
+  // ===== KEYPAD =====
+  keypad.addEventListener('click', function(e) {
+    const btn = e.target.closest('.key');
+    if (!btn) return;
+    const key = btn.dataset.key;
+    handleKeyInput(key);
+  });
+
+  keypad.addEventListener('touchstart', function(e) {
+    const btn = e.target.closest('.key');
+    if (btn && !btn.classList.contains('key-empty')) {
+      btn.style.transform = 'scale(0.95)';
+    }
+  }, { passive: true });
+  keypad.addEventListener('touchend', function(e) {
+    const btn = e.target.closest('.key');
+    if (btn) btn.style.transform = '';
+  }, { passive: true });
+
+  function handleKeyInput(key) {
+    if (lockedUntil > Date.now()) return;
+    if (isSubmitting) return;
+
+    if (key === 'clear') {
+      currentPin = currentPin.slice(0, -1);
+      updatePinDisplay();
+      errorMsg.classList.remove('show');
+      return;
+    }
+
+    if (key === 'ok') {
+      submitPin();
+      return;
+    }
+
+    // Number key
+    if (currentPin.length < 4) {
+      currentPin += key;
+      updatePinDisplay();
+      errorMsg.classList.remove('show');
+      playBeep(800, 0.03, 0.05);
+    }
+  }
+
+  // ===== PIN SUBMISSION =====
+  async function submitPin() {
+    if (currentPin.length < 4) {
+      errorMsg.textContent = 'Introduce 4 dígitos';
+      errorMsg.classList.add('show');
+      shakeElement(errorMsg);
+      return;
+    }
+
+    if (lockedUntil > Date.now()) {
+      showLockedScreen();
+      return;
+    }
+
+    // Check admin PIN
+    if (currentPin === ADMIN_PIN) {
+      openAdminPanel();
+      return;
+    }
+
+    // Check if tenant is configured
+    if (!config.tenantId) {
+      errorMsg.textContent = 'Terminal no configurado. Contacta al administrador.';
+      errorMsg.classList.add('show');
+      shakeElement(errorMsg);
+      currentPin = '';
+      updatePinDisplay();
+      return;
+    }
+
+    // Submit to backend
+    isSubmitting = true;
+    loadingOverlay.classList.add('active');
+    errorMsg.classList.remove('show');
+
+    const now = new Date();
+    const timeStr = now.toTimeString().slice(0, 8);
+
+    try {
+      const resp = await fetch(config.backendUrl + '/api/clock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin: currentPin,
+          type: 'auto',
+          tenant_id: config.tenantId
+        })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        // Backend success
+        failedAttempts = 0;
+        const clockType = data.type || 'in';
+        const empName = data.employee ? data.employee.name : '';
+        const clockTime = data.time || timeStr;
+
+        const labels = {
+          in: '✓ Entrada registrada',
+          out: '✓ Salida registrada'
+        };
+
+        playBeep(1200, 0.15, 0.15);
+        confirmIcon.textContent = '✓';
+        confirmText.textContent = labels[clockType] || '✓ Fichaje registrado';
+        confirmEmployee.textContent = empName;
+        confirmSub.textContent = clockTime;
+        confirmOverlay.classList.add('active');
+      } else {
+        // Backend returned error — try offline
+        throw new Error('Backend error: ' + resp.status);
+      }
+    } catch {
+      // Backend unreachable or error — save to offline queue
+      addToOfflineQueue({ pin: currentPin });
+
+      // Show local confirmation
+      playBeep(1200, 0.15, 0.15);
+      confirmIcon.textContent = '✓';
+      confirmText.textContent = 'Fichaje guardado (sin conexión)';
+      confirmEmployee.textContent = '';
+      confirmSub.textContent = timeStr;
+      confirmOverlay.classList.add('active');
+    }
+
+    loadingOverlay.classList.remove('active');
+    isSubmitting = false;
+    currentPin = '';
+    updatePinDisplay();
+
+    // Auto-return after 3 seconds
+    if (confirmTimer) clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(() => {
+      confirmOverlay.classList.remove('active');
+      goToPinScreen();
+    }, 3000);
+  }
+
+  function handleFailedPin() {
+    failedAttempts++;
+    errorMsg.textContent = 'PIN incorrecto';
+    errorMsg.classList.add('show');
+    shakeElement(errorMsg);
+    playBeep(200, 0.15, 0.3);
+    currentPin = '';
+    updatePinDisplay();
+
+    if (failedAttempts >= 3) {
+      lockedUntil = Date.now() + 30000; // 30 seconds
+      showLockedScreen();
+    }
+  }
+
+  function shakeElement(el) {
+    el.classList.remove('shake');
+    void el.offsetWidth; // reflow
+    el.classList.add('shake');
+    setTimeout(() => el.classList.remove('shake'), 500);
+  }
+
+  // ===== LOCKED SCREEN =====
+  function showLockedScreen() {
+    showScreen(screenLocked);
+    updateLockedTimer();
+    if (lockInterval) clearInterval(lockInterval);
+    lockInterval = setInterval(updateLockedTimer, 1000);
+  }
+
+  function updateLockedTimer() {
+    const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+    const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    lockedTimer.textContent = `${m}:${s}`;
+    if (remaining <= 0) {
+      clearInterval(lockInterval);
+      lockInterval = null;
+      failedAttempts = 0;
+      goToPinScreen();
+    }
+  }
+
+  // ===== WEB AUDIO BEEP =====
+  function playBeep(freq, duration, volume) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.value = volume || 0.1;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (duration || 0.1));
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + (duration || 0.1));
+    } catch {}
+  }
+
+  // ===== LOGO TAP (Admin mode) =====
+  logoTrigger.addEventListener('click', function() {
+    logoTapCount++;
+    if (logoTapTimer) clearTimeout(logoTapTimer);
+    logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 2000);
+
+    if (logoTapCount >= 5) {
+      logoTapCount = 0;
+      // Ask for admin PIN
+      const enteredPin = prompt('Introduce PIN de administrador:');
+      if (enteredPin === ADMIN_PIN) {
+        openAdminPanel();
+      } else if (enteredPin !== null) {
+        alert('PIN de administrador incorrecto');
+      }
+    }
+  });
+
+  // ===== ADMIN PANEL =====
+  function openAdminPanel() {
+    adminBackendUrl.value = config.backendUrl;
+    adminTenantId.value = config.tenantId;
+    adminBrightness.value = config.brightness || 100;
+    showScreen(screenAdmin);
+  }
+
+  adminSave.addEventListener('click', function() {
+    config.backendUrl = adminBackendUrl.value.trim() || DEFAULT_CONFIG.backendUrl;
+    config.tenantId = adminTenantId.value.trim() || '';
+    config.brightness = parseInt(adminBrightness.value) || 100;
+    saveConfig();
+
+    // Apply brightness
+    document.body.style.filter = `brightness(${config.brightness / 100})`;
+
+    // Show saved feedback
+    const orig = adminSave.textContent;
+    adminSave.textContent = '✓ Guardado';
+    setTimeout(() => { adminSave.textContent = orig; }, 1500);
+  });
+
+  adminExitKiosk.addEventListener('click', function() {
+    if (confirm('¿Salir del modo kiosk? Se abrirá una nueva ventana.')) {
+      window.open('about:blank', '_blank');
+      window.location.href = 'about:blank';
+    }
+  });
+
+  adminClose.addEventListener('click', function() {
+    goToPinScreen();
+  });
+
+  // ===== SETUP SCREEN =====
+  function openSetupScreen() {
+    setupBackendUrl.value = config.backendUrl || DEFAULT_CONFIG.backendUrl;
+    setupTenantId.value = config.tenantId || '';
+    showScreen(screenSetup);
+  }
+
+  setupSave.addEventListener('click', function() {
+    const url = setupBackendUrl.value.trim();
+    const tid = setupTenantId.value.trim();
+    if (!url) {
+      alert('Introduce la URL del backend');
+      return;
+    }
+    if (!tid) {
+      alert('Introduce el Tenant ID');
+      return;
+    }
+    config.backendUrl = url;
+    config.tenantId = tid;
+    config.brightness = 100;
+    saveConfig();
+    document.body.style.filter = 'brightness(1)';
+    goToPinScreen();
+  });
+
+  // ===== BRIGHTNESS INIT =====
+  if (config.brightness) {
+    document.body.style.filter = `brightness(${config.brightness / 100})`;
+  }
+
+  // ===== KEYBOARD SUPPORT =====
+  document.addEventListener('keydown', function(e) {
+    if (e.key >= '0' && e.key <= '9') {
+      handleKeyInput(e.key);
+      return;
+    }
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      handleKeyInput('clear');
+      return;
+    }
+    if (e.key === 'Enter') {
+      handleKeyInput('ok');
+      return;
+    }
+    if (e.key === 'Escape') {
+      if (confirmOverlay.classList.contains('active')) {
+        confirmOverlay.classList.remove('active');
+        goToPinScreen();
+      } else if (screenAdmin.classList.contains('active')) {
+        goToPinScreen();
+      } else if (screenSetup.classList.contains('active')) {
+        goToPinScreen();
+      }
+    }
+  });
+
+  // ===== PREVENT SCROLL / ZOOM =====
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('gestureend', e => e.preventDefault());
+  document.addEventListener('touchmove', e => {
+    if (e.target.closest('.keypad')) return;
+    e.preventDefault();
+  }, { passive: false });
+
+  // ===== STATUS BAR ANIMATION =====
+  let statusInterval = null;
+  function startStatusBar() {
+    statusBarFill.style.width = '0%';
+    if (statusInterval) clearInterval(statusInterval);
+    let width = 0;
+    statusInterval = setInterval(() => {
+      width = (width + 1) % 101;
+      statusBarFill.style.width = width + '%';
+    }, 100);
+  }
+  startStatusBar();
+
+  // ===== OFFLINE SYNC INTERVAL =====
+  function startSyncInterval() {
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(syncPendingClocks, 30000);
+  }
+
+  // ===== INIT =====
+  updateOfflineBanner();
+  startSyncInterval();
+
+  // If no tenant_id configured, show setup screen
+  if (!config.tenantId) {
+    openSetupScreen();
+  }
+
+  console.log('TalentUP Fichaje Terminal v2.0');
+  console.log('Backend:', config.backendUrl);
+  console.log('Tenant ID:', config.tenantId || '(no configurado)');
+  console.log('Admin PIN: 0000 (pulsa 5 veces el logo)');
+})();
+</script>
+</body>
+</html>
