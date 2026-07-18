@@ -54,7 +54,7 @@ def _record(store: dict[str, list[float]], key: str):
 
 class ClockRequest(BaseModel):
     pin: str
-    type: Literal["in", "out", "break_start", "break_end"]
+    type: Literal["in", "out", "break_start", "break_end", "auto"] = "auto"
     tenant_id: str = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -143,10 +143,23 @@ async def clock_in(
     )
     last_clock = last_clock_result.scalar_one_or_none()
 
-    if data.type == "in":
+    # --- Auto toggle: determine type based on last clock ---
+    if data.type == "auto":
+        if not last_clock or last_clock.type == "out":
+            data_type = "in"
+        elif last_clock.type == "in":
+            data_type = "out"
+        elif last_clock.type == "break_start":
+            data_type = "break_end"
+        elif last_clock.type == "break_end":
+            data_type = "out"
+        else:
+            data_type = "in"
+    else:
+        data_type = data.type
+
+    if data_type == "in":
         if last_clock and last_clock.type in ("in", "break_end"):
-            # If last was "in" or "break_end" and no "out" after it, it's still active
-            # Check if there's an "out" after the last "in"
             if last_clock.type == "in":
                 raise HTTPException(
                     status_code=400,
@@ -157,13 +170,13 @@ async def clock_in(
                     status_code=400,
                     detail=f"{matched_emp.name} ya está trabajando. Debe hacer 'out' primero.",
                 )
-    elif data.type == "out":
+    elif data_type == "out":
         if not last_clock or last_clock.type not in ("in", "break_end"):
             raise HTTPException(
                 status_code=400,
                 detail=f"{matched_emp.name} no tiene un fichaje 'in' activo. No puede hacer 'out'.",
             )
-    elif data.type == "break_start":
+    elif data_type == "break_start":
         if not last_clock or last_clock.type not in ("in", "break_end"):
             raise HTTPException(
                 status_code=400,
@@ -174,7 +187,7 @@ async def clock_in(
                 status_code=400,
                 detail=f"{matched_emp.name} ya está en pausa. Debe hacer 'break_end' primero.",
             )
-    elif data.type == "break_end":
+    elif data_type == "break_end":
         if not last_clock or last_clock.type != "break_start":
             raise HTTPException(
                 status_code=400,
@@ -187,7 +200,7 @@ async def clock_in(
     clock = ClockIn(
         tenant_id=data.tenant_id,
         employee_id=matched_emp.id,
-        type=data.type,
+        type=data_type,
         timestamp=datetime.now(timezone.utc),
         latitude=data.latitude,
         longitude=data.longitude,
@@ -197,9 +210,14 @@ async def clock_in(
     await db.commit()
     await db.refresh(clock)
 
+    # Response labels in Spanish
+    _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
     return {
         "ok": True,
-        "message": f"{matched_emp.name} — {data.type} registrado",
+        "message": f"{matched_emp.name} — {_labels.get(data_type, data_type)} registrada",
+        "type": data_type,
+        "employee_name": matched_emp.name,
+        "time": clock.timestamp.isoformat() if clock.timestamp else None,
         "clock": clock.to_dict(),
     }
 

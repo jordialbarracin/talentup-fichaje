@@ -23,6 +23,14 @@ from app.routers import (
     clock,
     reports,
     tenants,
+    contracts,
+    holidays,
+    vacations,
+    leave,
+    overtime,
+    payroll,
+    notifications,
+    calendar,
 )
 
 
@@ -38,7 +46,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="TalentUP Fichaje API",
     description="SaaS de fichaje digital para hostelería. Multi-tenant. Cumple RD-ley 8/2019.",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -59,7 +67,7 @@ app.add_middleware(
 # Health check
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "TalentUP Fichaje API", "version": "1.0.0"}
+    return {"status": "ok", "service": "TalentUP Fichaje API", "version": "2.0.0"}
 
 # Register routers
 app.include_router(auth.router)
@@ -69,6 +77,14 @@ app.include_router(schedules.router)
 app.include_router(clock.router)
 app.include_router(reports.router)
 app.include_router(tenants.router)
+app.include_router(contracts.router)
+app.include_router(holidays.router)
+app.include_router(vacations.router)
+app.include_router(leave.router)
+app.include_router(overtime.router)
+app.include_router(payroll.router)
+app.include_router(notifications.router)
+app.include_router(calendar.router)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ In-memory SQLite database, seed data, async test client.
 import asyncio
 import os
 import uuid
-from datetime import datetime, timezone, time
+from datetime import datetime, timezone, time, date, timedelta
 
 # Force in-memory SQLite BEFORE importing app modules
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
@@ -21,6 +21,9 @@ from app.models.tenant import Tenant
 from app.models.user import User
 from app.models.shift import Shift
 from app.models.employee import Employee
+from app.models.vacation_request import VacationRequest
+from app.models.leave import Leave
+from app.models.holiday import Holiday
 from app.auth import hash_password, create_access_token
 
 
@@ -181,6 +184,44 @@ async def seed_data():
         db.add(emp_b1)
         await db.flush()
 
+        # 10. VacationRequest for Tenant A (pending)
+        vac1 = VacationRequest(
+            tenant_id=tenant_a.id,
+            employee_id=emp1.id,
+            type="vacation",
+            start_date=date.today() + timedelta(days=30),
+            end_date=date.today() + timedelta(days=35),
+            total_days=5,
+            days_count_method="working",
+            reason="Vacaciones de verano",
+            status="pending",
+        )
+        db.add(vac1)
+        await db.flush()
+
+        # 11. Leave for Tenant A
+        leave1 = Leave(
+            tenant_id=tenant_a.id,
+            employee_id=emp2.id,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=5),
+            type="medical",
+            reason="Gripe",
+            is_active=True,
+        )
+        db.add(leave1)
+        await db.flush()
+
+        # 12. Holiday for Tenant A
+        holiday1 = Holiday(
+            tenant_id=tenant_a.id,
+            name="Navidad",
+            date=date(date.today().year, 12, 25),
+            is_recurring=True,
+        )
+        db.add(holiday1)
+        await db.flush()
+
         await db.commit()
 
     # Build tokens
@@ -224,6 +265,9 @@ async def seed_data():
         "emp_b1_id": str(emp_b1.id),
         "shift_morning_id": str(shift_morning.id),
         "shift_afternoon_id": str(shift_afternoon.id),
+        "vac1_id": str(vac1.id),
+        "leave1_id": str(leave1.id),
+        "holiday1_id": str(holiday1.id),
     }
 
 

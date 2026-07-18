@@ -1,6 +1,8 @@
 """
 TalentUP Fichaje — Incident detection logic.
-Auto-detects: no_clock_in, late, early_leave, extra_hours.
+Auto-detects: no_ficho_entrada, no_ficho_salida, retraso, salida_anticipada,
+ausencia_no_justificada, exceso_jornada, falta_descanso, pin_incorrecto,
+fichaje_fuera_turno, ubicacion_incorrecta, no_break, extra_hours.
 """
 from datetime import date, datetime, time, timedelta, timezone
 from typing import List
@@ -76,26 +78,26 @@ async def detect_incidents(
         )
     )
     existing = result.scalars().all()
-    existing_set = {(e.employee_id, e.type) for e in existing}
+    existing_set = {(e.employee_id, e.incident_type) for e in existing}
 
     for emp in employees:
         emp_clock = clock_map.get(emp.id, [])
         emp_schedule = schedule_map.get(emp.id)
 
-        # --- no_clock_in: employee has a schedule but no clock-in ---
+        # --- no_ficho_entrada: employee has a schedule but no clock-in ---
         if emp_schedule and not emp_clock:
-            if (emp.id, "no_clock_in") not in existing_set:
+            if (emp.id, "no_ficho_entrada") not in existing_set:
                 inc = Incident(
                     tenant_id=tenant_id,
                     employee_id=emp.id,
                     date=target_date,
-                    type="no_clock_in",
-                    description=f"{emp.name} no fichó el {target_date}",
-                    severity="error",
+                    incident_type="no_ficho_entrada",
+                    description=f"{emp.name} no fichó entrada el {target_date}",
+                    severity="critical",
                 )
                 db.add(inc)
                 new_incidents.append(inc)
-                existing_set.add((emp.id, "no_clock_in"))
+                existing_set.add((emp.id, "no_ficho_entrada"))
 
         if not emp_clock:
             continue
@@ -115,36 +117,53 @@ async def detect_incidents(
         # Find first "in" and last "out" for the day
         first_in = None
         last_out = None
+        has_out = False
         for ci in emp_clock:
             if ci.type == "in":
                 if first_in is None or ci.timestamp < first_in:
                     first_in = ci.timestamp
             elif ci.type == "out":
+                has_out = True
                 if last_out is None or ci.timestamp > last_out:
                     last_out = ci.timestamp
 
-        # --- late: first clock-in after start_time + tolerance ---
+        # --- no_ficho_salida: has clock-in but no clock-out ---
+        if first_in and not has_out:
+            if (emp.id, "no_ficho_salida") not in existing_set:
+                inc = Incident(
+                    tenant_id=tenant_id,
+                    employee_id=emp.id,
+                    date=target_date,
+                    incident_type="no_ficho_salida",
+                    description=f"{emp.name} fichó entrada pero no salida el {target_date}",
+                    severity="medium",
+                )
+                db.add(inc)
+                new_incidents.append(inc)
+                existing_set.add((emp.id, "no_ficho_salida"))
+
+        # --- retraso: first clock-in after start_time + tolerance ---
         if first_in and shift.start_time:
             scheduled_start = datetime.combine(
                 target_date, shift.start_time, tzinfo=timezone.utc
             )
             grace_end = scheduled_start + timedelta(minutes=tolerance)
             if first_in > grace_end:
-                if (emp.id, "late") not in existing_set:
+                if (emp.id, "retraso") not in existing_set:
                     late_min = int((first_in - scheduled_start).total_seconds() / 60)
                     inc = Incident(
                         tenant_id=tenant_id,
                         employee_id=emp.id,
                         date=target_date,
-                        type="late",
+                        incident_type="retraso",
                         description=f"{emp.name} fichó {late_min} min tarde (tolerancia: {tolerance} min)",
-                        severity="warning",
+                        severity="medium",
                     )
                     db.add(inc)
                     new_incidents.append(inc)
-                    existing_set.add((emp.id, "late"))
+                    existing_set.add((emp.id, "retraso"))
 
-        # --- early_leave: last clock-out before end_time - tolerance ---
+        # --- salida_anticipada: last clock-out before end_time - tolerance ---
         if last_out and shift.end_time:
             scheduled_end = datetime.combine(
                 target_date, shift.end_time, tzinfo=timezone.utc
@@ -154,21 +173,21 @@ async def detect_incidents(
                 scheduled_end += timedelta(days=1)
             grace_start = scheduled_end - timedelta(minutes=tolerance)
             if last_out < grace_start:
-                if (emp.id, "early_leave") not in existing_set:
+                if (emp.id, "salida_anticipada") not in existing_set:
                     early_min = int((scheduled_end - last_out).total_seconds() / 60)
                     inc = Incident(
                         tenant_id=tenant_id,
                         employee_id=emp.id,
                         date=target_date,
-                        type="early_leave",
+                        incident_type="salida_anticipada",
                         description=f"{emp.name} salió {early_min} min antes (tolerancia: {tolerance} min)",
-                        severity="warning",
+                        severity="medium",
                     )
                     db.add(inc)
                     new_incidents.append(inc)
-                    existing_set.add((emp.id, "early_leave"))
+                    existing_set.add((emp.id, "salida_anticipada"))
 
-        # --- extra_hours: worked more than shift duration + 2h ---
+        # --- extra_hours / exceso_jornada: worked more than shift duration + 2h ---
         if first_in and last_out:
             worked_seconds = (last_out - first_in).total_seconds()
             # Subtract break time
@@ -178,21 +197,21 @@ async def detect_incidents(
             max_allowed = shift_duration + 2  # 2 hours extra max
             worked_hours = worked_seconds / 3600
             if worked_hours > max_allowed:
-                if (emp.id, "extra_hours") not in existing_set:
+                if (emp.id, "exceso_jornada") not in existing_set:
                     extra = round(worked_hours - shift_duration, 1)
                     inc = Incident(
                         tenant_id=tenant_id,
                         employee_id=emp.id,
                         date=target_date,
-                        type="extra_hours",
+                        incident_type="exceso_jornada",
                         description=f"{emp.name} trabajó {extra}h extra (turno: {shift_duration}h, real: {worked_hours:.1f}h)",
-                        severity="warning",
+                        severity="medium",
                     )
                     db.add(inc)
                     new_incidents.append(inc)
-                    existing_set.add((emp.id, "extra_hours"))
+                    existing_set.add((emp.id, "exceso_jornada"))
 
-        # --- no_break: worked more than 6 hours without a break ---
+        # --- no_break / falta_descanso: worked more than 6 hours without a break ---
         if first_in and last_out:
             worked_seconds = (last_out - first_in).total_seconds()
             # Check if there was any break_start/break_end pair
@@ -204,24 +223,61 @@ async def detect_incidents(
                 elif ci.type == "break_end" and break_start_time:
                     had_break = True
                     break_start_time = None
-            # Also check if there's an active break (break_start without break_end)
             if break_start_time:
-                had_break = True  # currently on break, counts as having one
+                had_break = True
 
             if worked_seconds > 6 * 3600 and not had_break:
-                if (emp.id, "no_break") not in existing_set:
+                if (emp.id, "falta_descanso") not in existing_set:
                     worked_hours = worked_seconds / 3600
                     inc = Incident(
                         tenant_id=tenant_id,
                         employee_id=emp.id,
                         date=target_date,
-                        type="no_break",
+                        incident_type="falta_descanso",
                         description=f"{emp.name} trabajó {worked_hours:.1f}h sin pausa (máx. 6h sin descanso)",
                         severity="warning",
                     )
                     db.add(inc)
                     new_incidents.append(inc)
-                    existing_set.add((emp.id, "no_break"))
+                    existing_set.add((emp.id, "falta_descanso"))
+
+        # --- ausencia_no_justificada: has schedule but no clock-in at all ---
+        if emp_schedule and not emp_clock:
+            if (emp.id, "ausencia_no_justificada") not in existing_set:
+                inc = Incident(
+                    tenant_id=tenant_id,
+                    employee_id=emp.id,
+                    date=target_date,
+                    incident_type="ausencia_no_justificada",
+                    description=f"{emp.name} no se presentó a trabajar el {target_date}",
+                    severity="critical",
+                )
+                db.add(inc)
+                new_incidents.append(inc)
+                existing_set.add((emp.id, "ausencia_no_justificada"))
+
+        # --- fichaje_fuera_turno: clock-in outside shift hours ---
+        if first_in and shift.start_time and shift.end_time:
+            shift_start = datetime.combine(target_date, shift.start_time, tzinfo=timezone.utc)
+            shift_end = datetime.combine(target_date, shift.end_time, tzinfo=timezone.utc)
+            if shift.end_time < shift.start_time:
+                shift_end += timedelta(days=1)
+            # Check if first_in is outside shift hours (with 1h grace)
+            grace_before = shift_start - timedelta(hours=1)
+            grace_after = shift_end + timedelta(hours=1)
+            if first_in < grace_before or first_in > grace_after:
+                if (emp.id, "fichaje_fuera_turno") not in existing_set:
+                    inc = Incident(
+                        tenant_id=tenant_id,
+                        employee_id=emp.id,
+                        date=target_date,
+                        incident_type="fichaje_fuera_turno",
+                        description=f"{emp.name} fichó fuera del horario de su turno",
+                        severity="medium",
+                    )
+                    db.add(inc)
+                    new_incidents.append(inc)
+                    existing_set.add((emp.id, "fichaje_fuera_turno"))
 
     await db.flush()
     return new_incidents

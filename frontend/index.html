@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TalentUP Fichaje — Gestor de fichajes</title>
+<title>TalentUP Fichaje — Gestión de fichajes para hostelería</title>
 <style>
 /* ===== RESET & BASE ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;scroll-behavior:smooth}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0f0f1e;color:#e2e2f0;font-weight:300;line-height:1.5;min-height:100vh;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#0f0f1e;color:#e2e2f0;font-weight:300;line-height:1.5;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 a{color:#FF6B35;text-decoration:none}
 button{cursor:pointer;font-family:inherit;font-size:inherit;border:none;background:none;color:inherit}
-input,select,textarea{font-family:inherit;font-size:inherit;color:#e2e2f0;background:#1e1e36;border:1px solid #2a2a4a;border-radius:8px;padding:10px 14px;outline:none;transition:border-color 240ms cubic-bezier(0.16,1,0.3,1)}
-input:focus,select:focus,textarea:focus{border-color:#FF6B35}
+input,select,textarea{font-family:inherit;font-size:inherit;color:#e2e2f0;background:#1e1e36;border:1px solid #2a2a4a;border-radius:8px;padding:10px 14px;outline:none;transition:border-color 240ms cubic-bezier(0.16,1,0.3,1);font-weight:300}
+input:focus,select:focus,textarea:focus{border-color:#FF6B35;box-shadow:0 0 0 3px rgba(255,107,53,0.1)}
 input::placeholder{color:#6b6b8d}
 table{width:100%;border-collapse:collapse}
 th{text-align:left;font-weight:500;color:#9a9ab0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;padding:12px 16px;border-bottom:1px solid #2a2a4a}
@@ -22,6 +22,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 ::-webkit-scrollbar-track{background:#0f0f1e}
 ::-webkit-scrollbar-thumb{background:#2a2a4a;border-radius:3px}
 ::-webkit-scrollbar-thumb:hover{background:#3a3a5a}
+::selection{background:rgba(255,107,53,0.3);color:#fff}
 
 /* ===== UTILITY ===== */
 .hidden{display:none!important}
@@ -29,6 +30,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .flex-col{flex-direction:column}
 .items-center{align-items:center}
 .justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
 .gap-2{gap:8px}
 .gap-3{gap:12px}
 .gap-4{gap:16px}
@@ -39,6 +41,8 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .text-xs{font-size:0.75rem}
 .text-muted{color:#9a9ab0}
 .font-medium{font-weight:500}
+.w-full{width:100%}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ===== BUTTONS ===== */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:8px;font-weight:500;font-size:0.875rem;transition:all 240ms cubic-bezier(0.16,1,0.3,1);white-space:nowrap}
@@ -53,7 +57,8 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .btn-danger{background:#dc2626;color:#fff}
 .btn-danger:hover{background:#b91c1c}
 .btn-sm{padding:6px 12px;font-size:0.75rem}
-.btn-icon{width:36px;height:36px;padding:0;border-radius:8px}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:8px;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important}
 
 /* ===== LOGIN SCREEN ===== */
 #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:radial-gradient(ellipse at 30% 20%,rgba(255,107,53,0.08),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(15,118,110,0.06),transparent 60%),#0f0f1e}
@@ -69,13 +74,16 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .login-error{color:#ef4444;font-size:0.8rem;text-align:center;min-height:20px}
 .login-version{position:absolute;bottom:16px;right:24px;font-size:0.65rem;color:#3a3a5a}
 
+/* ===== DEMO BANNER ===== */
+.demo-banner{background:#dc2626;color:#fff;text-align:center;padding:8px 16px;font-size:0.8rem;font-weight:500;position:sticky;top:0;z-index:50;animation:slideDown 300ms cubic-bezier(0.16,1,0.3,1)}
+
 /* ===== APP LAYOUT ===== */
 #app{display:flex;min-height:100vh}
 #sidebar{width:240px;background:#1e1e36;border-right:1px solid #2a2a4a;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:40;transition:transform 240ms cubic-bezier(0.16,1,0.3,1)}
 .sidebar-logo{display:flex;align-items:center;gap:10px;padding:20px 20px 16px;border-bottom:1px solid #2a2a4a}
 .sidebar-logo h2{font-size:1.1rem;font-weight:500;color:#fff}
-.sidebar-nav{flex:1;padding:12px;display:flex;flex-direction:column;gap:2px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;font-weight:300;color:#9a9ab0;transition:all 240ms cubic-bezier(0.16,1,0.3,1);cursor:pointer}
+.sidebar-nav{flex:1;padding:12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;font-weight:300;color:#9a9ab0;transition:all 240ms cubic-bezier(0.16,1,0.3,1);cursor:pointer;font-size:0.875rem}
 .nav-item:hover{color:#e2e2f0;background:rgba(255,255,255,0.04)}
 .nav-item.active{color:#FF6B35;background:rgba(255,107,53,0.1);font-weight:500}
 .nav-item svg{flex-shrink:0;opacity:0.7}
@@ -94,6 +102,10 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .navbar-right{display:flex;align-items:center;gap:16px}
 .navbar-user{display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#e2e2f0}
 .navbar-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#FF6B35,#0F766E);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:500;color:#fff;flex-shrink:0}
+.online-indicator{display:flex;align-items:center;gap:4px;font-size:0.7rem;color:#0F766E;padding:4px 10px;border-radius:20px;background:rgba(15,118,110,0.1)}
+.online-indicator.offline{color:#ef4444;background:rgba(239,68,68,0.1)}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#0F766E}
+.online-indicator.offline .online-dot{background:#ef4444}
 .btn-logout{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:0.8rem;color:#9a9ab0;transition:all 240ms cubic-bezier(0.16,1,0.3,1)}
 .btn-logout:hover{color:#ef4444;background:rgba(239,68,68,0.08)}
 
@@ -118,7 +130,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 
 /* ===== TABLE CARD ===== */
 .table-card{background:#1e1e36;border:1px solid #2a2a4a;border-radius:12px;overflow:hidden}
-.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #2a2a4a}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #2a2a4a;flex-wrap:wrap;gap:8px}
 .table-card-header h3{font-size:0.95rem;font-weight:500;color:#fff}
 .table-card-body{overflow-x:auto;padding:0}
 .table-card-body table{min-width:600px}
@@ -131,20 +143,26 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .badge-incident{background:rgba(239,68,68,0.15);color:#ef4444}
 .badge-active{background:rgba(15,118,110,0.15);color:#0F766E}
 .badge-inactive{background:rgba(107,107,141,0.15);color:#6b6b8d}
-.badge-super{background:rgba(139,92,246,0.15);color:#8b5cf6}
+.badge-pending{background:rgba(217,119,6,0.15);color:#d97706}
+.badge-approved{background:rgba(15,118,110,0.15);color:#0F766E}
+.badge-rejected{background:rgba(239,68,68,0.15);color:#ef4444}
+.badge-on-leave{background:rgba(139,92,246,0.15);color:#8b5cf6}
 
 /* ===== MODAL ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fadeIn 240ms cubic-bezier(0.16,1,0.3,1)}
-.modal{background:#1e1e36;border:1px solid #2a2a4a;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp 240ms cubic-bezier(0.16,1,0.3,1)}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #2a2a4a}
+.modal{background:#1e1e36;border:1px solid #2a2a4a;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp 240ms cubic-bezier(0.16,1,0.3,1)}
+.modal-wide{max-width:640px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #2a2a4a;position:sticky;top:0;background:#1e1e36;z-index:1}
 .modal-header h3{font-size:1.1rem;font-weight:500;color:#fff}
 .modal-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:#9a9ab0;transition:all 240ms cubic-bezier(0.16,1,0.3,1)}
 .modal-close:hover{color:#e2e2f0;background:rgba(255,255,255,0.04)}
 .modal-body{padding:24px}
 .modal-body .form-group{margin-bottom:16px}
 .modal-body label{display:block;font-size:0.75rem;font-weight:500;color:#9a9ab0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
-.modal-body input,.modal-body select{width:100%}
-.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid #2a2a4a}
+.modal-body input,.modal-body select,.modal-body textarea{width:100%}
+.modal-body textarea{resize:vertical;min-height:60px}
+.modal-body .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px;border-top:1px solid #2a2a4a;position:sticky;bottom:0;background:#1e1e36}
 
 /* ===== SHIFT CARD ===== */
 .shifts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
@@ -167,34 +185,77 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 .schedule-table td:hover{background:rgba(255,107,53,0.08)}
 .schedule-cell{display:inline-block;padding:4px 10px;border-radius:6px;font-size:0.7rem;font-weight:500;white-space:nowrap}
 .schedule-empty{color:#3a3a5a;font-size:0.7rem}
+.schedule-holiday{background:rgba(239,68,68,0.06)}
+.schedule-holiday .schedule-empty{color:rgba(239,68,68,0.3)}
+.schedule-vacation{background:rgba(15,118,110,0.06)}
 
 /* ===== REPORTS ===== */
 .reports-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:24px}
 .reports-filters .filter-group{display:flex;flex-direction:column;gap:4px}
 .reports-filters label{font-size:0.7rem;font-weight:500;color:#9a9ab0;text-transform:uppercase;letter-spacing:0.05em}
-.reports-filters input{padding:8px 12px;font-size:0.85rem}
-.reports-actions{display:flex;gap:8px;margin-top:4px}
+.reports-filters input,.reports-filters select{padding:8px 12px;font-size:0.85rem}
+.reports-actions{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
 .reports-section{margin-bottom:28px}
 .reports-section h3{font-size:1rem;font-weight:500;color:#fff;margin-bottom:12px}
 
-/* ===== SETTINGS ===== */
+/* ===== SETTINGS TABS ===== */
+.settings-tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid #2a2a4a;padding-bottom:0;overflow-x:auto}
+.settings-tab{padding:10px 20px;border-radius:8px 8px 0 0;font-size:0.85rem;font-weight:400;color:#9a9ab0;transition:all 240ms cubic-bezier(0.16,1,0.3,1);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+.settings-tab:hover{color:#e2e2f0;background:rgba(255,255,255,0.02)}
+.settings-tab.active{color:#FF6B35;border-bottom-color:#FF6B35;font-weight:500}
+.settings-panel{display:none}
+.settings-panel.active{display:block}
 .settings-card{background:#1e1e36;border:1px solid #2a2a4a;border-radius:12px;padding:28px;max-width:600px}
 .settings-card .form-group{margin-bottom:20px}
 .settings-card label{display:block;font-size:0.75rem;font-weight:500;color:#9a9ab0;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
-.settings-card input{width:100%}
+.settings-card input,.settings-card select{width:100%}
 
 /* ===== PIN TOGGLE ===== */
 .pin-hidden{font-family:monospace;letter-spacing:2px;cursor:pointer;color:#6b6b8d;transition:color 240ms cubic-bezier(0.16,1,0.3,1)}
 .pin-hidden:hover{color:#e2e2f0}
 .pin-visible{font-family:monospace;letter-spacing:2px;cursor:pointer;color:#e2e2f0}
 
+/* ===== PAGINATION ===== */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-top:1px solid #2a2a4a}
+.pagination .page-btn{padding:6px 12px;border-radius:6px;font-size:0.8rem;color:#9a9ab0;border:1px solid #2a2a4a;transition:all 240ms cubic-bezier(0.16,1,0.3,1);cursor:pointer;background:transparent}
+.pagination .page-btn:hover{color:#e2e2f0;border-color:#FF6B35}
+.pagination .page-btn.active{background:#FF6B35;color:#fff;border-color:#FF6B35}
+.pagination .page-btn:disabled{opacity:0.3;cursor:not-allowed}
+.pagination .page-info{font-size:0.8rem;color:#6b6b8d}
+
+/* ===== SEARCH BAR ===== */
+.search-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search-bar input{padding:8px 12px;font-size:0.85rem;min-width:200px}
+.search-bar select{padding:8px 12px;font-size:0.85rem}
+
+/* ===== CALENDAR ===== */
+.calendar-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.calendar-nav h3{font-size:1.1rem;font-weight:500;color:#fff;min-width:200px;text-align:center}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.calendar-header-cell{padding:8px;text-align:center;font-size:0.7rem;font-weight:500;color:#9a9ab0;text-transform:uppercase;letter-spacing:0.05em}
+.calendar-cell{background:#1e1e36;border:1px solid #2a2a4a;border-radius:8px;padding:8px;min-height:80px;transition:all 240ms cubic-bezier(0.16,1,0.3,1);cursor:pointer;position:relative}
+.calendar-cell:hover{border-color:rgba(255,107,53,0.3)}
+.calendar-cell .day-num{font-size:0.8rem;font-weight:500;color:#e2e2f0;margin-bottom:4px}
+.calendar-cell.other-month .day-num{color:#3a3a5a}
+.calendar-cell.today{border-color:#FF6B35}
+.calendar-cell.today .day-num{color:#FF6B35}
+.calendar-cell.has-event .day-num::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#FF6B35;margin-left:4px;vertical-align:super}
+.calendar-event{font-size:0.6rem;padding:2px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.calendar-event.vacation{background:rgba(15,118,110,0.2);color:#0F766E}
+.calendar-event.holiday{background:rgba(239,68,68,0.2);color:#ef4444}
+.calendar-event.shift{background:rgba(255,107,53,0.2);color:#FF6B35}
+.calendar-event.leave{background:rgba(139,92,246,0.2);color:#8b5cf6}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
-.spinner{width:20px;height:20px;border:2px solid #2a2a4a;border-top-color:#FF6B35;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block}
+.spinner{width:20px;height:20px;border:2px solid #2a2a4a;border-top-color:#FF6B35;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;vertical-align:middle}
+.spinner-lg{width:32px;height:32px;border-width:3px}
+.loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;gap:12px;color:#9a9ab0;font-size:0.875rem}
 
 /* ===== TOAST ===== */
 .toast-container{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;max-width:360px}
@@ -220,12 +281,18 @@ tr:hover td{background:rgba(255,107,53,0.04)}
   .reports-actions{flex-wrap:wrap}
   .schedule-table td{min-width:80px;font-size:0.7rem}
   .schedule-table th{font-size:0.7rem}
+  .modal-body .form-row{grid-template-columns:1fr}
+  .calendar-grid{gap:2px}
+  .calendar-cell{min-height:60px;padding:4px}
+  .settings-tabs{flex-wrap:nowrap}
+  .search-bar input{min-width:140px}
 }
 @media(max-width:480px){
   .stats-grid{grid-template-columns:1fr}
   .navbar-user .navbar-avatar{width:28px;height:28px;font-size:0.65rem}
   .btn-logout span{display:none}
   .modal{padding:0;border-radius:12px;margin:10px}
+  .calendar-cell{min-height:50px}
 }
 </style>
 </head>
@@ -249,11 +316,17 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
       </div>
       <div class="login-error" id="login-error"></div>
-      <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        <span id="login-btn-text">Iniciar sesión</span>
+        <span class="spinner hidden" id="login-spinner"></span>
+      </button>
     </form>
-    <span class="login-version">v1.0.0</span>
+    <span class="login-version">v2.0.0</span>
   </div>
 </div>
+
+<!-- ===== DEMO BANNER ===== -->
+<div id="demo-banner" class="demo-banner hidden">⚠️ Modo demo — los datos mostrados no son reales</div>
 
 <!-- ===== APP ===== -->
 <div id="app" class="hidden">
@@ -272,13 +345,25 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Empleados
       </div>
+      <div class="nav-item" data-page="calendario">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendario
+      </div>
       <div class="nav-item" data-page="turnos">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Turnos
       </div>
-      <div class="nav-item" data-page="horarios">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Horarios
+      <div class="nav-item" data-page="fichajes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Fichajes
+      </div>
+      <div class="nav-item" data-page="vacaciones">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Vacaciones
+      </div>
+      <div class="nav-item" data-page="bajas">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Bajas
       </div>
       <div class="nav-item" data-page="informes">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -308,6 +393,10 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         <span class="navbar-title" id="navbar-title">Dashboard</span>
       </div>
       <div class="navbar-right">
+        <div class="online-indicator" id="online-indicator">
+          <span class="online-dot"></span>
+          <span id="online-text">Conectado</span>
+        </div>
         <div class="navbar-user">
           <div class="navbar-avatar" id="navbar-avatar">A</div>
           <span id="navbar-name">Admin</span>
@@ -323,7 +412,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
     <div class="page-content" id="page-dashboard">
       <div class="page-header">
         <h2>Dashboard</h2>
-        <p>Resumen de actividad de hoy</p>
+        <p>Resumen ejecutivo de actividad</p>
       </div>
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card">
@@ -363,6 +452,19 @@ tr:hover td{background:rgba(255,107,53,0.04)}
           <div class="stat-card-label">Horas extra esta semana</div>
         </div>
       </div>
+
+      <!-- Alertas -->
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:24px">
+        <div class="stat-card" style="border-left:3px solid #d97706">
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:500;color:#fff">⏰ Sin fichar hoy</h3></div>
+          <div id="alert-no-clock" style="font-size:0.85rem;color:#9a9ab0;min-height:40px">Cargando…</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid #0F766E">
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:500;color:#fff">🏖️ Vacaciones pendientes</h3></div>
+          <div id="alert-vacaciones" style="font-size:0.85rem;color:#9a9ab0;min-height:40px">Cargando…</div>
+        </div>
+      </div>
+
       <div class="table-card">
         <div class="table-card-header">
           <h3>Fichajes de hoy</h3>
@@ -379,7 +481,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
               </tr>
             </thead>
             <tbody id="dashboard-table-body">
-              <tr><td colspan="4" class="text-center text-muted" style="padding:32px">Cargando fichajes…</td></tr>
+              <tr><td colspan="4" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando fichajes…</td></tr>
             </tbody>
           </table>
         </div>
@@ -388,10 +490,10 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 
     <!-- PAGE: EMPLEADOS -->
     <div class="page-content hidden" id="page-empleados">
-      <div class="page-header flex justify-between items-center">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
           <h2>Empleados</h2>
-          <p>Gestión de la plantilla</p>
+          <p>Gestión completa de la plantilla</p>
         </div>
         <button class="btn btn-primary" onclick="openModal('empleado')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -399,12 +501,30 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         </button>
       </div>
       <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <input type="text" id="emp-search" placeholder="Buscar nombre, DNI, SS…" oninput="filterEmpleados()">
+            <select id="emp-filter-status" onchange="filterEmpleados()">
+              <option value="">Todos los estados</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+              <option value="on_vacation">De vacaciones</option>
+              <option value="on_leave">De baja</option>
+            </select>
+            <select id="emp-filter-turno" onchange="filterEmpleados()">
+              <option value="">Todos los turnos</option>
+            </select>
+          </div>
+        </div>
         <div class="table-card-body">
           <table>
             <thead>
               <tr>
                 <th>Nombre</th>
                 <th>DNI</th>
+                <th>N.º SS</th>
+                <th>Categoría</th>
+                <th>Contrato</th>
                 <th>Turno</th>
                 <th>PIN</th>
                 <th>Estado</th>
@@ -412,16 +532,44 @@ tr:hover td{background:rgba(255,107,53,0.04)}
               </tr>
             </thead>
             <tbody id="empleados-table-body">
-              <tr><td colspan="6" class="text-center text-muted" style="padding:32px">Cargando empleados…</td></tr>
+              <tr><td colspan="9" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando empleados…</td></tr>
             </tbody>
           </table>
         </div>
+        <div class="pagination" id="emp-pagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: CALENDARIO -->
+    <div class="page-content hidden" id="page-calendario">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2>Calendario</h2>
+          <p>Vista mensual con turnos, festivos y vacaciones</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm" onclick="calendarView('week')">Semanal</button>
+          <button class="btn btn-primary btn-sm" onclick="calendarView('month')">Mensual</button>
+        </div>
+      </div>
+      <div class="calendar-nav">
+        <button class="btn btn-ghost btn-icon" onclick="calendarNav(-1)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h3 id="calendar-title">Julio 2026</h3>
+        <button class="btn btn-ghost btn-icon" onclick="calendarNav(1)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="calendarToday()">Hoy</button>
+      </div>
+      <div id="calendar-container">
+        <div class="loading-overlay"><span class="spinner"></span> Cargando calendario…</div>
       </div>
     </div>
 
     <!-- PAGE: TURNOS -->
     <div class="page-content hidden" id="page-turnos">
-      <div class="page-header flex justify-between items-center">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
           <h2>Turnos</h2>
           <p>Configuración de turnos laborales</p>
@@ -432,37 +580,148 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         </button>
       </div>
       <div class="shifts-grid" id="turnos-grid">
-        <div class="text-center text-muted" style="padding:32px;grid-column:1/-1">Cargando turnos…</div>
+        <div class="loading-overlay" style="grid-column:1/-1"><span class="spinner"></span> Cargando turnos…</div>
       </div>
     </div>
 
-    <!-- PAGE: HORARIOS -->
-    <div class="page-content hidden" id="page-horarios">
-      <div class="page-header flex justify-between items-center">
-        <div>
-          <h2>Horarios</h2>
-          <p>Asignación semanal de turnos</p>
+    <!-- PAGE: FICHAJES -->
+    <div class="page-content hidden" id="page-fichajes">
+      <div class="page-header">
+        <h2>Fichajes</h2>
+        <p>Histórico completo de fichajes</p>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <input type="date" id="clock-filter-date">
+            <select id="clock-filter-empleado" onchange="filterFichajes()">
+              <option value="">Todos los empleados</option>
+            </select>
+            <select id="clock-filter-tipo" onchange="filterFichajes()">
+              <option value="">Todos los tipos</option>
+              <option value="in">Entrada</option>
+              <option value="out">Salida</option>
+              <option value="break_start">Pausa</option>
+              <option value="break_end">Vuelta</option>
+            </select>
+            <select id="clock-filter-estado" onchange="filterFichajes()">
+              <option value="">Todos los estados</option>
+              <option value="ok">OK</option>
+              <option value="late">Tarde</option>
+              <option value="incident">Incidencia</option>
+            </select>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" id="schedule-prev" onclick="scheduleWeek(-1)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Semana ant.
-          </button>
-          <span class="text-sm text-muted" style="align-self:center" id="schedule-week-label">Esta semana</span>
-          <button class="btn btn-ghost btn-sm" id="schedule-next" onclick="scheduleWeek(1)">
-            Semana sig.
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Hora</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="fichajes-table-body">
+              <tr><td colspan="5" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando fichajes…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="clock-pagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: VACACIONES -->
+    <div class="page-content hidden" id="page-vacaciones">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2>Vacaciones y Permisos</h2>
+          <p>Gestión de solicitudes y calendario</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('vacacion')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva solicitud
+        </button>
+      </div>
+      <div class="table-card" style="margin-bottom:24px">
+        <div class="table-card-header"><h3>🕐 Solicitudes pendientes</h3></div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Tipo</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Días</th>
+                <th>Estado</th>
+                <th style="width:140px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="vacaciones-table-body">
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando solicitudes…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <div class="table-card">
+        <div class="table-card-header"><h3>📅 Calendario de vacaciones</h3></div>
         <div class="table-card-body">
-          <div class="schedule-wrapper">
-            <table class="schedule-table" id="schedule-table">
-              <thead id="schedule-thead"></thead>
-              <tbody id="schedule-tbody"></tbody>
-            </table>
+          <div id="vacaciones-calendar" style="padding:16px;min-height:100px">
+            <div class="loading-overlay"><span class="spinner"></span> Cargando calendario…</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: BAJAS -->
+    <div class="page-content hidden" id="page-bajas">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2>Bajas (IT)</h2>
+          <p>Registro de incapacidad temporal y permisos</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('baja')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Registrar baja
+        </button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <select id="leave-filter-status" onchange="filterBajas()">
+              <option value="">Todas las bajas</option>
+              <option value="active">Activas</option>
+              <option value="finished">Finalizadas</option>
+            </select>
+            <select id="leave-filter-type" onchange="filterBajas()">
+              <option value="">Todos los tipos</option>
+              <option value="EC">Enfermedad Común</option>
+              <option value="AL">Accidente Laboral</option>
+              <option value="EP">Enfermedad Profesional</option>
+              <option value="MAT">Maternidad</option>
+              <option value="PAT">Paternidad</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Tipo</th>
+                <th>Inicio</th>
+                <th>Fin previsto</th>
+                <th>Días</th>
+                <th>Estado</th>
+                <th style="width:100px">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="bajas-table-body">
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando bajas…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -471,7 +730,7 @@ tr:hover td{background:rgba(255,107,53,0.04)}
     <div class="page-content hidden" id="page-informes">
       <div class="page-header">
         <h2>Informes</h2>
-        <p>Reportes de horas e incidencias</p>
+        <p>Reportes de horas, absentismo y costes laborales</p>
       </div>
       <div class="reports-filters">
         <div class="filter-group">
@@ -482,6 +741,17 @@ tr:hover td{background:rgba(255,107,53,0.04)}
           <label>Hasta</label>
           <input type="date" id="report-end">
         </div>
+        <div class="filter-group">
+          <label>Tipo de informe</label>
+          <select id="report-type" onchange="loadReports()">
+            <option value="hours">Horas trabajadas</option>
+            <option value="overtime">Horas extra</option>
+            <option value="absenteeism">Absentismo</option>
+            <option value="labor-costs">Costes laborales</option>
+            <option value="inspection">Inspección de trabajo</option>
+            <option value="payroll">Nómina</option>
+          </select>
+        </div>
         <div class="reports-actions">
           <button class="btn btn-primary btn-sm" onclick="loadReports()">Generar informe</button>
           <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')">Exportar PDF</button>
@@ -489,11 +759,11 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         </div>
       </div>
       <div class="reports-section">
-        <h3>Horas por empleado</h3>
+        <h3 id="report-title">Horas por empleado</h3>
         <div class="table-card">
           <div class="table-card-body">
             <table>
-              <thead>
+              <thead id="report-thead">
                 <tr>
                   <th>Empleado</th>
                   <th>Horas ordinarias</th>
@@ -501,28 +771,8 @@ tr:hover td{background:rgba(255,107,53,0.04)}
                   <th>Total</th>
                 </tr>
               </thead>
-              <tbody id="report-hours-body">
+              <tbody id="report-body">
                 <tr><td colspan="4" class="text-center text-muted" style="padding:32px">Selecciona un rango de fechas y genera el informe</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div class="reports-section">
-        <h3>Incidencias</h3>
-        <div class="table-card">
-          <div class="table-card-body">
-            <table>
-              <thead>
-                <tr>
-                  <th>Empleado</th>
-                  <th>Fecha</th>
-                  <th>Tipo</th>
-                  <th>Descripción</th>
-                </tr>
-              </thead>
-              <tbody id="report-incidents-body">
-                <tr><td colspan="4" class="text-center text-muted" style="padding:32px">Sin incidencias en el período</td></tr>
               </tbody>
             </table>
           </div>
@@ -534,30 +784,165 @@ tr:hover td{background:rgba(255,107,53,0.04)}
     <div class="page-content hidden" id="page-configuracion">
       <div class="page-header">
         <h2>Configuración</h2>
-        <p>Datos del restaurante y preferencias</p>
+        <p>Datos del restaurante, convenio y preferencias</p>
       </div>
-      <div class="settings-card">
-        <div class="form-group">
-          <label>Nombre del restaurante</label>
-          <input type="text" id="cfg-nombre" placeholder="Ej: Restaurante La Marina">
+      <div class="settings-tabs" id="settings-tabs">
+        <div class="settings-tab active" data-tab="restaurante">🏪 Restaurante</div>
+        <div class="settings-tab" data-tab="convenio">📋 Convenio</div>
+        <div class="settings-tab" data-tab="calendario">📅 Calendario laboral</div>
+        <div class="settings-tab" data-tab="festivos">🎉 Festivos</div>
+        <div class="settings-tab" data-tab="notificaciones">🔔 Notificaciones</div>
+      </div>
+
+      <div class="settings-panel active" id="panel-restaurante">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Nombre del restaurante</label>
+            <input type="text" id="cfg-nombre" placeholder="Ej: Restaurante La Marina">
+          </div>
+          <div class="form-group">
+            <label>CIF / NIF</label>
+            <input type="text" id="cfg-cif" placeholder="B12345678">
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" id="cfg-direccion" placeholder="Calle Mayor, 12">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" id="cfg-telefono" placeholder="+34 91 123 45 67">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="cfg-email" placeholder="info@restaurante.es">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
         </div>
-        <div class="form-group">
-          <label>CIF / NIF</label>
-          <input type="text" id="cfg-cif" placeholder="B12345678">
+      </div>
+
+      <div class="settings-panel" id="panel-convenio">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Convenio colectivo</label>
+            <input type="text" id="cfg-convenio" placeholder="Convenio Hostelería">
+          </div>
+          <div class="form-group">
+            <label>Comunidad Autónoma</label>
+            <select id="cfg-ccaa">
+              <option value="">Seleccionar…</option>
+              <option value="andalucia">Andalucía</option>
+              <option value="aragon">Aragón</option>
+              <option value="asturias">Asturias</option>
+              <option value="baleares">Baleares</option>
+              <option value="canarias">Canarias</option>
+              <option value="cantabria">Cantabria</option>
+              <option value="castilla-mancha">Castilla-La Mancha</option>
+              <option value="castilla-leon">Castilla y León</option>
+              <option value="catalunya">Cataluña</option>
+              <option value="extremadura">Extremadura</option>
+              <option value="galicia">Galicia</option>
+              <option value="madrid">Comunidad de Madrid</option>
+              <option value="murcia">Región de Murcia</option>
+              <option value="navarra">Navarra</option>
+              <option value="pais-vasco">País Vasco</option>
+              <option value="rioja">La Rioja</option>
+              <option value="valencia">Comunidad Valenciana</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tolerancia de fichaje (minutos)</label>
+            <input type="number" id="cfg-tolerancia" placeholder="5" min="0" max="60">
+          </div>
+          <div class="form-group">
+            <label>Días de vacaciones por año</label>
+            <input type="number" id="cfg-vacation-days" placeholder="30" min="0" max="45">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
         </div>
-        <div class="form-group">
-          <label>Dirección</label>
-          <input type="text" id="cfg-direccion" placeholder="Calle Mayor, 12">
+      </div>
+
+      <div class="settings-panel" id="panel-calendario">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Año del calendario laboral</label>
+            <input type="number" id="cfg-cal-year" value="2026">
+          </div>
+          <div class="form-group">
+            <label>Horas semanales ordinarias</label>
+            <input type="number" id="cfg-weekly-hours" placeholder="40" min="0" max="60">
+          </div>
+          <div class="form-group">
+            <label>Días laborables por semana</label>
+            <select id="cfg-work-days">
+              <option value="5">Lunes a Viernes</option>
+              <option value="6">Lunes a Sábado</option>
+              <option value="7">Todos los días</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
         </div>
-        <div class="form-group">
-          <label>Convenio colectivo</label>
-          <input type="text" id="cfg-convenio" placeholder="Convenio Hostelería">
+      </div>
+
+      <div class="settings-panel" id="panel-festivos">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Año</label>
+            <input type="number" id="cfg-holiday-year" value="2026">
+          </div>
+          <div class="table-card" style="margin-bottom:16px">
+            <div class="table-card-header"><h3>Festivos registrados</h3></div>
+            <div class="table-card-body">
+              <table>
+                <thead><tr><th>Fecha</th><th>Nombre</th><th>Tipo</th><th style="width:60px">Acción</th></tr></thead>
+                <tbody id="holidays-table-body">
+                  <tr><td colspan="4" class="text-center text-muted" style="padding:16px">Cargando festivos…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="form-row" style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px;align-items:end">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Fecha</label>
+              <input type="date" id="cfg-holiday-date">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Nombre</label>
+              <input type="text" id="cfg-holiday-name" placeholder="Nombre del festivo">
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="addHoliday()">Añadir</button>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Tolerancia de fichaje (minutos)</label>
-          <input type="number" id="cfg-tolerancia" placeholder="5" min="0" max="60">
+      </div>
+
+      <div class="settings-panel" id="panel-notificaciones">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Notificaciones por email</label>
+            <select id="cfg-notif-email">
+              <option value="all">Todas las notificaciones</option>
+              <option value="important">Solo importantes</option>
+              <option value="none">Ninguna</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Recordatorio de fichaje</label>
+            <select id="cfg-notif-clock">
+              <option value="15">15 minutos después del inicio</option>
+              <option value="30">30 minutos después del inicio</option>
+              <option value="60">1 hora después del inicio</option>
+              <option value="0">No recordar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Aviso de vacaciones pendientes</label>
+            <select id="cfg-notif-vacation">
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensual</option>
+              <option value="never">Nunca</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
         </div>
-        <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
       </div>
     </div>
   </div>
@@ -571,73 +956,8 @@ tr:hover td{background:rgba(255,107,53,0.04)}
 
 <script>
 /* ===================================================================
-   TalentUP Fichaje — Frontend SPA
+   TalentUP Fichaje v2.0 — Frontend SPA
    =================================================================== */
-
-// ===== MOCK DATA =====
-const MOCK = {
-  user: { id:1, name:'Carlos Mendoza', email:'carlos@talentup.es', role:'super_admin' },
-  employees: [
-    { id:1, name:'Ana García', dni:'12345678A', shift_id:1, shift_name:'Mañana', pin:'1234', active:true },
-    { id:2, name:'Luis Fernández', dni:'23456789B', shift_id:2, shift_name:'Tarde', pin:'5678', active:true },
-    { id:3, name:'María López', dni:'34567890C', shift_id:1, shift_name:'Mañana', pin:'9012', active:true },
-    { id:4, name:'Javier Ruiz', dni:'45678901D', shift_id:3, shift_name:'Noche', pin:'3456', active:false },
-    { id:5, name:'Sofía Martín', dni:'56789012E', shift_id:2, shift_name:'Tarde', pin:'7890', active:true },
-    { id:6, name:'David Sánchez', dni:'67890123F', shift_id:1, shift_name:'Mañana', pin:'2345', active:true },
-    { id:7, name:'Elena Torres', dni:'78901234G', shift_id:3, shift_name:'Noche', pin:'6789', active:false },
-    { id:8, name:'Pablo Díaz', dni:'89012345H', shift_id:2, shift_name:'Tarde', pin:'0123', active:true },
-  ],
-  shifts: [
-    { id:1, name:'Mañana', start:'07:00', end:'15:00', tolerance:5, color:'#FF6B35' },
-    { id:2, name:'Tarde', start:'15:00', end:'23:00', tolerance:5, color:'#0F766E' },
-    { id:3, name:'Noche', start:'23:00', end:'07:00', tolerance:10, color:'#8b5cf6' },
-    { id:4, name:'Partido', start:'10:00', end:'14:00', tolerance:3, color:'#f59e0b' },
-  ],
-  clockHistory: [],
-  reportHours: [],
-  reportIncidents: [],
-  settings: { nombre:'Restaurante La Marina', cif:'B12345678', direccion:'Calle Mayor, 12, 28001 Madrid', convenio:'Convenio Colectivo de Hostelería', tolerancia:5 }
-};
-
-// Generate today's clock history
-(function(){
-  const now = new Date();
-  const today = now.toISOString().slice(0,10);
-  const employees = MOCK.employees.filter(e => e.active);
-  const types = ['entrada','salida','pausa','vuelta'];
-  const statuses = ['ok','ok','ok','ok','late','incident'];
-  const records = [];
-  employees.forEach((emp, i) => {
-    const baseHour = 7 + (i % 8);
-    const baseMin = (i * 13) % 60;
-    records.push({ id:i*4+1, employee_id:emp.id, employee_name:emp.name, type:'entrada', time:`${String(baseHour).padStart(2,'0')}:${String(baseMin).padStart(2,'0')}`, status:statuses[i%6], date:today });
-    if (i % 3 !== 0) {
-      records.push({ id:i*4+2, employee_id:emp.id, employee_name:emp.name, type:'pausa', time:`${String(baseHour+4).padStart(2,'0')}:${String((baseMin+30)%60).padStart(2,'0')}`, status:'ok', date:today });
-      records.push({ id:i*4+3, employee_id:emp.id, employee_name:emp.name, type:'vuelta', time:`${String(baseHour+5).padStart(2,'0')}:${String((baseMin+15)%60).padStart(2,'0')}`, status:'ok', date:today });
-    }
-    records.push({ id:i*4+4, employee_id:emp.id, employee_name:emp.name, type:'salida', time:`${String(baseHour+8).padStart(2,'0')}:${String((baseMin+5)%60).padStart(2,'0')}`, status:statuses[(i+2)%6], date:today });
-  });
-  MOCK.clockHistory = records;
-})();
-
-// Generate report hours
-(function(){
-  const employees = MOCK.employees.filter(e => e.active);
-  MOCK.reportHours = employees.map(e => ({
-    employee_id:e.id, employee_name:e.name,
-    ordinarias: (Math.random()*20+30).toFixed(1),
-    extra: (Math.random()*5).toFixed(1),
-    total: (0)
-  }));
-  MOCK.reportHours.forEach(r => { r.total = (parseFloat(r.ordinarias)+parseFloat(r.extra)).toFixed(1); });
-})();
-
-// Generate report incidents
-MOCK.reportIncidents = [
-  { id:1, employee_name:'Ana García', date:'2026-07-15', type:'Retraso', description:'Llegó 15 min tarde sin justificar' },
-  { id:2, employee_name:'Luis Fernández', date:'2026-07-16', type:'Ausencia', description:'No fichó salida' },
-  { id:3, employee_name:'Sofía Martín', date:'2026-07-17', type:'Incidencia', description:'PIN incorrecto 3 intentos' },
-];
 
 // ===== STATE =====
 let state = {
@@ -645,32 +965,96 @@ let state = {
   token: null,
   employees: [],
   shifts: [],
-  scheduleWeekOffset: 0,
+  schedules: [],
+  clockHistory: [],
+  vacations: [],
+  leaves: [],
+  holidays: [],
+  overtime: [],
   currentPage: 'dashboard',
-  usingMock: false
+  isOnline: true,
+  isDemo: false,
+  calendarDate: new Date(),
+  calendarView: 'month',
+  empPage: 1,
+  clockPage: 1,
+  empFiltered: [],
+  clockFiltered: [],
+  leaveFiltered: [],
+  empSearch: '',
+  empFilterStatus: '',
+  empFilterTurno: '',
+  clockFilterEmpleado: '',
+  clockFilterTipo: '',
+  clockFilterEstado: '',
+  clockFilterDate: '',
+  leaveFilterStatus: '',
+  leaveFilterType: ''
 };
+
+const API_BASE = 'http://localhost:8000/api';
+const PAGE_SIZE = 20;
 
 // ===== API HELPER =====
 async function api(method, path, body) {
-  const url = `http://localhost:8000/api${path}`;
-  const opts = { method, headers: { 'Content-Type':'application/json' } };
+  const url = `${API_BASE}${path}`;
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (state.token) opts.headers['Authorization'] = `Bearer ${state.token}`;
   if (body) opts.body = JSON.stringify(body);
   try {
     const res = await fetch(url, opts);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (res.status === 401) { logout(); return null; }
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP ${res.status}`);
+    }
+    state.isOnline = true;
+    updateOnlineStatus();
     return await res.json();
   } catch(e) {
     console.warn(`API ${method} ${path} failed:`, e.message);
-    showToast(`Error de conexión con el servidor`, 'error');
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('ERR_CONNECTION')) {
+      state.isOnline = false;
+      updateOnlineStatus();
+    }
     return null;
+  }
+}
+
+// ===== ONLINE/OFFLINE INDICATOR =====
+function updateOnlineStatus() {
+  const el = document.getElementById('online-indicator');
+  const text = document.getElementById('online-text');
+  if (state.isOnline && !state.isDemo) {
+    el.className = 'online-indicator';
+    text.textContent = 'Conectado';
+  } else if (state.isDemo) {
+    el.className = 'online-indicator offline';
+    text.textContent = 'Demo';
+  } else {
+    el.className = 'online-indicator offline';
+    text.textContent = 'Sin conexión';
+  }
+}
+
+// ===== DEMO BANNER =====
+function updateDemoBanner() {
+  const banner = document.getElementById('demo-banner');
+  if (state.isDemo) {
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
   }
 }
 
 // ===== TOAST =====
 function showToast(message, type = 'error') {
   const container = document.getElementById('toast-container');
-  const icons = { error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>', success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>', warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' };
+  const icons = {
+    error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+  };
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `${icons[type] || icons.error}${message}`;
@@ -697,25 +1081,27 @@ function isTokenExpired(token) {
 // ===== NAVIGATION =====
 function navigate(page) {
   state.currentPage = page;
-  // Update sidebar
   document.querySelectorAll('.nav-item[data-page]').forEach(el => {
     el.classList.toggle('active', el.dataset.page === page);
   });
-  // Update navbar title
-  const titles = { dashboard:'Dashboard', empleados:'Empleados', turnos:'Turnos', horarios:'Horarios', informes:'Informes', configuracion:'Configuración' };
+  const titles = {
+    dashboard:'Dashboard', empleados:'Empleados', calendario:'Calendario',
+    turnos:'Turnos', fichajes:'Fichajes', vacaciones:'Vacaciones',
+    bajas:'Bajas', informes:'Informes', configuracion:'Configuración'
+  };
   document.getElementById('navbar-title').textContent = titles[page] || 'Dashboard';
-  // Show/hide pages
   document.querySelectorAll('.page-content[id^="page-"]').forEach(el => el.classList.add('hidden'));
   const target = document.getElementById(`page-${page}`);
   if (target) target.classList.remove('hidden');
-  // Close sidebar on mobile
   document.getElementById('sidebar').classList.remove('open');
-  // Load page data
   switch(page) {
     case 'dashboard': loadDashboard(); break;
     case 'empleados': loadEmpleados(); break;
+    case 'calendario': renderCalendar(); break;
     case 'turnos': loadTurnos(); break;
-    case 'horarios': loadHorarios(); break;
+    case 'fichajes': loadFichajes(); break;
+    case 'vacaciones': loadVacaciones(); break;
+    case 'bajas': loadBajas(); break;
     case 'informes': initReports(); break;
     case 'configuracion': loadSettings(); break;
   }
@@ -727,6 +1113,9 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errorEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  const btnText = document.getElementById('login-btn-text');
+  const spinner = document.getElementById('login-spinner');
   errorEl.textContent = '';
 
   if (!email || !password) {
@@ -734,53 +1123,45 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     return;
   }
 
-  // Try real API first
+  // Show loading
+  btn.disabled = true;
+  btnText.textContent = 'Iniciando sesión…';
+  spinner.classList.remove('hidden');
+
   const result = await api('POST', '/auth/login', { email, password });
+
+  btn.disabled = false;
+  btnText.textContent = 'Iniciar sesión';
+  spinner.classList.add('hidden');
+
   if (result && result.token) {
     state.token = result.token;
     state.user = result.user;
-    state.usingMock = false;
+    state.isDemo = false;
     localStorage.setItem('talentup_token', result.token);
+    enterApp();
   } else {
-    // Fallback to mock
-    if (email === 'admin@talentup.es' && password === 'admin123') {
-      state.user = { ...MOCK.user, email };
-      state.token = 'mock-token-abc123';
-      state.usingMock = true;
-      localStorage.setItem('talentup_token', 'mock-token-abc123');
-    } else if (email === 'carlos@talentup.es' && password === '1234') {
-      state.user = { ...MOCK.user, email, name:'Carlos Mendoza', role:'super_admin' };
-      state.token = 'mock-token-abc123';
-      state.usingMock = true;
-      localStorage.setItem('talentup_token', 'mock-token-abc123');
-    } else if (email && password) {
-      // Accept any non-empty login for demo
-      const isSuper = email.endsWith('@talentup.es');
-      state.user = { id:1, name:email.split('@')[0], email, role:isSuper?'super_admin':'admin' };
-      state.token = 'mock-token-abc123';
-      state.usingMock = true;
-      localStorage.setItem('talentup_token', 'mock-token-abc123');
-    } else {
-      errorEl.textContent = 'Credenciales incorrectas';
-      return;
-    }
+    // Only real credentials work — no mock fallback
+    errorEl.textContent = result && result.detail ? result.detail : 'Credenciales incorrectas. Verifica tu email y contraseña.';
   }
+});
 
-  // Update UI
+function enterApp() {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  const initial = (state.user.name || state.user.email)[0].toUpperCase();
+  const initial = (state.user.name || state.user.email || 'A')[0].toUpperCase();
   document.getElementById('navbar-avatar').textContent = initial;
   document.getElementById('navbar-name').textContent = state.user.name || state.user.email;
-
+  updateOnlineStatus();
+  updateDemoBanner();
   navigate('dashboard');
-});
+}
 
 // ===== LOGOUT =====
 function logout() {
   state.user = null;
   state.token = null;
-  state.usingMock = false;
+  state.isDemo = false;
   localStorage.removeItem('talentup_token');
   document.getElementById('app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
@@ -806,30 +1187,47 @@ async function loadDashboard() {
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('dashboard-date').textContent = new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
-  // Try API
-  let history = null;
-  if (!state.usingMock) {
-    history = await api('GET', `/clock/history?date=${today}`);
-  }
-  if (!history) history = MOCK.clockHistory;
+  // Load stats from API
+  const [history, employees, overtime, vacations] = await Promise.all([
+    api('GET', `/clock/history?date=${today}`),
+    api('GET', '/employees'),
+    api('GET', '/overtime?week=' + getWeekStart()),
+    api('GET', '/vacations?status=pending')
+  ]);
 
-  const activeEmployees = new Set(history.map(r => r.employee_id)).size;
-  const totalClocks = history.length;
-  const incidents = history.filter(r => r.status === 'incident').length;
-  const late = history.filter(r => r.status === 'late').length;
-  // Calculate real extra hours from clock data (entries after scheduled end time)
-  let extraHours = 0;
-  if (history.length > 0 && state.shifts.length > 0) {
-    // Group by employee and look for late/extra patterns
-    const employeeShifts = {};
-    history.forEach(r => {
-      if (!employeeShifts[r.employee_id]) employeeShifts[r.employee_id] = { name: r.employee_name, entries: [] };
-      employeeShifts[r.employee_id].entries.push(r);
-    });
-    // Count late entries as potential extra hours (each late ~0.5h extra)
-    extraHours = (late * 0.5).toFixed(1);
-  } else {
-    extraHours = '0.0';
+  if (!history && !employees) {
+    // If backend is down, show demo banner
+    state.isDemo = true;
+    updateDemoBanner();
+    updateOnlineStatus();
+    document.getElementById('stat-empleados').textContent = '—';
+    document.getElementById('stat-fichajes').textContent = '—';
+    document.getElementById('stat-incidencias').textContent = '—';
+    document.getElementById('stat-extras').textContent = '—';
+    document.getElementById('dashboard-table-body').innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">No hay datos disponibles — servidor no responde</td></tr>';
+    document.getElementById('alert-no-clock').textContent = 'No disponible';
+    document.getElementById('alert-vacaciones').textContent = 'No disponible';
+    return;
+  }
+
+  state.isDemo = false;
+  updateDemoBanner();
+  updateOnlineStatus();
+
+  if (history) state.clockHistory = history;
+  if (employees) state.employees = employees;
+  if (overtime) state.overtime = overtime;
+  if (vacations) state.vacations = vacations;
+
+  const activeEmployees = new Set((history || []).map(r => r.employee_id)).size;
+  const totalClocks = (history || []).length;
+  const incidents = (history || []).filter(r => r.status === 'incident').length;
+
+  // Overtime from API (GET /api/overtime)
+  let extraHours = '0.0';
+  if (overtime && overtime.length > 0) {
+    const totalMin = overtime.reduce((sum, o) => sum + (o.total_minutes || 0), 0);
+    extraHours = (totalMin / 60).toFixed(1);
   }
 
   document.getElementById('stat-empleados').textContent = activeEmployees;
@@ -837,58 +1235,145 @@ async function loadDashboard() {
   document.getElementById('stat-incidencias').textContent = incidents;
   document.getElementById('stat-extras').textContent = `${extraHours}h`;
 
+  // Alert: employees without clock today
+  const clockedIds = new Set((history || []).map(r => r.employee_id));
+  const noClock = (employees || []).filter(e => e.is_active !== false && !clockedIds.has(e.id));
+  document.getElementById('alert-no-clock').innerHTML = noClock.length > 0
+    ? noClock.slice(0, 5).map(e => `<div style="padding:4px 0">• ${e.full_name || e.name}</div>`).join('') + (noClock.length > 5 ? `<div style="padding:4px 0;color:#6b6b8d">+${noClock.length - 5} más</div>` : '')
+    : '<span style="color:#0F766E">✓ Todos han fichado</span>';
+
+  // Alert: pending vacations
+  const pendingVac = (vacations || []).filter(v => v.status === 'pending');
+  document.getElementById('alert-vacaciones').innerHTML = pendingVac.length > 0
+    ? pendingVac.slice(0, 5).map(v => `<div style="padding:4px 0">• ${v.employee_name || '—'} (${v.start_date} — ${v.end_date})</div>`).join('') + (pendingVac.length > 5 ? `<div style="padding:4px 0;color:#6b6b8d">+${pendingVac.length - 5} más</div>` : '')
+    : '<span style="color:#0F766E">✓ Sin solicitudes pendientes</span>';
+
   // Table
   const tbody = document.getElementById('dashboard-table-body');
-  if (history.length === 0) {
+  if (!history || history.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">No hay fichajes hoy</td></tr>';
     return;
   }
-  tbody.innerHTML = history.map(r => {
+  tbody.innerHTML = history.slice(0, 20).map(r => {
     const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
     const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
-    const typeLabel = r.type === 'entrada' ? 'Entrada' : r.type === 'salida' ? 'Salida' : r.type === 'pausa' ? 'Pausa' : 'Vuelta';
+    const typeLabel = r.type === 'in' ? 'Entrada' : r.type === 'out' ? 'Salida' : r.type === 'break_start' ? 'Pausa' : 'Vuelta';
     return `<tr>
-      <td>${r.employee_name}</td>
+      <td>${r.employee_name || '—'}</td>
       <td>${typeLabel}</td>
-      <td>${r.time}</td>
+      <td>${r.time || r.timestamp ? (r.time || r.timestamp.slice(11,16)) : '—'}</td>
       <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
     </tr>`;
   }).join('');
+}
+
+function getWeekStart() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+  return monday.toISOString().slice(0,10);
 }
 
 // ===== EMPLEADOS =====
 async function loadEmpleados() {
-  let employees = null;
-  if (!state.usingMock) employees = await api('GET', '/employees');
-  if (!employees) employees = MOCK.employees;
-
-  state.employees = employees;
-  const tbody = document.getElementById('empleados-table-body');
-  if (employees.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:32px">No hay empleados registrados</td></tr>';
+  let employees = await api('GET', '/employees');
+  if (!employees) {
+    state.isDemo = true;
+    updateDemoBanner();
+    updateOnlineStatus();
+    document.getElementById('empleados-table-body').innerHTML = '<tr><td colspan="9" class="text-center text-muted" style="padding:32px">No se pudieron cargar los empleados — servidor no responde</td></tr>';
     return;
   }
-  tbody.innerHTML = employees.map(e => {
-    const statusBadge = e.active ? 'badge-active' : 'badge-inactive';
-    const statusLabel = e.active ? 'Activo' : 'Inactivo';
-    return `<tr>
-      <td>${e.name}</td>
-      <td>${e.dni}</td>
-      <td>${e.shift_name || '—'}</td>
-      <td><span class="pin-hidden" data-pin="${e.pin}" onclick="togglePin(this)">••••</span></td>
-      <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('empleado',${e.id})">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteEmpleado(${e.id})">Eliminar</button>
-      </td>
-    </tr>`;
-  }).join('');
+  state.isDemo = false;
+  updateDemoBanner();
+  updateOnlineStatus();
+  state.employees = employees;
+
+  // Populate filter dropdowns
+  const turnoFilter = document.getElementById('emp-filter-turno');
+  const shiftIds = new Set(employees.map(e => e.shift_id || e.default_shift_id).filter(Boolean));
+  const shifts = state.shifts.length ? state.shifts : await api('GET', '/shifts') || [];
+  state.shifts = shifts;
+  turnoFilter.innerHTML = '<option value="">Todos los turnos</option>' +
+    shifts.filter(s => shiftIds.has(s.id)).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+  state.empPage = 1;
+  filterEmpleados();
 }
 
-function togglePin(el) {
+function filterEmpleados() {
+  const search = document.getElementById('emp-search').value.toLowerCase().trim();
+  const status = document.getElementById('emp-filter-status').value;
+  const turno = document.getElementById('emp-filter-turno').value;
+  state.empSearch = search;
+  state.empFilterStatus = status;
+  state.empFilterTurno = turno;
+
+  let filtered = state.employees.filter(e => {
+    if (search && !(e.full_name || e.name || '').toLowerCase().includes(search) &&
+        !(e.dni || '').toLowerCase().includes(search) &&
+        !(e.nss || '').toLowerCase().includes(search)) return false;
+    if (status && (e.status || (e.is_active ? 'active' : 'inactive')) !== status) return false;
+    if (turno && e.shift_id != turno && e.default_shift_id != turno) return false;
+    return true;
+  });
+
+  state.empFiltered = filtered;
+  renderEmpleadosPage(1);
+}
+
+function renderEmpleadosPage(page) {
+  state.empPage = page;
+  const total = state.empFiltered.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const start = (page - 1) * PAGE_SIZE;
+  const pageItems = state.empFiltered.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('empleados-table-body');
+  if (pageItems.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted" style="padding:32px">No hay empleados que coincidan con los filtros</td></tr>';
+  } else {
+    tbody.innerHTML = pageItems.map(e => {
+      const status = e.status || (e.is_active ? 'active' : 'inactive');
+      const statusBadge = status === 'active' ? 'badge-active' : status === 'on_vacation' ? 'badge-pending' : status === 'on_leave' ? 'badge-on-leave' : 'badge-inactive';
+      const statusLabel = status === 'active' ? 'Activo' : status === 'inactive' ? 'Inactivo' : status === 'on_vacation' ? 'Vacaciones' : status === 'on_leave' ? 'De baja' : status;
+      const shiftName = e.shift_name || (state.shifts.find(s => s.id === (e.shift_id || e.default_shift_id)) || {}).name || '—';
+      return `<tr>
+        <td><span class="font-medium">${e.full_name || e.name}</span></td>
+        <td>${e.dni || '—'}</td>
+        <td>${e.nss || '—'}</td>
+        <td>${e.professional_category || '—'}</td>
+        <td>${e.contract_type || '—'}</td>
+        <td>${shiftName}</td>
+        <td><span class="pin-hidden" onclick="togglePin(this,${e.id})">••••</span></td>
+        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openModal('empleado',${e.id})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEmpleado(${e.id})">Eliminar</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Pagination
+  renderPagination('emp-pagination', page, totalPages, renderEmpleadosPage);
+}
+
+// ===== PIN TOGGLE (PIN from API, not in HTML) =====
+async function togglePin(el, employeeId) {
   if (el.classList.contains('pin-hidden')) {
-    el.textContent = el.dataset.pin;
-    el.className = 'pin-visible';
+    // Load PIN from API
+    const emp = await api('GET', `/employees/${employeeId}`);
+    if (emp && emp.pin) {
+      el.textContent = emp.pin;
+      el.className = 'pin-visible';
+    } else if (emp && emp.pin_hash) {
+      // PIN is hashed, can't display — show message
+      showToast('El PIN está cifrado y no puede mostrarse', 'warning');
+    } else {
+      showToast('No se pudo cargar el PIN', 'error');
+    }
   } else {
     el.textContent = '••••';
     el.className = 'pin-hidden';
@@ -897,87 +1382,135 @@ function togglePin(el) {
 
 async function deleteEmpleado(id) {
   if (!confirm('¿Eliminar este empleado?')) return;
-  if (!state.usingMock) {
-    const result = await api('DELETE', `/employees/${id}`);
-    if (result) {
-      showToast('Empleado eliminado correctamente', 'success');
-      loadEmpleados();
-      return;
-    }
-    showToast('Error al eliminar en el servidor', 'error');
+  const result = await api('DELETE', `/employees/${id}`);
+  if (result) {
+    showToast('Empleado eliminado correctamente', 'success');
+    loadEmpleados();
+  } else {
+    showToast('Error al eliminar el empleado', 'error');
   }
-  MOCK.employees = MOCK.employees.filter(e => e.id !== id);
-  loadEmpleados();
 }
 
-// ===== TURNOS =====
-async function loadTurnos() {
-  let shifts = null;
-  if (!state.usingMock) shifts = await api('GET', '/shifts');
-  if (!shifts) shifts = MOCK.shifts;
+// ===== CALENDARIO =====
+function calendarView(view) {
+  state.calendarView = view;
+  renderCalendar();
+}
 
-  state.shifts = shifts;
-  const grid = document.getElementById('turnos-grid');
-  if (shifts.length === 0) {
-    grid.innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No hay turnos configurados</div>';
+function calendarNav(delta) {
+  const d = new Date(state.calendarDate);
+  if (state.calendarView === 'month') {
+    d.setMonth(d.getMonth() + delta);
+  } else {
+    d.setDate(d.getDate() + delta * 7);
+  }
+  state.calendarDate = d;
+  renderCalendar();
+}
+
+function calendarToday() {
+  state.calendarDate = new Date();
+  renderCalendar();
+}
+
+async function renderCalendar() {
+  const container = document.getElementById('calendar-container');
+  const year = state.calendarDate.getFullYear();
+  const month = state.calendarDate.getMonth();
+
+  const title = state.calendarDate.toLocaleDateString('es-ES', { month:'long', year:'numeric' });
+  document.getElementById('calendar-title').textContent = title.charAt(0).toUpperCase() + title.slice(1);
+
+  // Load holidays and schedules
+  const [holidays, schedules] = await Promise.all([
+    api('GET', `/calendar/holidays?year=${year}`),
+    api('GET', `/schedules?month=${month + 1}&year=${year}`)
+  ]);
+
+  if (holidays) state.holidays = holidays;
+  if (schedules) state.schedules = schedules;
+
+  const holidayDates = new Set((state.holidays || []).map(h => h.date));
+
+  if (state.calendarView === 'month') {
+    renderMonthCalendar(container, year, month, holidayDates, schedules || []);
+  } else {
+    renderWeekCalendar(container, year, month, holidayDates, schedules || []);
+  }
+}
+
+function renderMonthCalendar(container, year, month, holidayDates, schedules) {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrev = new Date(year, month, 0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+  const dayNames = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+  // Adjust for Monday start
+  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+  let html = '<div class="calendar-grid">';
+  dayNames.forEach(d => { html += `<div class="calendar-header-cell">${d}</div>`; });
+
+  // Previous month days
+  for (let i = startOffset - 1; i >= 0; i--) {
+    const d = daysInPrev - i;
+    html += `<div class="calendar-cell other-month"><div class="day-num">${d}</div></div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dateStr === today;
+    const isHoliday = holidayDates.has(dateStr);
+    const daySchedules = (schedules || []).filter(s => s.date === dateStr);
+    const hasEvent = daySchedules.length > 0 || isHoliday;
+
+    let cls = 'calendar-cell';
+    if (isToday) cls += ' today';
+    if (hasEvent) cls += ' has-event';
+    if (isHoliday) cls += ' schedule-holiday';
+
+    html += `<div class="${cls}" onclick="openDayDetail('${dateStr}')">
+      <div class="day-num">${d}</div>`;
+    if (isHoliday) {
+      const h = (state.holidays || []).find(h => h.date === dateStr);
+      html += `<div class="calendar-event holiday">${h ? h.name : 'Festivo'}</div>`;
+    }
+    daySchedules.slice(0, 2).forEach(s => {
+      const shift = state.shifts.find(sh => sh.id === s.shift_id);
+      html += `<div class="calendar-event shift">${shift ? shift.name : 'Turno'}</div>`;
+    });
+    if (daySchedules.length > 2) {
+      html += `<div style="font-size:0.6rem;color:#6b6b8d">+${daySchedules.length - 2} más</div>`;
+    }
+    html += '</div>';
+  }
+
+  // Fill remaining cells
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="calendar-cell other-month"><div class="day-num">${d}</div></div>`;
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderWeekCalendar(container, year, month, holidayDates, schedules) {
+  // Simple week view as table
+  const employees = state.employees;
+  if (!employees || employees.length === 0) {
+    container.innerHTML = '<div class="loading-overlay">Carga empleados primero</div>';
     return;
   }
-  grid.innerHTML = shifts.map(s => `
-    <div class="shift-card">
-      <div class="shift-card-header">
-        <span class="shift-card-name">${s.name}</span>
-        <div style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
-      </div>
-      <div class="shift-card-time">${s.start} — ${s.end}</div>
-      <div class="shift-card-tolerance">Tolerancia: ${s.tolerance} min</div>
-      <div class="shift-card-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openModal('turno',${s.id})">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteTurno(${s.id})">Eliminar</button>
-      </div>
-    </div>
-  `).join('');
-}
 
-async function deleteTurno(id) {
-  if (!confirm('¿Eliminar este turno?')) return;
-  if (!state.usingMock) {
-    const result = await api('DELETE', `/shifts/${id}`);
-    if (result) {
-      showToast('Turno eliminado correctamente', 'success');
-      loadTurnos();
-      return;
-    }
-    showToast('Error al eliminar en el servidor', 'error');
-  }
-  MOCK.shifts = MOCK.shifts.filter(s => s.id !== id);
-  loadTurnos();
-}
-
-// ===== HORARIOS =====
-function scheduleWeek(delta) {
-  state.scheduleWeekOffset += delta;
-  loadHorarios();
-}
-
-async function loadHorarios() {
-  let employees = state.employees;
-  if (employees.length === 0) employees = MOCK.employees;
-  let shifts = state.shifts;
-  if (shifts.length === 0) shifts = MOCK.shifts;
-
-  // Calculate week start (Monday)
-  const now = new Date();
-  now.setDate(now.getDate() + state.scheduleWeekOffset * 7);
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
+  const monday = new Date(state.calendarDate);
+  const day = monday.getDay();
+  const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+  monday.setDate(diff);
   monday.setHours(0,0,0,0);
-
-  const weekLabel = monday.toLocaleDateString('es-ES', { day:'numeric', month:'long' });
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
-  const weekLabelEnd = sunday.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('schedule-week-label').textContent = `${weekLabel} — ${weekLabelEnd}`;
 
   const days = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   const dates = [];
@@ -987,54 +1520,399 @@ async function loadHorarios() {
     dates.push(d.toISOString().slice(0,10));
   }
 
-  // Build thead
-  const thead = document.getElementById('schedule-thead');
-  thead.innerHTML = `<tr><th>Empleado</th>${days.map((d,i) => `<th>${d}<br><span class="text-xs text-muted">${dates[i].slice(5)}</span></th>`).join('')}</tr>`;
+  let html = '<div class="schedule-wrapper"><table class="schedule-table">';
+  html += `<thead><tr><th>Empleado</th>${days.map((d,i) => {
+    const isHoliday = holidayDates.has(dates[i]);
+    return `<th>${d}<br><span class="text-xs text-muted">${dates[i].slice(5)}</span>${isHoliday ? ' 🎉' : ''}</th>`;
+  }).join('')}</tr></thead><tbody>`;
 
-  // Build tbody with mock assignments
-  const tbody = document.getElementById('schedule-tbody');
-  tbody.innerHTML = employees.filter(e => e.active).map(emp => {
-    const cells = days.map((_, i) => {
-      // Deterministic mock assignment based on employee + day
-      const shiftIdx = (emp.id * 7 + i) % (shifts.length || 1);
-      const shift = shifts[shiftIdx];
-      if (!shift) return `<td><span class="schedule-empty">—</span></td>`;
-      return `<td onclick="assignShift(${emp.id},'${dates[i]}')">
-        <span class="schedule-cell" style="background:${shift.color}22;color:${shift.color}">${shift.name}</span>
-      </td>`;
+  employees.filter(e => e.is_active !== false).forEach(emp => {
+    html += `<tr><td>${emp.full_name || emp.name}</td>`;
+    dates.forEach(dateStr => {
+      const sched = (schedules || []).find(s => s.employee_id === emp.id && s.date === dateStr);
+      const isHoliday = holidayDates.has(dateStr);
+      if (isHoliday) {
+        html += `<td class="schedule-holiday"><span class="schedule-empty">🎉</span></td>`;
+      } else if (sched) {
+        const shift = state.shifts.find(sh => sh.id === sched.shift_id);
+        const color = shift ? shift.color : '#FF6B35';
+        html += `<td onclick="openAssignShift(${emp.id},'${dateStr}')">
+          <span class="schedule-cell" style="background:${color}22;color:${color}">${shift ? shift.name : 'Turno'}</span>
+        </td>`;
+      } else {
+        html += `<td onclick="openAssignShift(${emp.id},'${dateStr}')">
+          <span class="schedule-empty">—</span>
+        </td>`;
+      }
     });
-    return `<tr><td>${emp.name}</td>${cells.join('')}</tr>`;
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+}
+
+function openDayDetail(dateStr) {
+  showToast(`Detalle del día ${dateStr} — próximamente`, 'info');
+}
+
+// ===== ASSIGN SHIFT (NO prompt() — visual modal) =====
+function openAssignShift(employeeId, date) {
+  const emp = state.employees.find(e => e.id === employeeId);
+  const empName = emp ? (emp.full_name || emp.name) : `#${employeeId}`;
+  const shifts = state.shifts;
+  const currentSched = (state.schedules || []).find(s => s.employee_id === employeeId && s.date === date);
+  const currentShiftId = currentSched ? currentSched.shift_id : null;
+
+  const container = document.getElementById('modal-container');
+  container.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+          <h3>Asignar turno</h3>
+          <button class="modal-close" onclick="closeModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom:16px;color:#9a9ab0;font-size:0.875rem">
+            <strong style="color:#e2e2f0">${empName}</strong> — ${date}
+          </p>
+          <div class="form-group">
+            <label>Seleccionar turno</label>
+            <select id="assign-shift-select">
+              <option value="">Sin turno (descanso)</option>
+              ${shifts.map(s => `<option value="${s.id}" ${currentShiftId === s.id ? 'selected' : ''}>${s.name} (${s.start}—${s.end})</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveAssignShift(${employeeId},'${date}')">Asignar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function saveAssignShift(employeeId, date) {
+  const shiftId = document.getElementById('assign-shift-select').value;
+  const body = { employee_id: employeeId, date, shift_id: shiftId ? parseInt(shiftId) : null };
+  const result = await api('POST', '/schedules', body);
+  if (result) {
+    showToast('Turno asignado correctamente', 'success');
+    closeModal();
+    renderCalendar();
+  } else {
+    showToast('Error al asignar turno', 'error');
+  }
+}
+
+// ===== TURNOS =====
+async function loadTurnos() {
+  let shifts = await api('GET', '/shifts');
+  if (!shifts) {
+    state.isDemo = true;
+    updateDemoBanner();
+    document.getElementById('turnos-grid').innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No se pudieron cargar los turnos — servidor no responde</div>';
+    return;
+  }
+  state.isDemo = false;
+  updateDemoBanner();
+  state.shifts = shifts;
+
+  const grid = document.getElementById('turnos-grid');
+  if (shifts.length === 0) {
+    grid.innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No hay turnos configurados</div>';
+    return;
+  }
+  grid.innerHTML = shifts.map(s => {
+    const typeLabels = { morning:'Mañana', afternoon:'Tarde', night:'Noche', split:'Partido', rotating:'Rotativo', custom:'Personalizado' };
+    return `<div class="shift-card" style="border-left-color:${s.color}">
+      <div class="shift-card-header">
+        <span class="shift-card-name">${s.name}</span>
+        <div style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+      </div>
+      <div class="shift-card-time">${s.start_time || s.start} — ${s.end_time || s.end}</div>
+      <div class="shift-card-tolerance">Tolerancia: ${s.tolerance_min || s.tolerance || 5} min · ${typeLabels[s.shift_type] || s.shift_type || '—'}</div>
+      <div class="shift-card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openModal('turno',${s.id})">Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTurno(${s.id})">Eliminar</button>
+      </div>
+    </div>`;
   }).join('');
 }
 
-function assignShift(employeeId, date) {
-  const shifts = state.shifts.length ? state.shifts : MOCK.shifts;
-  const names = shifts.map(s => s.name).join('\n');
-  const choice = prompt(`Asignar turno a empleado #${employeeId} para ${date}:\nDisponibles: ${names}\n\nEscribe el nombre del turno (o vacío para quitar):`);
-  if (choice === null) return;
-  const selected = shifts.find(s => s.name.toLowerCase() === choice.trim().toLowerCase());
-  (async () => {
-    if (!state.usingMock) {
-      const body = { employee_id: employeeId, date, shift_id: selected ? selected.id : null };
-      const result = await api('POST', '/schedules', body);
-      if (result) {
-        showToast(`Turno ${selected ? 'asignado' : 'quitado'} correctamente`, 'success');
-        loadHorarios();
-        return;
-      }
-      showToast('Error al asignar turno en el servidor', 'error');
-    }
-    // Fallback: just reload
-    loadHorarios();
-  })();
+async function deleteTurno(id) {
+  if (!confirm('¿Eliminar este turno?')) return;
+  const result = await api('DELETE', `/shifts/${id}`);
+  if (result) {
+    showToast('Turno eliminado correctamente', 'success');
+    loadTurnos();
+  } else {
+    showToast('Error al eliminar el turno', 'error');
+  }
+}
+
+// ===== FICHAJES =====
+async function loadFichajes() {
+  const [history, employees] = await Promise.all([
+    api('GET', '/clock/history'),
+    api('GET', '/employees')
+  ]);
+  if (!history) {
+    state.isDemo = true;
+    updateDemoBanner();
+    document.getElementById('fichajes-table-body').innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px">No se pudieron cargar los fichajes — servidor no responde</td></tr>';
+    return;
+  }
+  state.isDemo = false;
+  updateDemoBanner();
+  state.clockHistory = history;
+  if (employees) state.employees = employees;
+
+  // Populate employee filter
+  const empFilter = document.getElementById('clock-filter-empleado');
+  const empIds = new Set(history.map(r => r.employee_id));
+  empFilter.innerHTML = '<option value="">Todos los empleados</option>' +
+    (employees || []).filter(e => empIds.has(e.id)).map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('');
+
+  // Set default date to today
+  document.getElementById('clock-filter-date').value = new Date().toISOString().slice(0,10);
+
+  state.clockPage = 1;
+  filterFichajes();
+}
+
+function filterFichajes() {
+  const date = document.getElementById('clock-filter-date').value;
+  const empId = document.getElementById('clock-filter-empleado').value;
+  const tipo = document.getElementById('clock-filter-tipo').value;
+  const estado = document.getElementById('clock-filter-estado').value;
+  state.clockFilterDate = date;
+  state.clockFilterEmpleado = empId;
+  state.clockFilterTipo = tipo;
+  state.clockFilterEstado = estado;
+
+  let filtered = state.clockHistory.filter(r => {
+    if (date && r.date !== date && (!r.timestamp || r.timestamp.slice(0,10) !== date)) return false;
+    if (empId && r.employee_id != empId) return false;
+    if (tipo && r.type !== tipo) return false;
+    if (estado && r.status !== estado) return false;
+    return true;
+  });
+
+  state.clockFiltered = filtered;
+  renderFichajesPage(1);
+}
+
+function renderFichajesPage(page) {
+  state.clockPage = page;
+  const total = state.clockFiltered.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+  const start = (page - 1) * PAGE_SIZE;
+  const pageItems = state.clockFiltered.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('fichajes-table-body');
+  if (pageItems.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px">No hay fichajes que coincidan con los filtros</td></tr>';
+  } else {
+    tbody.innerHTML = pageItems.map(r => {
+      const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
+      const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
+      const typeLabel = r.type === 'in' ? 'Entrada' : r.type === 'out' ? 'Salida' : r.type === 'break_start' ? 'Pausa' : r.type === 'break_end' ? 'Vuelta' : r.type;
+      const dateStr = r.date || (r.timestamp ? r.timestamp.slice(0,10) : '—');
+      const timeStr = r.time || (r.timestamp ? r.timestamp.slice(11,16) : '—');
+      return `<tr>
+        <td>${r.employee_name || '—'}</td>
+        <td>${dateStr}</td>
+        <td>${typeLabel}</td>
+        <td>${timeStr}</td>
+        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  renderPagination('clock-pagination', page, totalPages, renderFichajesPage);
+}
+
+// ===== VACACIONES =====
+async function loadVacaciones() {
+  const [vacations, employees] = await Promise.all([
+    api('GET', '/vacations'),
+    api('GET', '/employees')
+  ]);
+  if (!vacations) {
+    state.isDemo = true;
+    updateDemoBanner();
+    document.getElementById('vacaciones-table-body').innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px">No se pudieron cargar las solicitudes — servidor no responde</td></tr>';
+    return;
+  }
+  state.isDemo = false;
+  updateDemoBanner();
+  state.vacations = vacations;
+  if (employees) state.employees = employees;
+
+  const tbody = document.getElementById('vacaciones-table-body');
+  if (vacations.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px">No hay solicitudes de vacaciones</td></tr>';
+  } else {
+    tbody.innerHTML = vacations.map(v => {
+      const statusBadge = v.status === 'pending' ? 'badge-pending' : v.status === 'approved' ? 'badge-approved' : 'badge-rejected';
+      const statusLabel = v.status === 'pending' ? 'Pendiente' : v.status === 'approved' ? 'Aprobada' : 'Rechazada';
+      const typeLabel = v.type === 'vacation' ? 'Vacaciones' : v.type === 'personal_leave' ? 'Permiso personal' : v.type || '—';
+      return `<tr>
+        <td>${v.employee_name || '—'}</td>
+        <td>${typeLabel}</td>
+        <td>${v.start_date || '—'}</td>
+        <td>${v.end_date || '—'}</td>
+        <td>${v.total_days || '—'}</td>
+        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+        <td>
+          ${v.status === 'pending' ? `
+            <button class="btn btn-sm btn-secondary" onclick="approveVacacion(${v.id})">Aprobar</button>
+            <button class="btn btn-sm btn-danger" onclick="rejectVacacion(${v.id})">Rechazar</button>
+          ` : '<span class="text-xs text-muted">—</span>'}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Render vacation calendar
+  renderVacacionesCalendar();
+}
+
+function renderVacacionesCalendar() {
+  const container = document.getElementById('vacaciones-calendar');
+  const approved = state.vacations.filter(v => v.status === 'approved');
+  if (approved.length === 0) {
+    container.innerHTML = '<div class="text-center text-muted" style="padding:24px">No hay vacaciones aprobadas</div>';
+    return;
+  }
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  approved.forEach(v => {
+    html += `<div style="background:rgba(15,118,110,0.1);border:1px solid rgba(15,118,110,0.2);border-radius:8px;padding:8px 12px;font-size:0.8rem">
+      <strong style="color:#0F766E">${v.employee_name || '—'}</strong><br>
+      <span style="color:#9a9ab0">${v.start_date} → ${v.end_date}</span>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function approveVacacion(id) {
+  const result = await api('POST', `/vacations/${id}/approve`);
+  if (result) { showToast('Vacaciones aprobadas', 'success'); loadVacaciones(); }
+  else showToast('Error al aprobar', 'error');
+}
+
+async function rejectVacacion(id) {
+  // Use modal instead of prompt
+  const container = document.getElementById('modal-container');
+  container.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+          <h3>Rechazar solicitud</h3>
+          <button class="modal-close" onclick="closeModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Motivo del rechazo</label>
+            <textarea id="reject-reason" rows="3" placeholder="Indica el motivo…" style="width:100%"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+          <button class="btn btn-danger" onclick="confirmRejectVacacion(${id})">Rechazar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function confirmRejectVacacion(id) {
+  const reason = document.getElementById('reject-reason').value.trim();
+  if (!reason) { showToast('Indica un motivo para el rechazo', 'warning'); return; }
+  const result = await api('POST', `/vacations/${id}/reject`, { reason });
+  if (result) { showToast('Vacaciones rechazadas', 'success'); closeModal(); loadVacaciones(); }
+  else showToast('Error al rechazar', 'error');
+}
+
+// ===== BAJAS =====
+async function loadBajas() {
+  const [leaves, employees] = await Promise.all([
+    api('GET', '/leave'),
+    api('GET', '/employees')
+  ]);
+  if (!leaves) {
+    state.isDemo = true;
+    updateDemoBanner();
+    document.getElementById('bajas-table-body').innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px">No se pudieron cargar las bajas — servidor no responde</td></tr>';
+    return;
+  }
+  state.isDemo = false;
+  updateDemoBanner();
+  state.leaves = leaves;
+  if (employees) state.employees = employees;
+
+  state.leaveFilterStatus = '';
+  state.leaveFilterType = '';
+  filterBajas();
+}
+
+function filterBajas() {
+  const status = document.getElementById('leave-filter-status').value;
+  const type = document.getElementById('leave-filter-type').value;
+  state.leaveFilterStatus = status;
+  state.leaveFilterType = type;
+
+  let filtered = state.leaves.filter(l => {
+    if (status && l.status !== status) return false;
+    if (type && l.leave_type !== type) return false;
+    return true;
+  });
+
+  state.leaveFiltered = filtered;
+  const tbody = document.getElementById('bajas-table-body');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px">No hay bajas que coincidan con los filtros</td></tr>';
+  } else {
+    const typeLabels = { EC:'Enf. Común', ANL:'Acc. No Laboral', AL:'Acc. Laboral', EP:'Enf. Profesional', MAT:'Maternidad', PAT:'Paternidad' };
+    tbody.innerHTML = filtered.map(l => {
+      const statusBadge = l.status === 'active' ? 'badge-incident' : 'badge-ok';
+      const statusLabel = l.status === 'active' ? 'Activa' : 'Finalizada';
+      const days = l.total_days || (l.start_date && l.end_date ? Math.ceil((new Date(l.end_date) - new Date(l.start_date)) / (1000*60*60*24)) + 1 : '—');
+      return `<tr>
+        <td>${l.employee_name || '—'}</td>
+        <td>${typeLabels[l.leave_type] || l.leave_type || '—'}</td>
+        <td>${l.start_date || '—'}</td>
+        <td>${l.expected_end_date || l.end_date || '—'}</td>
+        <td>${days}</td>
+        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+        <td>
+          ${l.status === 'active' ? `<button class="btn btn-sm btn-secondary" onclick="closeLeave(${l.id})">Dar alta</button>` : '<span class="text-xs text-muted">—</span>'}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+async function closeLeave(id) {
+  if (!confirm('¿Confirmar alta médica?')) return;
+  const result = await api('POST', `/leave/${id}/close`);
+  if (result) { showToast('Baja cerrada correctamente', 'success'); loadBajas(); }
+  else showToast('Error al cerrar la baja', 'error');
 }
 
 // ===== INFORMES =====
 function initReports() {
   const today = new Date();
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  document.getElementById('report-start').value = weekAgo.toISOString().slice(0,10);
+  const monthAgo = new Date(today);
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  document.getElementById('report-start').value = monthAgo.toISOString().slice(0,10);
   document.getElementById('report-end').value = today.toISOString().slice(0,10);
   loadReports();
 }
@@ -1042,185 +1920,415 @@ function initReports() {
 async function loadReports() {
   const start = document.getElementById('report-start').value;
   const end = document.getElementById('report-end').value;
+  const type = document.getElementById('report-type').value;
   if (!start || !end) return;
 
-  let hours = null, incidents = null;
-  if (!state.usingMock) {
-    [hours, incidents] = await Promise.all([
-      api('GET', `/reports/hours?start=${start}&end=${end}`),
-      api('GET', `/reports/incidents?start=${start}&end=${end}`)
-    ]);
-  }
-  if (!hours) hours = MOCK.reportHours;
-  if (!incidents) incidents = MOCK.reportIncidents;
+  const titles = {
+    hours: 'Horas trabajadas',
+    overtime: 'Horas extra',
+    absenteeism: 'Absentismo',
+    'labor-costs': 'Costes laborales',
+    inspection: 'Inspección de trabajo',
+    payroll: 'Nómina'
+  };
+  document.getElementById('report-title').textContent = titles[type] || 'Informe';
 
-  // Hours table
-  const hoursBody = document.getElementById('report-hours-body');
-  if (hours.length === 0) {
-    hoursBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">No hay datos en el período</td></tr>';
-  } else {
-    hoursBody.innerHTML = hours.map(r => `<tr>
-      <td>${r.employee_name}</td>
-      <td>${r.ordinarias}h</td>
-      <td>${r.extra}h</td>
-      <td><strong>${r.total}h</strong></td>
-    </tr>`).join('');
+  let data = null;
+  let theadHtml = '';
+  let tbodyHtml = '';
+
+  switch(type) {
+    case 'hours':
+      data = await api('GET', `/reports/hours?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>Horas ordinarias</th><th>Horas extra</th><th>Total</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.ordinarias || r.regular_hours || 0}h</td><td>${r.extra || r.overtime_hours || 0}h</td><td><strong>${r.total || (parseFloat(r.regular_hours||0) + parseFloat(r.overtime_hours||0)).toFixed(1)}h</strong></td></tr>`).join('');
+      }
+      break;
+    case 'overtime':
+      data = await api('GET', `/reports/overtime?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>Fecha</th><th>Tipo</th><th>Minutos</th><th>Estado</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.date}</td><td>${r.overtime_type === 'structural' ? 'Estructural' : 'Fuerza Mayor'}</td><td>${r.total_minutes} min</td><td>${r.compensation_type || 'Pendiente'}</td></tr>`).join('');
+      }
+      break;
+    case 'absenteeism':
+      data = await api('GET', `/reports/absenteeism?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>Días ausencia</th><th>Tasa</th><th>Tipo</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.absent_days || 0}</td><td>${r.rate || '0%'}</td><td>${r.type || '—'}</td></tr>`).join('');
+      }
+      break;
+    case 'labor-costs':
+      data = await api('GET', `/reports/labor-costs?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>Salario base</th><th>Complementos</th><th>Horas extra</th><th>Total</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.base_salary || 0}€</td><td>${r.complements || 0}€</td><td>${r.overtime_amount || 0}€</td><td><strong>${r.total || 0}€</strong></td></tr>`).join('');
+      }
+      break;
+    case 'inspection':
+      data = await api('GET', `/reports/daily?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>DNI</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Total</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.dni || '—'}</td><td>${r.date}</td><td>${r.clock_in || '—'}</td><td>${r.clock_out || '—'}</td><td>${r.total_hours || '—'}h</td></tr>`).join('');
+      }
+      break;
+    case 'payroll':
+      data = await api('GET', `/reports/monthly-hours?start=${start}&end=${end}`);
+      theadHtml = '<tr><th>Empleado</th><th>Programadas</th><th>Trabajadas</th><th>Extra</th><th>Festivos</th><th>Ausencias</th></tr>';
+      if (data && data.length > 0) {
+        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.scheduled_hours || 0}h</td><td>${r.worked_hours || 0}h</td><td>${r.overtime_hours || 0}h</td><td>${r.holiday_hours || 0}h</td><td>${r.absent_days || 0}d</td></tr>`).join('');
+      }
+      break;
   }
 
-  // Incidents table
-  const incBody = document.getElementById('report-incidents-body');
-  if (incidents.length === 0) {
-    incBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">Sin incidencias en el período</td></tr>';
+  document.getElementById('report-thead').innerHTML = theadHtml;
+  const body = document.getElementById('report-body');
+  if (!data || data.length === 0) {
+    body.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:32px">No hay datos en el período seleccionado</td></tr>';
   } else {
-    incBody.innerHTML = incidents.map(r => `<tr>
-      <td>${r.employee_name}</td>
-      <td>${r.date}</td>
-      <td>${r.type}</td>
-      <td>${r.description}</td>
-    </tr>`).join('');
+    body.innerHTML = tbodyHtml;
   }
 }
 
 async function exportReport(format) {
   const start = document.getElementById('report-start').value;
   const end = document.getElementById('report-end').value;
-  if (!state.usingMock) {
-    try {
-      const resp = await fetch(`http://localhost:8000/api/reports/export?format=${format}&start=${start}&end=${end}`, {
-        headers: { 'Authorization': `Bearer ${state.token}` }
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `informe.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('Informe descargado correctamente', 'success');
-    } catch(e) {
-      console.warn('Export failed:', e.message);
-      showToast('Error al descargar el informe', 'error');
-    }
-  } else {
-    showToast(`Exportación a ${format.toUpperCase()} — En producción se descargaría el archivo.`, 'warning');
+  const type = document.getElementById('report-type').value;
+  try {
+    const resp = await fetch(`${API_BASE}/reports/export?format=${format}&start=${start}&end=${end}&type=${type}`, {
+      headers: { 'Authorization': `Bearer ${state.token}` }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `informe_${type}_${start}_${end}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Informe descargado correctamente', 'success');
+  } catch(e) {
+    console.warn('Export failed:', e.message);
+    showToast('Error al descargar el informe', 'error');
   }
 }
 
 // ===== CONFIGURACIÓN =====
 async function loadSettings() {
-  if (!state.usingMock && state.user && state.user.tenant_id) {
-    const result = await api('GET', `/tenants/${state.user.tenant_id}`);
-    if (result) {
-      document.getElementById('cfg-nombre').value = result.nombre || '';
-      document.getElementById('cfg-cif').value = result.cif || '';
-      document.getElementById('cfg-direccion').value = result.direccion || '';
-      document.getElementById('cfg-convenio').value = result.convenio || '';
-      document.getElementById('cfg-tolerancia').value = result.tolerancia || 5;
-      return;
-    }
+  const settings = await api('GET', '/settings');
+  if (!settings) {
+    state.isDemo = true;
+    updateDemoBanner();
+    return;
   }
-  const s = MOCK.settings;
-  document.getElementById('cfg-nombre').value = s.nombre;
-  document.getElementById('cfg-cif').value = s.cif;
-  document.getElementById('cfg-direccion').value = s.direccion;
-  document.getElementById('cfg-convenio').value = s.convenio;
-  document.getElementById('cfg-tolerancia').value = s.tolerancia;
+  state.isDemo = false;
+  updateDemoBanner();
+
+  document.getElementById('cfg-nombre').value = settings.name || settings.nombre || '';
+  document.getElementById('cfg-cif').value = settings.cif || '';
+  document.getElementById('cfg-direccion').value = settings.address || settings.direccion || '';
+  document.getElementById('cfg-telefono').value = settings.phone || '';
+  document.getElementById('cfg-email').value = settings.email || '';
+  document.getElementById('cfg-convenio').value = settings.convenio || '';
+  document.getElementById('cfg-ccaa').value = settings.ccaa || '';
+  document.getElementById('cfg-tolerancia').value = settings.tolerancia_min || settings.tolerancia || 5;
+  document.getElementById('cfg-vacation-days').value = settings.vacation_days_per_year || 30;
+  document.getElementById('cfg-weekly-hours').value = settings.weekly_hours || 40;
+  document.getElementById('cfg-work-days').value = settings.work_days || 5;
+  document.getElementById('cfg-notif-email').value = settings.notif_email || 'all';
+  document.getElementById('cfg-notif-clock').value = settings.notif_clock || '15';
+  document.getElementById('cfg-notif-vacation').value = settings.notif_vacation || 'weekly';
+
+  // Load holidays
+  loadHolidays();
+}
+
+async function loadHolidays() {
+  const year = document.getElementById('cfg-holiday-year').value || 2026;
+  const holidays = await api('GET', `/calendar/holidays?year=${year}`);
+  if (!holidays) return;
+  state.holidays = holidays;
+  const tbody = document.getElementById('holidays-table-body');
+  if (holidays.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:16px">No hay festivos registrados</td></tr>';
+  } else {
+    tbody.innerHTML = holidays.map(h => {
+      const typeLabel = h.type === 'national' ? 'Nacional' : h.type === 'regional' ? 'Autonómico' : 'Local';
+      return `<tr>
+        <td>${h.date}</td>
+        <td>${h.name}</td>
+        <td>${typeLabel}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteHoliday(${h.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+async function addHoliday() {
+  const date = document.getElementById('cfg-holiday-date').value;
+  const name = document.getElementById('cfg-holiday-name').value.trim();
+  if (!date || !name) { showToast('Completa fecha y nombre del festivo', 'warning'); return; }
+  const result = await api('POST', '/calendar/holidays', { date, name, type: 'local', year: parseInt(date.slice(0,4)) });
+  if (result) {
+    showToast('Festivo añadido', 'success');
+    document.getElementById('cfg-holiday-date').value = '';
+    document.getElementById('cfg-holiday-name').value = '';
+    loadHolidays();
+  } else {
+    showToast('Error al añadir festivo', 'error');
+  }
+}
+
+async function deleteHoliday(id) {
+  if (!confirm('¿Eliminar este festivo?')) return;
+  const result = await api('DELETE', `/calendar/holidays/${id}`);
+  if (result) { showToast('Festivo eliminado', 'success'); loadHolidays(); }
+  else showToast('Error al eliminar', 'error');
 }
 
 async function saveSettings() {
-  const nombre = document.getElementById('cfg-nombre').value;
-  const cif = document.getElementById('cfg-cif').value;
-  const direccion = document.getElementById('cfg-direccion').value;
-  const convenio = document.getElementById('cfg-convenio').value;
-  const tolerancia = parseInt(document.getElementById('cfg-tolerancia').value) || 5;
-
-  if (!state.usingMock && state.user && state.user.tenant_id) {
-    const body = { nombre, cif, direccion, convenio, tolerancia };
-    const result = await api('PUT', `/tenants/${state.user.tenant_id}`, body);
-    if (result) {
-      showToast('Configuración guardada correctamente', 'success');
-      return;
-    }
-    showToast('Error al guardar en el servidor', 'error');
+  const body = {
+    name: document.getElementById('cfg-nombre').value,
+    cif: document.getElementById('cfg-cif').value,
+    address: document.getElementById('cfg-direccion').value,
+    phone: document.getElementById('cfg-telefono').value,
+    email: document.getElementById('cfg-email').value,
+    convenio: document.getElementById('cfg-convenio').value,
+    ccaa: document.getElementById('cfg-ccaa').value,
+    tolerancia_min: parseInt(document.getElementById('cfg-tolerancia').value) || 5,
+    vacation_days_per_year: parseInt(document.getElementById('cfg-vacation-days').value) || 30,
+    weekly_hours: parseInt(document.getElementById('cfg-weekly-hours').value) || 40,
+    work_days: parseInt(document.getElementById('cfg-work-days').value) || 5,
+    notif_email: document.getElementById('cfg-notif-email').value,
+    notif_clock: document.getElementById('cfg-notif-clock').value,
+    notif_vacation: document.getElementById('cfg-notif-vacation').value
+  };
+  const result = await api('PUT', '/settings', body);
+  if (result) {
+    showToast('Configuración guardada correctamente', 'success');
+  } else {
+    showToast('Error al guardar la configuración', 'error');
   }
-  // Fallback to MOCK
-  MOCK.settings.nombre = nombre;
-  MOCK.settings.cif = cif;
-  MOCK.settings.direccion = direccion;
-  MOCK.settings.convenio = convenio;
-  MOCK.settings.tolerancia = tolerancia;
-  showToast('Configuración guardada correctamente', 'success');
+}
+
+// ===== SETTINGS TABS =====
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// ===== PAGINATION HELPER =====
+function renderPagination(containerId, currentPage, totalPages, callback) {
+  const container = document.getElementById(containerId);
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+  let html = '';
+  html += `<button class="page-btn" onclick="callback(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>`;
+  const start = Math.max(1, currentPage - 2);
+  const end = Math.min(totalPages, currentPage + 2);
+  if (start > 1) html += `<button class="page-btn" onclick="callback(1)">1</button>${start > 2 ? '<span class="page-info">…</span>' : ''}`;
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="callback(${i})">${i}</button>`;
+  }
+  if (end < totalPages) html += `${end < totalPages - 1 ? '<span class="page-info">…</span>' : ''}<button class="page-btn" onclick="callback(${totalPages})">${totalPages}</button>`;
+  html += `<button class="page-btn" onclick="callback(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>`;
+  container.innerHTML = html;
 }
 
 // ===== MODAL =====
 function openModal(type, id) {
   const container = document.getElementById('modal-container');
-  const isEmpleado = type === 'empleado';
-  const title = isEmpleado ? (id ? 'Editar empleado' : 'Añadir empleado') : (id ? 'Editar turno' : 'Crear turno');
+  let title = '', fields = '', wide = false;
 
-  let fields = '';
-  if (isEmpleado) {
-    const emp = id ? (state.employees.find(e => e.id === id) || MOCK.employees.find(e => e.id === id)) : null;
-    const shifts = state.shifts.length ? state.shifts : MOCK.shifts;
+  if (type === 'empleado') {
+    const emp = id ? state.employees.find(e => e.id === id) : null;
+    title = id ? 'Editar empleado' : 'Añadir empleado';
+    wide = true;
+    const shifts = state.shifts;
     fields = `
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" id="modal-emp-name" value="${emp ? emp.name : ''}" placeholder="Ej: Ana García">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="modal-emp-name" value="${emp ? (emp.full_name || emp.name) : ''}" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label>Apellidos</label>
+          <input type="text" id="modal-emp-lastname" value="${emp ? (emp.last_name || '') : ''}" placeholder="Apellidos">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>DNI / NIE</label>
+          <input type="text" id="modal-emp-dni" value="${emp ? (emp.dni || '') : ''}" placeholder="12345678A">
+        </div>
+        <div class="form-group">
+          <label>N.º Seguridad Social</label>
+          <input type="text" id="modal-emp-nss" value="${emp ? (emp.nss || '') : ''}" placeholder="N.º SS">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoría profesional</label>
+          <input type="text" id="modal-emp-category" value="${emp ? (emp.professional_category || '') : ''}" placeholder="Ej: Camarero/a">
+        </div>
+        <div class="form-group">
+          <label>Tipo de contrato</label>
+          <select id="modal-emp-contract">
+            <option value="">Seleccionar…</option>
+            <option value="IND" ${emp && emp.contract_type === 'IND' ? 'selected' : ''}>Indefinido</option>
+            <option value="TEM-OC" ${emp && emp.contract_type === 'TEM-OC' ? 'selected' : ''}>Temporal obra</option>
+            <option value="TEM-CIR" ${emp && emp.contract_type === 'TEM-CIR' ? 'selected' : ''}>Temporal circunstancias</option>
+            <option value="TEM-INT" ${emp && emp.contract_type === 'TEM-INT' ? 'selected' : ''}>Interinidad</option>
+            <option value="PAR-IND" ${emp && emp.contract_type === 'PAR-IND' ? 'selected' : ''}>Tiempo parcial indefinido</option>
+            <option value="PAR-TEMP" ${emp && emp.contract_type === 'PAR-TEMP' ? 'selected' : ''}>Tiempo parcial temporal</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Turno habitual</label>
+          <select id="modal-emp-shift">
+            <option value="">Sin turno</option>
+            ${shifts.map(s => `<option value="${s.id}" ${emp && (emp.shift_id === s.id || emp.default_shift_id === s.id) ? 'selected' : ''}>${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select id="modal-emp-status">
+            <option value="active" ${emp && (emp.status === 'active' || emp.is_active !== false) ? 'selected' : ''}>Activo</option>
+            <option value="inactive" ${emp && (emp.status === 'inactive' || emp.is_active === false) ? 'selected' : ''}>Inactivo</option>
+          </select>
+        </div>
       </div>
       <div class="form-group">
-        <label>DNI / NIF</label>
-        <input type="text" id="modal-emp-dni" value="${emp ? emp.dni : ''}" placeholder="12345678A">
-      </div>
-      <div class="form-group">
-        <label>Turno</label>
-        <select id="modal-emp-shift">
-          ${shifts.map(s => `<option value="${s.id}" ${emp && emp.shift_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>PIN (4 dígitos)</label>
-        <input type="text" id="modal-emp-pin" value="${emp ? emp.pin : ''}" placeholder="1234" maxlength="4" pattern="[0-9]{4}">
-      </div>
-      <div class="form-group">
-        <label>Estado</label>
-        <select id="modal-emp-active">
-          <option value="1" ${emp && emp.active ? 'selected' : ''}>Activo</option>
-          <option value="0" ${emp && !emp.active ? 'selected' : ''}>Inactivo</option>
-        </select>
+        <label>PIN (4 dígitos) — solo si se cambia</label>
+        <input type="text" id="modal-emp-pin" placeholder="Dejar vacío para mantener el actual" maxlength="4" pattern="[0-9]{4}">
       </div>
     `;
-  } else {
-    const shift = id ? (state.shifts.find(s => s.id === id) || MOCK.shifts.find(s => s.id === id)) : null;
+  } else if (type === 'turno') {
+    const shift = id ? state.shifts.find(s => s.id === id) : null;
+    title = id ? 'Editar turno' : 'Crear turno';
     fields = `
       <div class="form-group">
         <label>Nombre del turno</label>
         <input type="text" id="modal-shift-name" value="${shift ? shift.name : ''}" placeholder="Ej: Mañana">
       </div>
-      <div class="form-group">
-        <label>Hora de inicio</label>
-        <input type="time" id="modal-shift-start" value="${shift ? shift.start : '07:00'}">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hora de inicio</label>
+          <input type="time" id="modal-shift-start" value="${shift ? (shift.start_time || shift.start) : '07:00'}">
+        </div>
+        <div class="form-group">
+          <label>Hora de fin</label>
+          <input type="time" id="modal-shift-end" value="${shift ? (shift.end_time || shift.end) : '15:00'}">
+        </div>
       </div>
-      <div class="form-group">
-        <label>Hora de fin</label>
-        <input type="time" id="modal-shift-end" value="${shift ? shift.end : '15:00'}">
-      </div>
-      <div class="form-group">
-        <label>Tolerancia (minutos)</label>
-        <input type="number" id="modal-shift-tolerance" value="${shift ? shift.tolerance : 5}" min="0" max="60">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de turno</label>
+          <select id="modal-shift-type">
+            <option value="morning" ${shift && shift.shift_type === 'morning' ? 'selected' : ''}>Mañana</option>
+            <option value="afternoon" ${shift && shift.shift_type === 'afternoon' ? 'selected' : ''}>Tarde</option>
+            <option value="night" ${shift && shift.shift_type === 'night' ? 'selected' : ''}>Noche</option>
+            <option value="split" ${shift && (shift.shift_type === 'split' || shift.is_split) ? 'selected' : ''}>Partido</option>
+            <option value="rotating" ${shift && shift.shift_type === 'rotating' ? 'selected' : ''}>Rotativo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tolerancia (minutos)</label>
+          <input type="number" id="modal-shift-tolerance" value="${shift ? (shift.tolerance_min || shift.tolerance || 5) : 5}" min="0" max="60">
+        </div>
       </div>
       <div class="form-group">
         <label>Color</label>
-        <input type="color" id="modal-shift-color" value="${shift ? shift.color : '#FF6B35'}">
+        <input type="color" id="modal-shift-color" value="${shift ? shift.color : '#FF6B35'}" style="height:40px;padding:4px">
+      </div>
+    `;
+  } else if (type === 'vacacion') {
+    title = 'Nueva solicitud de vacaciones';
+    const employees = state.employees;
+    fields = `
+      <div class="form-group">
+        <label>Empleado</label>
+        <select id="modal-vac-employee">
+          <option value="">Seleccionar…</option>
+          ${employees.map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha inicio</label>
+          <input type="date" id="modal-vac-start">
+        </div>
+        <div class="form-group">
+          <label>Fecha fin</label>
+          <input type="date" id="modal-vac-end">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="modal-vac-type">
+          <option value="vacation">Vacaciones</option>
+          <option value="personal_leave">Permiso personal</option>
+          <option value="unpaid_leave">Permiso no retribuido</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Motivo (opcional)</label>
+        <textarea id="modal-vac-reason" rows="2" placeholder="Motivo de la solicitud…"></textarea>
+      </div>
+    `;
+  } else if (type === 'baja') {
+    title = 'Registrar baja médica';
+    const employees = state.employees;
+    fields = `
+      <div class="form-group">
+        <label>Empleado</label>
+        <select id="modal-leave-employee">
+          <option value="">Seleccionar…</option>
+          ${employees.map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo de baja</label>
+        <select id="modal-leave-type">
+          <option value="EC">Enfermedad Común</option>
+          <option value="ANL">Accidente No Laboral</option>
+          <option value="AL">Accidente Laboral</option>
+          <option value="EP">Enfermedad Profesional</option>
+          <option value="MAT">Maternidad</option>
+          <option value="PAT">Paternidad</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha inicio</label>
+          <input type="date" id="modal-leave-start">
+        </div>
+        <div class="form-group">
+          <label>Fin previsto</label>
+          <input type="date" id="modal-leave-end">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Diagnóstico (opcional)</label>
+        <input type="text" id="modal-leave-diagnosis" placeholder="Código / descripción">
       </div>
     `;
   }
 
   container.innerHTML = `
     <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal">
+      <div class="modal ${wide ? 'modal-wide' : ''}">
         <div class="modal-header">
           <h3>${title}</h3>
           <button class="modal-close" onclick="closeModal()">
@@ -1243,117 +2351,130 @@ function closeModal() {
   document.getElementById('modal-container').innerHTML = '';
 }
 
-function saveModal(type, id) {
+async function saveModal(type, id) {
   if (type === 'empleado') {
     const name = document.getElementById('modal-emp-name').value.trim();
+    const lastname = document.getElementById('modal-emp-lastname').value.trim();
     const dni = document.getElementById('modal-emp-dni').value.trim();
-    const shiftId = parseInt(document.getElementById('modal-emp-shift').value);
+    const nss = document.getElementById('modal-emp-nss').value.trim();
+    const category = document.getElementById('modal-emp-category').value.trim();
+    const contractType = document.getElementById('modal-emp-contract').value;
+    const shiftId = document.getElementById('modal-emp-shift').value;
+    const status = document.getElementById('modal-emp-status').value;
     const pin = document.getElementById('modal-emp-pin').value.trim();
-    const active = document.getElementById('modal-emp-active').value === '1';
-    if (!name || !dni || !pin) { showToast('Completa todos los campos', 'warning'); return; }
 
-    const shifts = state.shifts.length ? state.shifts : MOCK.shifts;
-    const shiftName = shifts.find(s => s.id === shiftId)?.name || '';
+    if (!name) { showToast('El nombre es obligatorio', 'warning'); return; }
 
-    (async () => {
-      if (id) {
-        // Edit existing — try API first
-        const body = { name, dni, shift_id: shiftId, pin, active };
-        const result = await api('PUT', `/employees/${id}`, body);
-        if (result) {
-          showToast('Empleado actualizado correctamente', 'success');
-        } else {
-          // Fallback to MOCK
-          const emp = MOCK.employees.find(e => e.id === id);
-          if (emp) { emp.name = name; emp.dni = dni; emp.shift_id = shiftId; emp.shift_name = shiftName; emp.pin = pin; emp.active = active; }
-          showToast('Empleado actualizado (sin conexión al servidor)', 'warning');
-        }
-      } else {
-        // Create new — try API first
-        const body = { name, dni, shift_id: shiftId, pin, active };
-        const result = await api('POST', '/employees', body);
-        if (result) {
-          showToast('Empleado creado correctamente', 'success');
-        } else {
-          // Fallback to MOCK
-          const newId = Math.max(...MOCK.employees.map(e => e.id), 0) + 1;
-          MOCK.employees.push({ id:newId, name, dni, shift_id:shiftId, shift_name:shiftName, pin, active });
-          showToast('Empleado creado (sin conexión al servidor)', 'warning');
-        }
-      }
+    const body = {
+      first_name: name,
+      last_name: lastname,
+      full_name: `${name} ${lastname}`.trim(),
+      dni: dni || undefined,
+      nss: nss || undefined,
+      professional_category: category || undefined,
+      contract_type: contractType || undefined,
+      default_shift_id: shiftId ? parseInt(shiftId) : null,
+      status: status,
+      is_active: status === 'active'
+    };
+    if (pin) body.pin = pin;
+
+    const result = id
+      ? await api('PUT', `/employees/${id}`, body)
+      : await api('POST', '/employees', body);
+
+    if (result) {
+      showToast(id ? 'Empleado actualizado' : 'Empleado creado', 'success');
       closeModal();
       loadEmpleados();
-    })();
-  } else {
+    } else {
+      showToast('Error al guardar el empleado', 'error');
+    }
+  } else if (type === 'turno') {
     const name = document.getElementById('modal-shift-name').value.trim();
     const start = document.getElementById('modal-shift-start').value;
     const end = document.getElementById('modal-shift-end').value;
+    const shiftType = document.getElementById('modal-shift-type').value;
     const tolerance = parseInt(document.getElementById('modal-shift-tolerance').value) || 5;
     const color = document.getElementById('modal-shift-color').value;
+
     if (!name || !start || !end) { showToast('Completa todos los campos', 'warning'); return; }
 
-    (async () => {
-      if (id) {
-        // Edit existing — try API first
-        const body = { name, start, end, tolerance, color };
-        const result = await api('PUT', `/shifts/${id}`, body);
-        if (result) {
-          showToast('Turno actualizado correctamente', 'success');
-        } else {
-          // Fallback to MOCK
-          const shift = MOCK.shifts.find(s => s.id === id);
-          if (shift) { shift.name = name; shift.start = start; shift.end = end; shift.tolerance = tolerance; shift.color = color; }
-          showToast('Turno actualizado (sin conexión al servidor)', 'warning');
-        }
-      } else {
-        // Create new — try API first
-        const body = { name, start, end, tolerance, color };
-        const result = await api('POST', '/shifts', body);
-        if (result) {
-          showToast('Turno creado correctamente', 'success');
-        } else {
-          // Fallback to MOCK
-          const newId = Math.max(...MOCK.shifts.map(s => s.id), 0) + 1;
-          MOCK.shifts.push({ id:newId, name, start, end, tolerance, color });
-          showToast('Turno creado (sin conexión al servidor)', 'warning');
-        }
-      }
+    const body = { name, start_time: start, end_time: end, shift_type: shiftType, tolerance_min: tolerance, color };
+    const result = id
+      ? await api('PUT', `/shifts/${id}`, body)
+      : await api('POST', '/shifts', body);
+
+    if (result) {
+      showToast(id ? 'Turno actualizado' : 'Turno creado', 'success');
       closeModal();
       loadTurnos();
-    })();
+    } else {
+      showToast('Error al guardar el turno', 'error');
+    }
+  } else if (type === 'vacacion') {
+    const employeeId = document.getElementById('modal-vac-employee').value;
+    const start = document.getElementById('modal-vac-start').value;
+    const end = document.getElementById('modal-vac-end').value;
+    const vacType = document.getElementById('modal-vac-type').value;
+    const reason = document.getElementById('modal-vac-reason').value.trim();
+
+    if (!employeeId || !start || !end) { showToast('Completa todos los campos', 'warning'); return; }
+
+    const body = { employee_id: parseInt(employeeId), start_date: start, end_date: end, type: vacType, reason: reason || undefined };
+    const result = await api('POST', '/vacations', body);
+    if (result) {
+      showToast('Solicitud creada', 'success');
+      closeModal();
+      loadVacaciones();
+    } else {
+      showToast('Error al crear la solicitud', 'error');
+    }
+  } else if (type === 'baja') {
+    const employeeId = document.getElementById('modal-leave-employee').value;
+    const leaveType = document.getElementById('modal-leave-type').value;
+    const start = document.getElementById('modal-leave-start').value;
+    const end = document.getElementById('modal-leave-end').value;
+    const diagnosis = document.getElementById('modal-leave-diagnosis').value.trim();
+
+    if (!employeeId || !start) { showToast('Completa los campos obligatorios', 'warning'); return; }
+
+    const body = { employee_id: parseInt(employeeId), leave_type: leaveType, start_date: start, expected_end_date: end || undefined, diagnosis_code: diagnosis || undefined };
+    const result = await api('POST', '/leave', body);
+    if (result) {
+      showToast('Baja registrada', 'success');
+      closeModal();
+      loadBajas();
+    } else {
+      showToast('Error al registrar la baja', 'error');
+    }
   }
 }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  // Check for saved token in localStorage
   const savedToken = localStorage.getItem('talentup_token');
   if (savedToken && !isTokenExpired(savedToken)) {
     state.token = savedToken;
-    // Try to restore session from API
     api('GET', '/auth/me').then(user => {
       if (user) {
         state.user = user;
-        state.usingMock = false;
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        const initial = (state.user.name || state.user.email)[0].toUpperCase();
-        document.getElementById('navbar-avatar').textContent = initial;
-        document.getElementById('navbar-name').textContent = state.user.name || state.user.email;
-        navigate('dashboard');
+        state.isDemo = false;
+        enterApp();
         return;
       }
-      // Token invalid, clear it
       localStorage.removeItem('talentup_token');
       state.token = null;
     });
   }
   // Set default dates for reports
   const today = new Date();
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-  document.getElementById('report-start').value = weekAgo.toISOString().slice(0,10);
-  document.getElementById('report-end').value = today.toISOString().slice(0,10);
+  const monthAgo = new Date(today);
+  monthAgo.setDate(monthAgo.getDate() - 30);
+  const reportStart = document.getElementById('report-start');
+  const reportEnd = document.getElementById('report-end');
+  if (reportStart) reportStart.value = monthAgo.toISOString().slice(0,10);
+  if (reportEnd) reportEnd.value = today.toISOString().slice(0,10);
 });
 </script>
 </body>

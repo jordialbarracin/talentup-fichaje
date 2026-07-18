@@ -41,6 +41,7 @@ async def init_db():
     async with engine.begin() as conn:
         from app.database import Base
         from app.models import (  # noqa: F401 — ensure models are imported so tables register
-            Tenant, User, Employee, Shift, Schedule, ClockIn, Incident, AuditLog
+            Tenant, User, Employee, Shift, Schedule, ClockIn, Incident, AuditLog,
+            VacationRequest, Leave, Holiday,
         )
         await conn.run_sync(Base.metadata.create_all)
