@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Fichaje digital para hostelería</title>
+<meta name="description" content="Fichaje digital NFC, PIN y offline para hostelería. Nominas automáticas, gestión de turnos. Cumple RD-ley 8/2019.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #1d1d1f;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+  }
+  a { color: #FF6B35; text-decoration: none; transition: color 200ms ease; }
+  a:hover { color: #e55a2b; }
+  img { max-width: 100%; display: block; }
+
+  /* Navbar */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 56px;
+    background: rgba(255,255,255,0.80);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .navbar-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 18px; letter-spacing: -0.022em; color: #1d1d1f;
+  }
+  .navbar-logo svg { display: block; }
+  .navbar-links { display: flex; align-items: center; gap: 28px; }
+  .navbar-links a {
+    font-size: 14px; font-weight: 500; color: #6e6e73;
+    letter-spacing: -0.01em; transition: color 200ms ease;
+  }
+  .navbar-links a:hover { color: #1d1d1f; }
+  .navbar-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; padding: 0 18px;
+    background: #FF6B35; color: #fff; font-size: 13px; font-weight: 600;
+    border-radius: 980px; letter-spacing: -0.01em;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .navbar-cta:hover { opacity: 0.88; transform: scale(1.02); color: #fff; }
+
+  /* Sections */
+  section { padding: 100px 24px; }
+  .section-inner {
+    max-width: 1100px; margin: 0 auto;
+  }
+  .section-label {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: #FF6B35; margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 40px; font-weight: 600; letter-spacing: -0.022em;
+    line-height: 1.15; margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 18px; color: #6e6e73; max-width: 600px; line-height: 1.6;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 160px 24px 100px; text-align: center;
+    background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+  }
+  .hero h1 {
+    font-size: 56px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.08; margin-bottom: 20px; max-width: 780px; margin-left: auto; margin-right: auto;
+  }
+  .hero p {
+    font-size: 20px; color: #6e6e73; max-width: 600px; margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+  .hero-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 48px; padding: 0 28px;
+    background: #FF6B35; color: #fff; font-size: 15px; font-weight: 600;
+    border-radius: 980px; letter-spacing: -0.01em;
+    transition: opacity 200ms ease, transform 200ms ease;
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: scale(1.02); color: #fff; }
+  .btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 48px; padding: 0 28px;
+    background: transparent; color: #1d1d1f; font-size: 15px; font-weight: 500;
+    border-radius: 980px; letter-spacing: -0.01em;
+    border: 1px solid rgba(0,0,0,0.12);
+    transition: border-color 200ms ease, transform 200ms ease;
+    cursor: pointer;
+  }
+  .btn-secondary:hover { border-color: rgba(0,0,0,0.3); transform: scale(1.02); }
+
+  /* Features grid */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+  .feature-card {
+    background: #ffffff; border-radius: 12px; padding: 36px 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .feature-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.06); }
+  .feature-icon { margin-bottom: 20px; color: #FF6B35; }
+  .feature-card h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.022em; margin-bottom: 10px; }
+  .feature-card p { font-size: 15px; color: #6e6e73; line-height: 1.6; }
+
+  /* Steps */
+  .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; }
+  .step { text-align: center; }
+  .step-number {
+    display: flex; align-items: center; justify-content: center;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: #f5f5f7; color: #FF6B35;
+    font-size: 18px; font-weight: 600; margin: 0 auto 20px;
+  }
+  .step h3 { font-size: 20px; font-weight: 600; letter-spacing: -0.022em; margin-bottom: 10px; }
+  .step p { font-size: 15px; color: #6e6e73; line-height: 1.6; max-width: 300px; margin: 0 auto; }
+
+  /* Pricing */
+  .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 48px; }
+  .pricing-card {
+    background: #ffffff; border-radius: 12px; padding: 40px 32px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    display: flex; flex-direction: column;
+  }
+  .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.06); }
+  .pricing-card.pro {
+    border: 1px solid rgba(255,107,53,0.2);
+    position: relative;
+  }
+  .pricing-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: #FF6B35; color: #fff; font-size: 12px; font-weight: 600;
+    padding: 4px 14px; border-radius: 980px; letter-spacing: 0.02em;
+  }
+  .pricing-name { font-size: 14px; font-weight: 600; color: #6e6e73; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 8px; }
+  .pricing-price { font-size: 40px; font-weight: 600; letter-spacing: -0.022em; margin-bottom: 4px; }
+  .pricing-price span { font-size: 18px; font-weight: 400; color: #6e6e73; }
+  .pricing-desc { font-size: 14px; color: #6e6e73; margin-bottom: 24px; }
+  .pricing-features { list-style: none; margin-bottom: 28px; flex: 1; }
+  .pricing-features li {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; color: #1d1d1f; padding: 6px 0;
+  }
+  .pricing-features li svg { flex-shrink: 0; color: #FF6B35; }
+  .pricing-card .btn-primary { width: 100%; }
+
+  /* CTA final */
+  .cta-final {
+    text-align: center; padding: 120px 24px;
+    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  }
+  .cta-final h2 { font-size: 44px; font-weight: 600; letter-spacing: -0.03em; margin-bottom: 16px; }
+  .cta-final p { font-size: 18px; color: #6e6e73; margin-bottom: 36px; }
+  .cta-final .btn-primary { height: 52px; padding: 0 36px; font-size: 16px; }
+
+  /* Footer */
+  footer {
+    padding: 48px 24px 32px; border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .footer-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 13px; color: #6e6e73; }
+  .footer-links a:hover { color: #FF6B35; }
+  .footer-copy { font-size: 13px; color: #6e6e73; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 36px; }
+    .hero p { font-size: 17px; }
+    .section-title { font-size: 30px; }
+    .features-grid, .steps-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .navbar-links { display: none; }
+    .navbar { padding: 0 16px; }
+    section { padding: 72px 16px; }
+    .hero { padding: 130px 16px 72px; }
+    .cta-final h2 { font-size: 32px; }
+    .pricing-price { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="24" height="24" rx="6" stroke="#FF6B35" stroke-width="1.5"/>
+      <path d="M8 14L12 18L20 10" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    TalentUP
+  </div>
+  <div class="navbar-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#contacto">Contacto</a>
+  </div>
+  <a href="https://jordialbarracin.github.io/talentup-fichaje/" class="navbar-cta" target="_blank">Acceder</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <h1>El fichaje que entiende la hosteler&iacute;a</h1>
+  <p>NFC, PIN y offline. N&oacute;minas sin Excel. Cumple RD-ley 8/2019.</p>
+  <div class="hero-buttons">
+    <a href="#pricing" class="btn-primary">Empezar gratis</a>
+    <a href="#features" class="btn-secondary">Ver demo</a>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Todo lo que necesitas para gestionar tu equipo</h2>
+    <p class="section-sub">Desde el fichaje hasta la n&oacute;mina, sin papeleo ni hojas de c&aacute;lculo.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="6" width="28" height="24" rx="3" stroke="#FF6B35" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="5" stroke="#FF6B35" stroke-width="1.5"/>
+            <path d="M18 15V18L20 20" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M12 6V3" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M24 6V3" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Fichaje NFC</h3>
+        <p>Tus empleados fichan con su tel&eacute;fono o tarjeta NFC, con PIN o sin conexi&oacute;n. V&aacute;lido incluso en zonas sin cobertura.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="5" width="30" height="26" rx="3" stroke="#FF6B35" stroke-width="1.5"/>
+            <path d="M3 13H33" stroke="#FF6B35" stroke-width="1.5"/>
+            <path d="M12 5V31" stroke="#FF6B35" stroke-width="1.5"/>
+            <path d="M24 5V31" stroke="#FF6B35" stroke-width="1.5"/>
+            <circle cx="18" cy="22" r="3" stroke="#FF6B35" stroke-width="1.5"/>
+            <path d="M18 20V22L19.5 23.5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Gestión de turnos</h3>
+        <p>Planifica turnos, controla horas extras y recibe avisos de incidencias. Tu equipo sabe cu&aacute;ndo entra y sale al instante.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 30V10L18 4L30 10V30H6Z" stroke="#FF6B35" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M12 20L16 24L24 14" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 30H30" stroke="#FF6B35" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h3>Nóminas automáticas</h3>
+        <p>Genera n&oacute;minas al instante con los fichajes reales. Cotizaciones, IRPF y convenio hostelero incluidos. Adi&oacute;s al Excel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Como funciona -->
+<section id="como-funciona" style="background:#fafafa;">
+  <div class="section-inner">
+    <div class="section-label">Cómo funciona</div>
+    <h2 class="section-title">Tres pasos y ya estás fichando</h2>
+    <p class="section-sub">Configuraci&oacute;n exprés. Sin formación, sin IT, sin dolor de cabeza.</p>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Configura tu restaurante</h3>
+        <p>Añade tu negocio, los empleados y sus horarios. Importa desde Excel o créalo en 2 minutos.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Tus empleados fichan</h3>
+        <p>Con NFC, PIN o código QR. Funciona offline y se sincroniza cuando vuelven a tener conexión.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Nóminas e informes automáticos</h3>
+        <p>El sistema calcula horas, extras, vacaciones y bajas. Genera la nómina con un clic.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Planes para cada restaurante</h2>
+    <p class="section-sub">Sin permanencia. Cancela cuando quieras. Todos los planes incluyen 14 días de prueba.</p>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">Básico</div>
+        <div class="pricing-price">29<span>&euro;/mes</span></div>
+        <div class="pricing-desc">Hasta 15 empleados por restaurante</div>
+        <ul class="pricing-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Fichaje NFC, PIN y QR
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Modo offline
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Gestión de turnos
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Informes de presencia
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Cumplimiento RD-ley 8/2019
+          </li>
+        </ul>
+        <a href="https://jordialbarracin.github.io/talentup-fichaje/" class="btn-primary" target="_blank">Empezar gratis</a>
+      </div>
+      <div class="pricing-card pro">
+        <div class="pricing-badge">Más popular</div>
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">39<span>&euro;/mes</span></div>
+        <div class="pricing-desc">Hasta 50 empleados por restaurante</div>
+        <ul class="pricing-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Todo el plan Básico
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Nóminas automáticas
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Gestión de vacaciones y bajas
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Integración con contabilidad
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 8L7 11L12 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Soporte prioritario
+          </li>
+        </ul>
+        <a href="https://jordialbarracin.github.io/talentup-fichaje/" class="btn-primary" target="_blank">Empezar gratis</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Final -->
+<section class="cta-final" id="contacto">
+  <h2>Empieza a fichar en 5 minutos</h2>
+  <p>14 días de prueba gratuita. Sin tarjeta de crédito. Sin compromiso.</p>
+  <a href="https://jordialbarracin.github.io/talentup-fichaje/" class="btn-primary" target="_blank">Probar gratis ahora</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#contacto">Contacto</a>
+      <a href="https://github.com/jordialbarracin/talentup-fichaje" target="_blank">GitHub</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 TalentUP. Todos los derechos reservados.</div>
+  </div>
+</footer>
+
+</body>
+</html>
