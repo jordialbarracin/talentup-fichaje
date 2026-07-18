@@ -14,6 +14,8 @@ from .overtime import Overtime
 from .payroll import Payroll
 from .notification import Notification
 from .work_calendar import WorkCalendar
+from .geofence import Geofence
+from .document_template import DocumentTemplate
 
 __all__ = [
     "Tenant",
@@ -32,4 +34,6 @@ __all__ = [
     "Payroll",
     "Notification",
     "WorkCalendar",
+    "Geofence",
+    "DocumentTemplate",
 ]

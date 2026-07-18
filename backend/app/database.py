@@ -44,5 +44,6 @@ async def init_db():
             Tenant, User, Employee, Shift, Schedule, ClockIn, Incident, AuditLog,
             VacationRequest, Leave, Holiday,
             Contract, Overtime, Payroll, Notification, WorkCalendar,
+            Geofence, DocumentTemplate,
         )
         await conn.run_sync(Base.metadata.create_all)
