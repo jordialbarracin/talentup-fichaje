@@ -328,6 +328,9 @@ tr:hover td{background:rgba(255,107,53,0.04)}
         <span id="login-btn-text">Iniciar sesión</span>
         <span class="spinner hidden" id="login-spinner"></span>
       </button>
+      <button type="button" class="btn btn-ghost" id="demo-btn" style="margin-top:8px">
+        Entrar modo demo
+      </button>
     </form>
     <div class="login-meta">
       <span>¿Necesitas ayuda?</span>
@@ -1158,6 +1161,14 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     // Only real credentials work — no mock fallback
     errorEl.textContent = result && result.detail ? result.detail : 'Credenciales incorrectas. Verifica tu email y contraseña.';
   }
+});
+
+// ===== DEMO LOGIN (temporal — quitar después) =====
+document.getElementById('demo-btn').addEventListener('click', () => {
+  state.token = 'demo-token';
+  state.user = { name: 'Demo', email: 'demo@talentup.es', role: 'owner', tenant_id: 'demo' };
+  state.isDemo = true;
+  enterApp();
 });
 
 function enterApp() {
