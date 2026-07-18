@@ -205,6 +205,7 @@ async def seed_data():
             employee_id=emp2.id,
             start_date=date.today(),
             end_date=date.today() + timedelta(days=5),
+            leave_type="medical",
             type="medical",
             reason="Gripe",
             is_active=True,

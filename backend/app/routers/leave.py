@@ -33,7 +33,6 @@ class LeaveCreate(BaseModel):
     is_work_accident: bool = False
     is_professional_illness: bool = False
     document_url: Optional[str] = None
-    medical_report_url: Optional[str] = None
 
 
 class LeaveUpdate(BaseModel):
@@ -50,7 +49,6 @@ class LeaveUpdate(BaseModel):
     is_work_accident: Optional[bool] = None
     is_professional_illness: Optional[bool] = None
     document_url: Optional[str] = None
-    medical_report_url: Optional[str] = None
     status: Optional[str] = None
     extension_count: Optional[int] = None
     notified_to_employee: Optional[bool] = None
@@ -117,6 +115,7 @@ async def create_leave(
         tenant_id=tenant_id,
         employee_id=data.employee_id,
         leave_type=data.leave_type,
+        type=data.leave_type,
         start_date=date.fromisoformat(data.start_date),
         end_date=date.fromisoformat(data.end_date) if data.end_date else None,
         expected_end_date=date.fromisoformat(data.expected_end_date) if data.expected_end_date else None,
@@ -129,7 +128,6 @@ async def create_leave(
         is_work_accident=data.is_work_accident,
         is_professional_illness=data.is_professional_illness,
         document_url=data.document_url,
-        medical_report_url=data.medical_report_url,
         created_by=current_user.id,
     )
     db.add(l)
@@ -171,7 +169,6 @@ async def update_leave(
     if data.is_work_accident is not None: l.is_work_accident = data.is_work_accident
     if data.is_professional_illness is not None: l.is_professional_illness = data.is_professional_illness
     if data.document_url is not None: l.document_url = data.document_url
-    if data.medical_report_url is not None: l.medical_report_url = data.medical_report_url
     if data.status is not None: l.status = data.status
     if data.extension_count is not None: l.extension_count = data.extension_count
     if data.notified_to_employee is not None: l.notified_to_employee = data.notified_to_employee

@@ -127,7 +127,7 @@ class Employee(Base):
             "base_cotizacion": float(self.base_cotizacion) if self.base_cotizacion else None,
             "seniority_date": self.seniority_date.isoformat() if self.seniority_date else None,
             "rehire_eligible": self.rehire_eligible,
-            "pin_hash": self.pin_hash,
+            # "pin_hash": self.pin_hash,  # NEVER expose pin_hash in API responses
             "nfc_card_id": self.nfc_card_id,
             "nfc_uid": self.nfc_uid,
             "photo_url": self.photo_url,

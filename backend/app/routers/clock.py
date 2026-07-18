@@ -133,6 +133,9 @@ async def clock_in(
             detail="PIN incorrecto",
         )
 
+    # Record the clock action for rate limiting (before transition validation)
+    _record(_clock_limits, rate_key)
+
     # --- Transition validation ---
     # Get the last non-cancelled clock-in for this employee
     last_clock_result = await db.execute(
@@ -193,9 +196,6 @@ async def clock_in(
                 status_code=400,
                 detail=f"{matched_emp.name} no tiene una pausa activa. No puede finalizar pausa.",
             )
-
-    # Record the clock action for rate limiting
-    _record(_clock_limits, rate_key)
 
     clock = ClockIn(
         tenant_id=data.tenant_id,

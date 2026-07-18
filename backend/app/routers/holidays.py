@@ -89,9 +89,7 @@ async def create_holiday(
         type=data.type,
         region=data.region,
         locality=data.locality,
-        is_paid=data.is_paid,
-        is_working=data.is_working,
-        year=data.year,
+        year=str(data.year),
     )
     db.add(holiday)
     await db.commit()

@@ -408,6 +408,133 @@
     .logo-text { font-size: 1rem; }
   }
 
+  /* ===== MODAL OVERLAY (reusable for login, alert, confirm) ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 15, 30, 0.92);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 150;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: var(--radius);
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    animation: modalIn 240ms cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-title {
+    font-size: 1.4rem;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .modal-sub {
+    font-size: 0.95rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .modal-field {
+    margin-bottom: 16px;
+  }
+  .modal-field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .modal-field input {
+    width: 100%;
+    height: 48px;
+    background: var(--surface2);
+    border: 1px solid var(--surface2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 300;
+    padding: 0 16px;
+    outline: none;
+    transition: border-color var(--transition);
+    font-family: var(--font);
+  }
+  .modal-field input:focus { border-color: var(--primary); }
+  .modal-field input::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+  .modal-error {
+    color: var(--red);
+    font-size: 0.9rem;
+    font-weight: 400;
+    text-align: center;
+    min-height: 24px;
+    margin-bottom: 12px;
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+  .modal-error.show { opacity: 1; }
+
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .modal-btn {
+    height: 52px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    color: #fff;
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-btn-primary { background: var(--primary); }
+  .modal-btn-primary:hover { background: var(--primary-hover); }
+  .modal-btn-secondary {
+    background: transparent;
+    color: var(--text-dim);
+    font-weight: 300;
+    height: 44px;
+  }
+  .modal-btn-secondary:hover { color: var(--text); }
+  .modal-btn-danger { background: var(--red); }
+  .modal-btn-danger:hover { background: var(--red-hover); }
+
+  /* Alert modal (single button) */
+  .modal-icon {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .modal-message {
+    font-size: 1.1rem;
+    font-weight: 300;
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
   /* ===== SCROLLBAR HIDE ===== */
   ::-webkit-scrollbar { display: none; }
 
@@ -481,6 +608,50 @@
   <div class="confirm-sub" id="confirmSub">14:32:05</div>
 </div>
 
+<!-- ===== LOGIN MODAL (admin) ===== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 Acceso Administrador</div>
+    <div class="modal-sub">Inicia sesión con tu cuenta de administrador</div>
+    <div class="modal-field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="admin@talentup.com" autocomplete="email">
+    </div>
+    <div class="modal-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="modal-error" id="loginError"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" id="loginSubmit">Iniciar sesión</button>
+      <button class="modal-btn modal-btn-secondary" id="loginCancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ALERT MODAL (replaces native alert()) ===== -->
+<div class="modal-overlay" id="alertModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="alertIcon">ℹ️</div>
+    <div class="modal-message" id="alertMessage"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" id="alertOk">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM MODAL (replaces native confirm()) ===== -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-icon" id="confirmModalIcon">⚠️</div>
+    <div class="modal-message" id="confirmModalMessage"></div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-danger" id="confirmYes">Sí, salir</button>
+      <button class="modal-btn modal-btn-secondary" id="confirmNo">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== LOCKED SCREEN ===== -->
 <div class="screen" id="screenLocked">
   <div class="locked-icon">🔒</div>
@@ -549,8 +720,6 @@
     tenantId: ''
   };
 
-  const ADMIN_PIN = '0000';
-
   // ===== STATE =====
   let config = loadConfig();
   let currentPin = '';
@@ -595,6 +764,22 @@
   const setupTenantId = $('setupTenantId');
   const setupSave = $('setupSave');
   const statusBarFill = $('statusBarFill');
+  // Modal refs
+  const loginModal = $('loginModal');
+  const loginEmail = $('loginEmail');
+  const loginPassword = $('loginPassword');
+  const loginError = $('loginError');
+  const loginSubmit = $('loginSubmit');
+  const loginCancel = $('loginCancel');
+  const alertModal = $('alertModal');
+  const alertIcon = $('alertIcon');
+  const alertMessage = $('alertMessage');
+  const alertOk = $('alertOk');
+  const confirmModal = $('confirmModal');
+  const confirmModalIcon = $('confirmModalIcon');
+  const confirmModalMessage = $('confirmModalMessage');
+  const confirmYes = $('confirmYes');
+  const confirmNo = $('confirmNo');
 
   // ===== PERSISTENCE =====
   function loadConfig() {
@@ -782,12 +967,6 @@
       return;
     }
 
-    // Check admin PIN
-    if (currentPin === ADMIN_PIN) {
-      openAdminPanel();
-      return;
-    }
-
     // Check if tenant is configured
     if (!config.tenantId) {
       errorMsg.textContent = 'Terminal no configurado. Contacta al administrador.';
@@ -822,7 +1001,7 @@
         // Backend success
         failedAttempts = 0;
         const clockType = data.type || 'in';
-        const empName = data.employee ? data.employee.name : '';
+        const empName = data.employee_name || (data.employee ? data.employee.name : '') || '';
         const clockTime = data.time || timeStr;
 
         const labels = {
@@ -926,7 +1105,7 @@
     } catch {}
   }
 
-  // ===== LOGO TAP (Admin mode) =====
+  // ===== LOGO TAP (Admin mode — 5 clicks opens login modal) =====
   logoTrigger.addEventListener('click', function() {
     logoTapCount++;
     if (logoTapTimer) clearTimeout(logoTapTimer);
@@ -934,14 +1113,106 @@
 
     if (logoTapCount >= 5) {
       logoTapCount = 0;
-      // Ask for admin PIN
-      const enteredPin = prompt('Introduce PIN de administrador:');
-      if (enteredPin === ADMIN_PIN) {
-        openAdminPanel();
-      } else if (enteredPin !== null) {
-        alert('PIN de administrador incorrecto');
-      }
+      showLoginModal();
     }
+  });
+
+  // ===== MODAL FUNCTIONS =====
+
+  // Show login modal — validates against backend, NO local PIN
+  function showLoginModal() {
+    loginEmail.value = '';
+    loginPassword.value = '';
+    loginError.classList.remove('show');
+    loginError.textContent = '';
+    loginModal.classList.add('active');
+    setTimeout(() => loginEmail.focus(), 100);
+  }
+
+  function hideLoginModal() {
+    loginModal.classList.remove('active');
+  }
+
+  loginSubmit.addEventListener('click', function() {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value.trim();
+
+    if (!email || !password) {
+      loginError.textContent = 'Introduce email y contraseña';
+      loginError.classList.add('show');
+      return;
+    }
+
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Validando…';
+    loginError.classList.remove('show');
+
+    fetch(config.backendUrl + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    .then(function(resp) {
+      if (resp.ok) {
+        hideLoginModal();
+        openAdminPanel();
+      } else if (resp.status === 401) {
+        loginError.textContent = 'Credenciales incorrectas';
+        loginError.classList.add('show');
+      } else {
+        loginError.textContent = 'Error del servidor (' + resp.status + ')';
+        loginError.classList.add('show');
+      }
+    })
+    .catch(function() {
+      loginError.textContent = 'No se pudo conectar con el backend';
+      loginError.classList.add('show');
+    })
+    .finally(function() {
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Iniciar sesión';
+    });
+  });
+
+  loginCancel.addEventListener('click', hideLoginModal);
+
+  // Enter key in password field triggers login
+  loginPassword.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loginSubmit.click();
+  });
+
+  // Show alert modal (replaces native alert())
+  function showAlert(title, message) {
+    alertIcon.textContent = 'ℹ️';
+    alertMessage.textContent = message;
+    alertModal.classList.add('active');
+  }
+
+  alertOk.addEventListener('click', function() {
+    alertModal.classList.remove('active');
+  });
+
+  // Show confirm modal (replaces native confirm())
+  let confirmCallback = null;
+
+  function showConfirm(title, message, onConfirm) {
+    confirmModalIcon.textContent = '⚠️';
+    confirmModalMessage.textContent = title + '\n' + message;
+    confirmCallback = onConfirm;
+    confirmModal.classList.add('active');
+  }
+
+  confirmYes.addEventListener('click', function() {
+    confirmModal.classList.remove('active');
+    if (typeof confirmCallback === 'function') {
+      confirmCallback();
+      confirmCallback = null;
+    }
+  });
+
+  confirmNo.addEventListener('click', function() {
+    confirmModal.classList.remove('active');
+    confirmCallback = null;
   });
 
   // ===== ADMIN PANEL =====
@@ -968,10 +1239,10 @@
   });
 
   adminExitKiosk.addEventListener('click', function() {
-    if (confirm('¿Salir del modo kiosk? Se abrirá una nueva ventana.')) {
+    showConfirm('¿Salir del modo kiosk?', 'Se abrirá una nueva ventana.', function() {
       window.open('about:blank', '_blank');
       window.location.href = 'about:blank';
-    }
+    });
   });
 
   adminClose.addEventListener('click', function() {
@@ -989,11 +1260,11 @@
     const url = setupBackendUrl.value.trim();
     const tid = setupTenantId.value.trim();
     if (!url) {
-      alert('Introduce la URL del backend');
+      showAlert('Configuración', 'Introduce la URL del backend');
       return;
     }
     if (!tid) {
-      alert('Introduce el Tenant ID');
+      showAlert('Configuración', 'Introduce el Tenant ID');
       return;
     }
     config.backendUrl = url;
@@ -1075,7 +1346,6 @@
   console.log('TalentUP Fichaje Terminal v2.0');
   console.log('Backend:', config.backendUrl);
   console.log('Tenant ID:', config.tenantId || '(no configurado)');
-  console.log('Admin PIN: 0000 (pulsa 5 veces el logo)');
 })();
 </script>
 </body>
