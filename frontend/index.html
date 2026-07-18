@@ -2278,8 +2278,10 @@ function openModal(type, id) {
         </div>
       </div>
       <div class="form-group">
-        <label>Color</label>
-        <input type="color" id="modal-shift-color" value="${shift ? shift.color : '#FF6B35'}" style="height:40px;padding:4px">
+        <label>Color del turno</label>
+        <div id="modal-shift-color" style="display:flex;gap:8px;flex-wrap:wrap">
+          ${['#FF6B35','#FF9500','#FFCC00','#34C759','#007AFF','#5856D6','#AF52DE','#FF2D55','#A2845E','#8E8E93'].map(c => `<button type="button" data-color="${c}" class="color-swatch" style="width:32px;height:32px;border-radius:50%;background:${c};border:2px solid ${shift && shift.color === c ? '#1d1d1f' : 'transparent'};cursor:pointer;transition:all 200ms ease"></button>`).join('')}
+        </div>
       </div>
     `;
   } else if (type === 'vacacion') {
@@ -2374,6 +2376,14 @@ function openModal(type, id) {
       </div>
     </div>
   `;
+
+  // Color swatch handler for shift modal
+  document.querySelectorAll('#modal-shift-color .color-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#modal-shift-color .color-swatch').forEach(b => b.style.border = '2px solid transparent');
+      btn.style.border = '2px solid #1d1d1f';
+    });
+  });
 }
 
 function closeModal() {
@@ -2425,7 +2435,7 @@ async function saveModal(type, id) {
     const end = document.getElementById('modal-shift-end').value;
     const shiftType = document.getElementById('modal-shift-type').value;
     const tolerance = parseInt(document.getElementById('modal-shift-tolerance').value) || 5;
-    const color = document.getElementById('modal-shift-color').value;
+    const color = document.querySelector('#modal-shift-color .color-swatch[style*="border:2px solid #1d1d1f"]')?.dataset.color || '#FF6B35';
 
     if (!name || !start || !end) { showToast('Completa todos los campos', 'warning'); return; }
 
