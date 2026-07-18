@@ -1369,7 +1369,7 @@ function renderEmpleadosPage(page) {
       const statusLabel = status === 'active' ? 'Activo' : status === 'inactive' ? 'Inactivo' : status === 'on_vacation' ? 'Vacaciones' : status === 'on_leave' ? 'De baja' : status;
       const shiftName = e.shift_name || (state.shifts.find(s => s.id === (e.shift_id || e.default_shift_id)) || {}).name || '—';
       return `<tr>
-        <td><span class="font-medium">${e.full_name || e.name}</span></td>
+        <td><span class="font-medium">${e.full_name || e.name}${e.nfc_uid ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-2px" title="NFC asignada"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 8a4 4 0 0 1 0 8"/><path d="M16 8a4 4 0 0 0 0 8"/><path d="M10 10a2 2 0 0 1 0 4"/><path d="M14 10a2 2 0 0 0 0 4"/></svg>' : ''}</span></td>
         <td>${e.dni || '—'}</td>
         <td>${e.nss || '—'}</td>
         <td>${e.professional_category || '—'}</td>
@@ -2516,5 +2516,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (reportEnd) reportEnd.value = today.toISOString().slice(0,10);
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </body>
 </html>

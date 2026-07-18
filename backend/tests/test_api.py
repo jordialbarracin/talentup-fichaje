@@ -231,6 +231,77 @@ class TestClock:
         assert len(body) >= 1
         assert body[0]["type"] == "in"
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # NFC CLOCK
+    # ═══════════════════════════════════════════════════════════════════════
+
+    async def test_nfc_clock_in_valid(self, client, seed_data):
+        """POST /api/clock/nfc con NFC UID válido → 201 (auto in)"""
+        resp = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "NFC001",
+            "tenant_id": seed_data["tenant_a_id"],
+        })
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["ok"] is True
+        assert body["type"] == "in"
+        assert body["employee_name"] == "Carlos López"
+        assert "Entrada" in body["message"]
+        assert body["clock"]["employee_id"] == seed_data["emp1_id"]
+        assert body["clock"]["is_offline"] is False
+
+    async def test_nfc_clock_toggle_in_out(self, client, seed_data):
+        """POST /api/clock/nfc toggle: in → out"""
+        # First tap: in
+        resp1 = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "NFC002",
+            "tenant_id": seed_data["tenant_a_id"],
+        })
+        assert resp1.status_code == 201
+        assert resp1.json()["type"] == "in"
+
+        # Second tap: out (auto toggle)
+        resp2 = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "NFC002",
+            "tenant_id": seed_data["tenant_a_id"],
+        })
+        assert resp2.status_code == 201
+        body = resp2.json()
+        assert body["ok"] is True
+        assert body["type"] == "out"
+        assert body["employee_name"] == "Ana Martínez"
+        assert "Salida" in body["message"]
+
+    async def test_nfc_clock_unregistered_card(self, client, seed_data):
+        """POST /api/clock/nfc con NFC UID no registrado → 404"""
+        resp = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "UNKNOWN_NFC",
+            "tenant_id": seed_data["tenant_a_id"],
+        })
+        assert resp.status_code == 404
+        assert "Tarjeta NFC no registrada" in resp.json()["detail"]
+
+    async def test_nfc_clock_wrong_tenant(self, client, seed_data):
+        """POST /api/clock/nfc con NFC UID válido pero otro tenant → 404"""
+        resp = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "NFC001",
+            "tenant_id": seed_data["tenant_b_id"],
+        })
+        assert resp.status_code == 404
+        assert "Tarjeta NFC no registrada" in resp.json()["detail"]
+
+    async def test_nfc_clock_missing_fields(self, client, seed_data):
+        """POST /api/clock/nfc sin nfc_uid → 422"""
+        resp = await client.post("/api/clock/nfc", json={
+            "tenant_id": seed_data["tenant_a_id"],
+        })
+        assert resp.status_code == 422
+
+        resp2 = await client.post("/api/clock/nfc", json={
+            "nfc_uid": "NFC001",
+        })
+        assert resp2.status_code == 422
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 4. SHIFTS

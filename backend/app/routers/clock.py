@@ -61,6 +61,11 @@ class ClockRequest(BaseModel):
     is_offline: bool = False
 
 
+class NfcClockRequest(BaseModel):
+    nfc_uid: str
+    tenant_id: str
+
+
 class ClockCancelRequest(BaseModel):
     reason: str
 
@@ -211,6 +216,125 @@ async def clock_in(
     await db.refresh(clock)
 
     # Response labels in Spanish
+    _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
+    return {
+        "ok": True,
+        "message": f"{matched_emp.name} — {_labels.get(data_type, data_type)} registrada",
+        "type": data_type,
+        "employee_name": matched_emp.name,
+        "time": clock.timestamp.isoformat() if clock.timestamp else None,
+        "clock": clock.to_dict(),
+    }
+
+
+@router.post("/nfc", status_code=201)
+async def clock_nfc(
+    data: NfcClockRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Register a clock-in/out via NFC. PUBLIC endpoint — no JWT required.
+    The terminal uses NFC UID + tenant_id to identify the employee.
+    """
+    # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
+    client_ip = request.client.host if request.client else "unknown"
+    rate_key = f"{client_ip}:{data.tenant_id}"
+
+    if not _cleanup_and_check(_clock_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
+            headers={"Retry-After": "60"},
+        )
+
+    # Find employee by nfc_uid within the tenant
+    result = await db.execute(
+        select(Employee).where(
+            Employee.tenant_id == data.tenant_id,
+            Employee.nfc_uid == data.nfc_uid,
+            Employee.is_active == True,
+        )
+    )
+    matched_emp = result.scalar_one_or_none()
+
+    if not matched_emp:
+        raise HTTPException(
+            status_code=404,
+            detail="Tarjeta NFC no registrada",
+        )
+
+    # Record the clock action for rate limiting
+    _record(_clock_limits, rate_key)
+
+    # --- Auto toggle (same logic as type='auto' in PIN endpoint) ---
+    last_clock_result = await db.execute(
+        select(ClockIn).where(
+            ClockIn.employee_id == matched_emp.id,
+            ClockIn.is_cancelled == False,
+        ).order_by(ClockIn.timestamp.desc()).limit(1)
+    )
+    last_clock = last_clock_result.scalar_one_or_none()
+
+    if not last_clock or last_clock.type == "out":
+        data_type = "in"
+    elif last_clock.type == "in":
+        data_type = "out"
+    elif last_clock.type == "break_start":
+        data_type = "break_end"
+    elif last_clock.type == "break_end":
+        data_type = "out"
+    else:
+        data_type = "in"
+
+    # --- Transition validation ---
+    if data_type == "in":
+        if last_clock and last_clock.type in ("in", "break_end"):
+            if last_clock.type == "in":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{matched_emp.name} ya tiene un fichaje 'in' activo. Debe hacer 'out' o 'break_start' primero.",
+                )
+            if last_clock.type == "break_end":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"{matched_emp.name} ya está trabajando. Debe hacer 'out' primero.",
+                )
+    elif data_type == "out":
+        if not last_clock or last_clock.type not in ("in", "break_end"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{matched_emp.name} no tiene un fichaje 'in' activo. No puede hacer 'out'.",
+            )
+    elif data_type == "break_start":
+        if not last_clock or last_clock.type not in ("in", "break_end"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{matched_emp.name} no tiene un fichaje 'in' activo. No puede iniciar pausa.",
+            )
+        if last_clock.type == "break_start":
+            raise HTTPException(
+                status_code=400,
+                detail=f"{matched_emp.name} ya está en pausa. Debe hacer 'break_end' primero.",
+            )
+    elif data_type == "break_end":
+        if not last_clock or last_clock.type != "break_start":
+            raise HTTPException(
+                status_code=400,
+                detail=f"{matched_emp.name} no tiene una pausa activa. No puede finalizar pausa.",
+            )
+
+    clock = ClockIn(
+        tenant_id=data.tenant_id,
+        employee_id=matched_emp.id,
+        type=data_type,
+        timestamp=datetime.now(timezone.utc),
+        is_offline=False,
+    )
+    db.add(clock)
+    await db.commit()
+    await db.refresh(clock)
+
     _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
     return {
         "ok": True,

@@ -539,6 +539,154 @@
     line-height: 1.5;
   }
 
+  /* ===== QR SCANNER OVERLAY ===== */
+  .qr-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .qr-overlay.active { display: flex; }
+
+  .qr-video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .qr-ui {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .qr-label {
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 32px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .qr-frame {
+    width: 240px;
+    height: 240px;
+    position: relative;
+    border-radius: 16px;
+  }
+
+  .qr-frame-inner {
+    width: 100%;
+    height: 100%;
+    border: 3px solid #FF6B35;
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+  }
+
+  .qr-frame-corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-color: #FF6B35;
+    border-style: solid;
+  }
+  .qr-frame-corner.tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-radius: 16px 0 0 0; }
+  .qr-frame-corner.tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-radius: 0 16px 0 0; }
+  .qr-frame-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-radius: 0 0 0 16px; }
+  .qr-frame-corner.br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-radius: 0 0 16px 0; }
+
+  .qr-cancel-btn {
+    margin-top: 48px;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    border-radius: 980px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 14px 40px;
+    cursor: pointer;
+    transition: background 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .qr-cancel-btn:hover { background: rgba(255,255,255,0.25); }
+  .qr-cancel-btn:active { transform: scale(0.97); }
+
+  .qr-error-msg {
+    position: absolute;
+    bottom: 120px;
+    left: 24px;
+    right: 24px;
+    text-align: center;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 400;
+    background: rgba(239,68,68,0.85);
+    padding: 12px 20px;
+    border-radius: 12px;
+    z-index: 3;
+    display: none;
+  }
+  .qr-error-msg.show { display: block; }
+
+  /* ===== QR BUTTON ON PIN SCREEN ===== */
+  .qr-btn {
+    margin-top: 20px;
+    height: 52px;
+    border: none;
+    border-radius: 980px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: var(--font);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .qr-btn:hover { background: var(--surface2); }
+  .qr-btn:active { transform: scale(0.97); }
+  .qr-btn-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .qr-btn-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   /* ===== SCROLLBAR HIDE ===== */
   ::-webkit-scrollbar { display: none; }
 

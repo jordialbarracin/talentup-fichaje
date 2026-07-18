@@ -157,6 +157,7 @@ async def seed_data():
             name="Carlos López",
             dni="12345678A",
             pin_hash=hash_password("1234"),
+            nfc_uid="NFC001",
             shift_id=shift_morning.id,
             is_active=True,
         )
@@ -165,6 +166,7 @@ async def seed_data():
             name="Ana Martínez",
             dni="23456789B",
             pin_hash=hash_password("5678"),
+            nfc_uid="NFC002",
             shift_id=shift_afternoon.id,
             is_active=True,
         )
