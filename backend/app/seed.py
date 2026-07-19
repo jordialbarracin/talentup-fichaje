@@ -205,6 +205,7 @@ async def seed():
                 "coste_hora": 12.50, "iban": "ES91 2100 0418 4502 0005 1332",
                 "saldo_vacaciones": 30, "saldo_banco_horas": 0, "horas_extra_pendientes": 0,
                 "pin": "1234", "shift_id": shifts_data[0].id,
+                "nfc_uid": "04:A1:B2:C3:D4:E5",
                 "food_handling_cert": True, "uniform_size": "M",
             },
             {
@@ -219,6 +220,7 @@ async def seed():
                 "coste_hora": 11.67, "iban": "ES91 2100 0418 4502 0005 1333",
                 "saldo_vacaciones": 30, "saldo_banco_horas": 0, "horas_extra_pendientes": 0,
                 "pin": "5678", "shift_id": shifts_data[1].id,
+                "nfc_uid": "04:A1:B2:C3:D4:E6",
                 "food_handling_cert": True, "uniform_size": "S",
             },
             {
@@ -233,6 +235,7 @@ async def seed():
                 "coste_hora": 16.67, "iban": "ES91 2100 0418 4502 0005 1334",
                 "saldo_vacaciones": 30, "saldo_banco_horas": 0, "horas_extra_pendientes": 0,
                 "pin": "9012", "shift_id": shifts_data[2].id,
+                "nfc_uid": "04:A1:B2:C3:D4:E7",
                 "food_handling_cert": True, "uniform_size": "L",
             },
             {
@@ -364,6 +367,7 @@ async def seed():
                 horas_extra_pendientes=emp_data["horas_extra_pendientes"],
                 pin_hash=hash_password(emp_data["pin"]),
                 shift_id=emp_data["shift_id"],
+                nfc_uid=emp_data.get("nfc_uid"),
                 food_handling_cert=emp_data["food_handling_cert"],
                 uniform_size=emp_data["uniform_size"],
                 estado="activo",

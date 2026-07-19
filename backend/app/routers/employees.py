@@ -286,8 +286,8 @@ async def update_employee(
     if data.grupo_cotizacion is not None: emp.grupo_cotizacion = data.grupo_cotizacion
     if data.base_cotizacion is not None: emp.base_cotizacion = data.base_cotizacion
     if data.pin is not None: emp.pin_hash = hash_password(data.pin)
-    if data.nfc_card_id is not None: emp.nfc_card_id = data.nfc_card_id
-    if data.nfc_uid is not None: emp.nfc_uid = data.nfc_uid
+    if data.nfc_card_id is not None: emp.nfc_card_id = data.nfc_card_id if data.nfc_card_id != "" else None
+    if data.nfc_uid is not None: emp.nfc_uid = data.nfc_uid if data.nfc_uid != "" else None
     if data.photo_url is not None: emp.photo_url = data.photo_url
     if data.shift_id is not None: emp.shift_id = data.shift_id
     if data.clock_method is not None: emp.clock_method = data.clock_method

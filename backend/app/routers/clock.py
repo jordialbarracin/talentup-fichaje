@@ -66,6 +66,11 @@ class NfcClockRequest(BaseModel):
     tenant_id: str
 
 
+class QrClockRequest(BaseModel):
+    employee_id: str
+    tenant_id: str
+
+
 class ClockCancelRequest(BaseModel):
     reason: str
 
@@ -323,6 +328,97 @@ async def clock_nfc(
                 status_code=400,
                 detail=f"{matched_emp.name} no tiene una pausa activa. No puede finalizar pausa.",
             )
+
+    clock = ClockIn(
+        tenant_id=data.tenant_id,
+        employee_id=matched_emp.id,
+        type=data_type,
+        timestamp=datetime.now(timezone.utc),
+        is_offline=False,
+    )
+    db.add(clock)
+    await db.commit()
+    await db.refresh(clock)
+
+    _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
+    return {
+        "ok": True,
+        "message": f"{matched_emp.name} — {_labels.get(data_type, data_type)} registrada",
+        "type": data_type,
+        "employee_name": matched_emp.name,
+        "time": clock.timestamp.isoformat() if clock.timestamp else None,
+        "clock": clock.to_dict(),
+    }
+
+
+@router.post("/qr", status_code=201)
+async def clock_qr(
+    data: QrClockRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Register a clock-in/out via QR code. PUBLIC endpoint — no JWT required.
+    The terminal scans a QR containing the employee_id and posts it here.
+    """
+    client_ip = request.client.host if request.client else "unknown"
+    rate_key = f"{client_ip}:{data.tenant_id}"
+
+    if not _cleanup_and_check(_clock_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
+            headers={"Retry-After": "60"},
+        )
+
+    # Find employee by ID within the tenant
+    result = await db.execute(
+        select(Employee).where(
+            Employee.id == data.employee_id,
+            Employee.tenant_id == data.tenant_id,
+            Employee.is_active == True,
+        )
+    )
+    matched_emp = result.scalar_one_or_none()
+
+    if not matched_emp:
+        raise HTTPException(
+            status_code=404,
+            detail="Código QR no válido o empleado no encontrado",
+        )
+
+    _record(_clock_limits, rate_key)
+
+    # --- Auto toggle (same logic as NFC) ---
+    last_clock_result = await db.execute(
+        select(ClockIn).where(
+            ClockIn.employee_id == matched_emp.id,
+            ClockIn.is_cancelled == False,
+        ).order_by(ClockIn.timestamp.desc()).limit(1)
+    )
+    last_clock = last_clock_result.scalar_one_or_none()
+
+    if not last_clock or last_clock.type == "out":
+        data_type = "in"
+    elif last_clock.type == "in":
+        data_type = "out"
+    elif last_clock.type == "break_start":
+        data_type = "break_end"
+    elif last_clock.type == "break_end":
+        data_type = "out"
+    else:
+        data_type = "in"
+
+    # --- Transition validation ---
+    if data_type == "in":
+        if last_clock and last_clock.type in ("in", "break_end"):
+            if last_clock.type == "in":
+                raise HTTPException(status_code=400, detail=f"{matched_emp.name} ya tiene un fichaje 'in' activo.")
+            if last_clock.type == "break_end":
+                raise HTTPException(status_code=400, detail=f"{matched_emp.name} ya está trabajando.")
+    elif data_type == "out":
+        if not last_clock or last_clock.type not in ("in", "break_end"):
+            raise HTTPException(status_code=400, detail=f"{matched_emp.name} no tiene un fichaje 'in' activo.")
 
     clock = ClockIn(
         tenant_id=data.tenant_id,
