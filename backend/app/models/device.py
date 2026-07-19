@@ -7,7 +7,7 @@ class Device(Base):
     __tablename__ = "devices"
 
     id = Column(Integer, primary_key=True, index=True)
-    tenant_id = Column(Integer, ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
+    tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
     device_token = Column(String(255), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)

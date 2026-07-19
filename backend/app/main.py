@@ -14,6 +14,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Default to SQLite for local dev — set before importing database module
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./talentup_fichaje.db")
 
+# Default log level
+os.environ.setdefault("LOG_LEVEL", "INFO")
+
 from app.database import init_db, engine
 from app.routers import (
     auth,

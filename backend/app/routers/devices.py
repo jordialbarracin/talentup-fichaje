@@ -82,4 +82,13 @@ async def create_device(
     db.add(device)
     await db.commit()
     await db.refresh(device)
-    return device.to_dict()
+
+    return DeviceResponse(
+        id=str(device.id),
+        tenant_id=str(device.tenant_id),
+        device_token=device.device_token,
+        name=device.name,
+        is_active=device.is_active,
+        created_at=str(device.created_at) if hasattr(device, 'created_at') and device.created_at else None,
+        updated_at=str(device.updated_at) if hasattr(device, 'updated_at') and device.updated_at else None,
+    )

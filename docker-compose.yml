@@ -1,5 +1,5 @@
 # ============================================================
-# TalentUP Fichaje — Docker Compose (local development)
+# TalentUP Fichaje — Docker Compose (local development + staging)
 # ============================================================
 version: "3.9"
 
@@ -10,15 +10,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: talentup
-      POSTGRES_PASSWORD: talentup_secret
-      POSTGRES_DB: talentup_fichaje
+      POSTGRES_USER: ${POSTGRES_USER:-talentup}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-talentup_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-talentup_fichaje}
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U talentup -d talentup_fichaje"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-talentup} -d ${POSTGRES_DB:-talentup_fichaje}"]
       interval: 5s
       timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
       retries: 5
 
   backend:
@@ -29,13 +40,27 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://talentup:talentup_secret@db:5432/talentup_fichaje
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-talentup}:${POSTGRES_PASSWORD:-talentup_secret}@db:5432/${POSTGRES_DB:-talentup_fichaje}
       JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-480}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      PIN_HASH_SALT: ${PIN_HASH_SALT:-cambia-este-salt-en-produccion}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
       PORT: "8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /build
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
@@ -53,7 +53,7 @@ WORKDIR $APP_HOME
 COPY --from=builder /opt/venv /opt/venv
 
 # Copy application source
-COPY --chown=talentup:talentup app ./app
+COPY --chown=talentup:talentup backend/app ./app
 
 # Persist SQLite fallback only for dev/tests (empty directory, owned by app user)
 RUN mkdir -p "$APP_HOME/data" && chown -R talentup:talentup "$APP_HOME"
