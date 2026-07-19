@@ -34,6 +34,7 @@ from app.routers import (
     incidents,
     settings,
     billing,
+    devices,
 )
 
 
@@ -92,6 +93,7 @@ app.include_router(calendar.router)
 app.include_router(incidents.router)
 app.include_router(settings.router)
 app.include_router(billing.router)
+app.include_router(devices.router)
 
 
 if __name__ == "__main__":

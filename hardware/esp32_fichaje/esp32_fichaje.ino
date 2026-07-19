@@ -4,7 +4,7 @@
  *
  * Lee tarjetas NFC con PN532 via SPI y envía el UID al backend
  * TalentUP Fichaje para registrar entrada/salida.
- * Incluye cola offline con SPIFFS para operación sin conexión
+ * Incluye cola offline con LittleFS + journaling para operación sin conexión
  * y watchdog timer para reinicio automático en caso de cuelgue.
  *
  * Conexiones ESP32 -> PN532:
@@ -18,12 +18,13 @@
  *
  * Librerías necesarias (PlatformIO / Arduino IDE):
  *   - WiFi (built-in ESP32)
+ *   - WiFiClientSecure (built-in ESP32)
  *   - HTTPClient (built-in ESP32)
  *   - ArduinoJson       ^6.x
  *   - Adafruit PN532    ^1.3
  *   - Adafruit BusIO     (dependencia PN532)
  *   - SPI (built-in ESP32)
- *   - SPIFFS (built-in ESP32)
+ *   - LittleFS (built-in ESP32)
  */
 
 // ===================== CONFIGURACIÓN =====================
@@ -34,10 +35,13 @@
 #define WIFI_PASS       "TU_WIFI_PASSWORD"
 #endif
 #ifndef BACKEND_URL
-#define BACKEND_URL     "http://192.168.1.100:8000"
+#define BACKEND_URL     "https://192.168.1.100:8000"
 #endif
 #ifndef TENANT_ID
 #define TENANT_ID       "CAMBIAR-POR-TU-TENANT-ID-UUID"
+#endif
+#ifndef DEVICE_TOKEN
+#define DEVICE_TOKEN    "CAMBIAR-POR-TU-DEVICE-TOKEN"
 #endif
 
 // Pines
@@ -56,20 +60,24 @@
 #define NFC_POLL_MS     100
 #define SYNC_INTERVAL_MS 30000   // 30s entre intentos de sincronización
 #define WDT_TIMEOUT_S   10       // Watchdog timeout en segundos
-#define MAX_QUEUE_SIZE  100      // Máximo de fichajes en cola offline
+#define MAX_QUEUE_SIZE  100      // Máximo fichajes en cola offline
 
 // ==========================================================
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <Adafruit_PN532.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <esp_task_wdt.h>
 
 // Instancia PN532 por SPI
 Adafruit_PN532 nfc(PIN_PN532_SS);
+
+// Cliente TLS para HTTPS (global para reutilizar)
+WiFiClientSecure tlsClient;
 
 // Estado
 String lastUID = "";
@@ -87,10 +95,9 @@ void sendToBackend(const String &uid);
 void setLED(bool green, bool red);
 void blinkError(int times, int delayMs);
 void fatalError();
-void initSPIFFS();
+void initLittleFS();
 bool saveToQueue(const String &uid);
-int loadQueue(JsonArray &arr);
-bool writeQueue(JsonArray &arr);
+int loadPendingCount();
 void syncQueue();
 void updateBlueLED();
 void feedWatchdog();
@@ -101,7 +108,7 @@ void setup() {
   Serial.println();
   Serial.println(F("========================================"));
   Serial.println(F("  TalentUP Fichaje - ESP32 NFC Reader"));
-  Serial.println(F("  Con cola offline SPIFFS + WDT"));
+  Serial.println(F("  Con cola offline LittleFS + journaling + WDT"));
   Serial.println(F("========================================"));
 
   // LEDs
@@ -116,11 +123,15 @@ void setup() {
   esp_task_wdt_add(NULL);
   feedWatchdog();
 
-  // --- SPIFFS ---
-  initSPIFFS();
+  // --- LittleFS ---
+  initLittleFS();
 
   // --- WiFi ---
   connectWiFi();
+
+  // --- TLS ---
+  tlsClient.setInsecure();  // Para desarrollo: acepta cualquier certificado
+  Serial.println(F("[INFO] TLS modo desarrollo (setInsecure)."));
 
   // --- PN532 ---
   SPI.begin(PIN_PN532_SCK, PIN_PN532_MISO, PIN_PN532_MOSI, PIN_PN532_SS);
@@ -142,12 +153,7 @@ void setup() {
   nfc.SAMConfig();
 
   // Cargar cola pendiente al arrancar
-  pendingCount = 0;
-  {
-    StaticJsonDocument<6144> doc;
-    JsonArray arr = doc.to<JsonArray>();
-    pendingCount = loadQueue(arr);
-  }
+  pendingCount = loadPendingCount();
   if (pendingCount > 0) {
     Serial.print(F("[INFO] "));
     Serial.print(pendingCount);
@@ -419,167 +425,260 @@ void fatalError() {
   }
 }
 
-// ============== FUNCIONES COLA OFFLINE (SPIFFS) ==============
+// ============== FUNCIONES COLA OFFLINE (LittleFS + journaling) ==============
 
-#define QUEUE_FILE "/queue.json"
+#define QUEUE_DIR       "/queue"
+#define QUEUE_INDEX     "/queue/index.json"
+#define QUEUE_FILE_FMT  "/queue/%03d.json"
+#define QUEUE_MAX_DIGITS 3
 
 /**
- * Inicializa SPIFFS. Si falla, formatea automáticamente.
+ * Inicializa LittleFS. Si falla, formatea automáticamente.
+ * Crea el directorio /queue si no existe.
  */
-void initSPIFFS() {
-  if (!SPIFFS.begin(true)) {
-    Serial.println(F("[ERROR] SPIFFS mount failed. Formateando..."));
-    if (!SPIFFS.format()) {
-      Serial.println(F("[FATAL] SPIFFS format failed."));
+void initLittleFS() {
+  if (!LittleFS.begin(true)) {
+    Serial.println(F("[ERROR] LittleFS mount failed. Formateando..."));
+    if (!LittleFS.format()) {
+      Serial.println(F("[FATAL] LittleFS format failed."));
       fatalError();
     }
-    if (!SPIFFS.begin(true)) {
-      Serial.println(F("[FATAL] SPIFFS remount failed after format."));
+    if (!LittleFS.begin(true)) {
+      Serial.println(F("[FATAL] LittleFS remount failed after format."));
       fatalError();
     }
   }
-  Serial.println(F("[OK] SPIFFS montado correctamente."));
+
+  if (!LittleFS.exists(QUEUE_DIR)) {
+    if (!LittleFS.mkdir(QUEUE_DIR)) {
+      Serial.println(F("[FATAL] No se pudo crear /queue."));
+      fatalError();
+    }
+  }
+
+  Serial.println(F("[OK] LittleFS montado correctamente (journaling /queue)."));
 }
 
 /**
- * Carga la cola de fichajes desde SPIFFS a un JsonArray.
- * Devuelve el número de entradas pendientes (synced=false).
+ * Lee el contador actual desde /queue/index.json.
+ * Si el archivo no existe o está corrupto, calcula el siguiente
+ * número seguro a partir de los archivos existentes.
  */
-int loadQueue(JsonArray &arr) {
-  if (!SPIFFS.exists(QUEUE_FILE)) {
+static int readIndexCounter() {
+  if (!LittleFS.exists(QUEUE_INDEX)) {
     return 0;
   }
 
-  File file = SPIFFS.open(QUEUE_FILE, "r");
+  File file = LittleFS.open(QUEUE_INDEX, "r");
   if (!file) {
-    Serial.println(F("[WARN] No se pudo abrir queue.json para lectura."));
-    return 0;
-  }
-
-  size_t size = file.size();
-  if (size == 0) {
-    file.close();
     return 0;
   }
 
   String content = file.readString();
   file.close();
 
-  DeserializationError err = deserializeJson(arr, content);
-  if (err) {
-    Serial.print(F("[WARN] Error parseando queue.json: "));
-    Serial.println(err.c_str());
+  StaticJsonDocument<128> doc;
+  DeserializationError err = deserializeJson(doc, content);
+  if (err || !doc["counter"].is<int>()) {
+    Serial.println(F("[WARN] index.json corrupto, recalculando contador."));
     return 0;
   }
 
-  // Contar pendientes
-  int count = 0;
-  for (size_t i = 0; i < arr.size(); i++) {
-    if (!arr[i]["synced"].as<bool>()) {
-      count++;
-    }
-  }
-  return count;
+  return doc["counter"].as<int>();
 }
 
 /**
- * Escribe un JsonArray completo a SPIFFS.
+ * Escribe el contador en /queue/index.json.
  */
-bool writeQueue(JsonArray &arr) {
-  File file = SPIFFS.open(QUEUE_FILE, "w");
+static bool writeIndexCounter(int counter) {
+  File file = LittleFS.open(QUEUE_INDEX, "w");
   if (!file) {
-    Serial.println(F("[ERROR] No se pudo abrir queue.json para escritura."));
+    Serial.println(F("[ERROR] No se pudo abrir index.json para escritura."));
     return false;
   }
 
-  serializeJson(arr, file);
+  StaticJsonDocument<128> doc;
+  doc["counter"] = counter;
+  serializeJson(doc, file);
   file.close();
   return true;
 }
 
 /**
- * Guarda un fichaje en la cola offline.
- * Formato: { "uid": "XX:XX:XX:XX", "timestamp": 1234567890, "synced": false }
- * Máximo MAX_QUEUE_SIZE entradas (FIFO: descarta la más antigua si está llena).
+ * Lista los archivos de fichaje en /queue y los ordena por número.
+ * 'numbers' debe tener capacidad MAX_QUEUE_SIZE.
+ * Devuelve la cantidad de archivos encontrados.
  */
-bool saveToQueue(const String &uid) {
-  StaticJsonDocument<6144> doc;
-  JsonArray arr = doc.to<JsonArray>();
-
-  // Cargar cola existente
-  loadQueue(arr);
-
-  // Verificar límite: si está llena, descartar la más antigua
-  if (arr.size() >= MAX_QUEUE_SIZE) {
-    Serial.println(F("[WARN] Cola offline llena. Descartando fichaje más antiguo..."));
-    for (size_t i = 1; i < arr.size(); i++) {
-      arr[i - 1] = arr[i];
-    }
-    arr.remove(arr.size() - 1);
+static int listQueueFiles(int *numbers, int maxCount) {
+  File dir = LittleFS.open(QUEUE_DIR);
+  if (!dir || !dir.isDirectory()) {
+    return 0;
   }
 
-  // Añadir nuevo fichaje
-  JsonObject entry = arr.createNestedObject();
-  entry["uid"] = uid;
-  entry["timestamp"] = millis() / 1000;  // Tiempo desde arranque (relativo)
-  entry["synced"] = false;
+  int count = 0;
+  File file = dir.openNextFile();
+  while (file && count < maxCount) {
+    String name = String(file.name());
+    file.close();
 
-  if (!writeQueue(arr)) {
+    // Solo archivos 001.json, 002.json, ...
+    if (name.endsWith(".json") && name != "index.json") {
+      String numPart = name.substring(0, name.length() - 5);
+      int n = numPart.toInt();
+      if (n > 0) {
+        numbers[count++] = n;
+      }
+    }
+    file = dir.openNextFile();
+  }
+
+  // Ordenar ascendente (burbuja simple, max 100 elementos)
+  for (int i = 0; i < count - 1; i++) {
+    for (int j = i + 1; j < count; j++) {
+      if (numbers[j] < numbers[i]) {
+        int tmp = numbers[i];
+        numbers[i] = numbers[j];
+        numbers[j] = tmp;
+      }
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Cuenta cuántos fichajes hay pendientes en /queue.
+ */
+int loadPendingCount() {
+  int numbers[MAX_QUEUE_SIZE];
+  return listQueueFiles(numbers, MAX_QUEUE_SIZE);
+}
+
+/**
+ * Guarda un fichaje en la cola offline como archivo individual:
+ *   /queue/001.json, /queue/002.json, ...
+ * Mantiene /queue/index.json con el contador secuencial.
+ * Si se supera MAX_QUEUE_SIZE, descarta el fichaje más antiguo (FIFO).
+ */
+bool saveToQueue(const String &uid) {
+  // Asegurar que existe /queue
+  if (!LittleFS.exists(QUEUE_DIR)) {
+    LittleFS.mkdir(QUEUE_DIR);
+  }
+
+  int numbers[MAX_QUEUE_SIZE];
+  int count = listQueueFiles(numbers, MAX_QUEUE_SIZE);
+
+  // FIFO: si la cola está llena, borrar el fichaje más antiguo
+  if (count >= MAX_QUEUE_SIZE) {
+    Serial.println(F("[WARN] Cola offline llena. Descartando fichaje más antiguo..."));
+    char oldest[32];
+    snprintf(oldest, sizeof(oldest), QUEUE_FILE_FMT, numbers[0]);
+    LittleFS.remove(oldest);
+    count--;
+  }
+
+  // Determinar siguiente número (a partir de index.json)
+  int counter = readIndexCounter();
+  int next = counter + 1;
+
+  // Evitar colisión con archivos existentes por si index.json se desfasó
+  for (int i = 0; i < count; i++) {
+    if (numbers[i] >= next) {
+      next = numbers[i] + 1;
+    }
+  }
+
+  // Guardar fichaje individual
+  char path[32];
+  snprintf(path, sizeof(path), QUEUE_FILE_FMT, next);
+
+  File file = LittleFS.open(path, "w");
+  if (!file) {
+    Serial.print(F("[ERROR] No se pudo crear "));
+    Serial.println(path);
     return false;
   }
 
-  // Actualizar contador de pendientes
-  pendingCount = 0;
-  for (size_t i = 0; i < arr.size(); i++) {
-    if (!arr[i]["synced"].as<bool>()) {
-      pendingCount++;
-    }
+  StaticJsonDocument<256> doc;
+  doc["uid"] = uid;
+  doc["timestamp"] = millis() / 1000;  // Tiempo desde arranque (relativo)
+  doc["synced"] = false;
+
+  if (serializeJson(doc, file) == 0) {
+    file.close();
+    Serial.print(F("[ERROR] Fallo escribiendo "));
+    Serial.println(path);
+    return false;
+  }
+  file.close();
+
+  // Actualizar contador en index.json
+  if (!writeIndexCounter(next)) {
+    Serial.println(F("[WARN] Fichaje guardado pero no se pudo actualizar index.json."));
+    // Continuamos: el próximo arranque recalculará a partir de archivos.
   }
 
+  pendingCount = loadPendingCount();
   return true;
 }
 
 /**
  * Intenta sincronizar todos los fichajes pendientes con el backend.
- * Si OK, marca synced=true y elimina del queue.
- * Si falla alguno, mantiene en cola para reintentar.
+ * Lee cada archivo /queue/NNN.json, lo envía y, si OK, lo borra.
+ * Si un archivo está corrupto, se ignora y se borra para no bloquear la cola.
+ * Si el envío de un fichaje falla, se detiene para mantener el orden;
+ * el archivo permanece en cola para el siguiente intento.
  */
 void syncQueue() {
   if (WiFi.status() != WL_CONNECTED) {
     return;
   }
 
-  StaticJsonDocument<6144> doc;
-  JsonArray arr = doc.to<JsonArray>();
-  int total = loadQueue(arr);
+  int numbers[MAX_QUEUE_SIZE];
+  int count = listQueueFiles(numbers, MAX_QUEUE_SIZE);
 
-  if (total == 0) {
-    return;
-  }
-
-  // Contar solo los pendientes
-  int pendientes = 0;
-  for (size_t i = 0; i < arr.size(); i++) {
-    if (!arr[i]["synced"].as<bool>()) {
-      pendientes++;
-    }
-  }
-
-  if (pendientes == 0) {
+  if (count == 0) {
+    pendingCount = 0;
     return;
   }
 
   Serial.print(F("Sincronizando "));
-  Serial.print(pendientes);
+  Serial.print(count);
   Serial.println(F(" fichajes..."));
 
-  bool allSynced = true;
-  for (size_t i = 0; i < arr.size(); i++) {
-    if (arr[i]["synced"].as<bool>()) {
+  for (int i = 0; i < count; i++) {
+    char path[32];
+    snprintf(path, sizeof(path), QUEUE_FILE_FMT, numbers[i]);
+
+    File file = LittleFS.open(path, "r");
+    if (!file) {
+      Serial.print(F("[WARN] No se pudo abrir "));
+      Serial.println(path);
       continue;
     }
 
-    const char *uid = arr[i]["uid"] | "";
+    String content = file.readString();
+    file.close();
+
+    StaticJsonDocument<256> doc;
+    DeserializationError err = deserializeJson(doc, content);
+    if (err) {
+      Serial.print(F("[WARN] Archivo corrupto, saltando: "));
+      Serial.println(path);
+      LittleFS.remove(path);
+      feedWatchdog();
+      continue;
+    }
+
+    const char *uid = doc["uid"] | "";
+    if (strlen(uid) == 0) {
+      Serial.print(F("[WARN] UID vacío, eliminando "));
+      Serial.println(path);
+      LittleFS.remove(path);
+      feedWatchdog();
+      continue;
+    }
 
     HTTPClient http;
     String url = String(BACKEND_URL) + "/api/clock/nfc";
@@ -599,37 +698,28 @@ void syncQueue() {
     http.end();
 
     if (httpCode == 200 || httpCode == 201) {
-      arr[i]["synced"] = true;
       Serial.print(F("  OK: "));
-      Serial.println(uid);
+      Serial.print(uid);
+      Serial.print(F(" ("));
+      Serial.print(path);
+      Serial.println(F(")"));
+      LittleFS.remove(path);
     } else {
       Serial.print(F("  FAIL: "));
       Serial.print(uid);
-      Serial.print(F(" (HTTP "));
+      Serial.print(F(" ("));
+      Serial.print(path);
+      Serial.print(F(", HTTP "));
       Serial.print(httpCode);
       Serial.println(F(")"));
-      allSynced = false;
+      // Mantener orden: no procesar el resto hasta la próxima ronda
+      break;
     }
 
     feedWatchdog();
   }
 
-  if (allSynced) {
-    // Todos sincronizados - limpiar cola
-    arr.clear();
-    Serial.println(F("Todo sincronizado"));
-  }
-
-  // Guardar estado actualizado
-  writeQueue(arr);
-
-  // Actualizar contador
-  pendingCount = 0;
-  for (size_t i = 0; i < arr.size(); i++) {
-    if (!arr[i]["synced"].as<bool>()) {
-      pendingCount++;
-    }
-  }
+  pendingCount = loadPendingCount();
 }
 
 /**

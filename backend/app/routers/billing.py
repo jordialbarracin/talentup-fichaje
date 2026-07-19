@@ -177,23 +177,20 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     if stripe is None:
         raise HTTPException(status_code=503, detail="Stripe no configurado")
 
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.warning("STRIPE_WEBHOOK_SECRET is not configured — rejecting webhook")
+        raise HTTPException(status_code=403, detail="Webhook secret no configurado")
+
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature", "")
 
     # Verify webhook signature
-    if STRIPE_WEBHOOK_SECRET and sig_header:
-        try:
-            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid payload")
-        except stripe.error.SignatureVerificationError:
-            raise HTTPException(status_code=400, detail="Invalid signature")
-    else:
-        # Dev mode — parse directly without verification
-        import json
-        event = json.loads(payload)
-        # Wrap in a simple object-like dict
-        event = type("Event", (), {"type": event.get("type"), "data": type("Data", (), {"object": event.get("data", {}).get("object", {})})})()
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
     event_type = event.type
     logger.info(f"Stripe webhook received: {event_type}")

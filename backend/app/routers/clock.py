@@ -1,55 +1,118 @@
 """
 TalentUP Fichaje — Clock router.
-POST /api/clock (público, con PIN), GET /api/clock/history, GET /api/clock/today
+POST /api/clock (PIN), /api/clock/nfc, /api/clock/qr, GET /api/clock/history, GET /api/clock/today
+NFC and QR endpoints require a valid device token.
 """
+import json
 import time as time_module
-from collections import defaultdict
 from datetime import date, datetime, time, timezone
 from typing import Optional, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.clock_in import ClockIn
 from app.models.employee import Employee
 from app.models.user import User
+from app.models.device import Device
 from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user
 from app.audit import log_action
+from app.rate_limiter import (
+    _cleanup_and_check,
+    _record,
+    _pin_limits,
+    _nfc_limits,
+    _qr_limits,
+    _pin_failures,
+    _pin_blocks,
+    CLOCK_MAX_PER_MINUTE,
+    PIN_FAIL_MAX_PER_MINUTE,
+    PIN_BLOCK_MINUTES,
+    WINDOW_SECONDS,
+)
 
 router = APIRouter(prefix="/api/clock", tags=["clock"])
 
+# --- Device token dependency ---
+DEVICE_TOKEN_HEADER = "Authorization"
+DEVICE_TOKEN_PREFIX = "Bearer "
+
+
+async def require_device_token(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Validate the Authorization: Bearer <device_token> header.
+    Returns the matching Device (belongs to the request tenant_id in body).
+    Raises 401 if missing/invalid and 403 if the device is disabled.
+    """
+    auth_header = request.headers.get(DEVICE_TOKEN_HEADER, "")
+    if not auth_header.startswith(DEVICE_TOKEN_PREFIX):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Autorización requerida: Authorization: Bearer <device_token>",
+        )
+
+    token = auth_header[len(DEVICE_TOKEN_PREFIX):].strip()
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Device token vacío",
+        )
+
+    # Body not yet parsed here; peek the raw JSON for tenant_id. Fast enough for small posts.
+    body = await request.body()
+    tenant_id = None
+    if body:
+        try:
+            json_body = json.loads(body)
+            tenant_id = json_body.get("tenant_id")
+        except Exception:
+            pass
+
+    result = await db.execute(
+        select(Device).where(
+            Device.device_token == token,
+            Device.is_active == True,
+        )
+    )
+    device = result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Device token no válido",
+        )
+
+    if tenant_id and str(device.tenant_id) != str(tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Device token no pertenece a este tenant",
+        )
+
+    return device
+
+
 # --- Rate limiting (in-memory) ---
-# clock_limits: key = f"{ip}:{tenant_id}" -> list of timestamps
-_clock_limits: dict[str, list[float]] = defaultdict(list)
-# pin_failures: key = f"{ip}:{tenant_id}" -> list of timestamps
-_pin_failures: dict[str, list[float]] = defaultdict(list)
-# pin_blocks: key = f"{ip}:{tenant_id}" -> unblock timestamp
-_pin_blocks: dict[str, float] = {}
-
-CLOCK_MAX_PER_MINUTE = 10
-PIN_FAIL_MAX_PER_MINUTE = 5
-PIN_BLOCK_MINUTES = 5
-WINDOW_SECONDS = 60
+# One independent store per clock method. Key = f"{ip}:{tenant_id}".
+def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
+    """Build rate-limit key from IP and tenant."""
+    client_ip = request.client.host if request.client else "unknown"
+    return f"{client_ip}:{tenant_id or 'unknown'}"
 
 
-def _cleanup_and_check(
-    store: dict[str, list[float]],
-    key: str,
-    max_count: int,
-    window: int = WINDOW_SECONDS,
-) -> bool:
-    """Remove entries older than `window` seconds and check if under limit."""
+def _cleanup_and_check_pin_failures(key: str, max_count: int) -> bool:
     now = time_module.time()
-    if key in store:
-        store[key] = [t for t in store[key] if now - t < window]
-    return len(store.get(key, [])) < max_count
+    if key in _pin_failures:
+        _pin_failures[key] = [t for t in _pin_failures[key] if now - t < WINDOW_SECONDS]
+    return len(_pin_failures.get(key, [])) < max_count
 
 
-def _record(store: dict[str, list[float]], key: str):
-    store[key].append(time_module.time())
+def _record_pin_failure(key: str):
+    _pin_failures.setdefault(key, []).append(time_module.time())
 
 
 class ClockRequest(BaseModel):
@@ -88,9 +151,8 @@ async def clock_in(
     if not data.tenant_id:
         raise HTTPException(status_code=400, detail="tenant_id es requerido")
 
-    # --- Rate limiting by IP+tenant_id ---
-    client_ip = request.client.host if request.client else "unknown"
-    rate_key = f"{client_ip}:{data.tenant_id}"
+    # --- Rate limiting by IP+tenant_id, independently for PIN attempts ---
+    rate_key = _rate_limit_key(request, data.tenant_id)
 
     # Check PIN block
     if rate_key in _pin_blocks:
@@ -104,11 +166,11 @@ async def clock_in(
         else:
             del _pin_blocks[rate_key]
 
-    # Check clock rate limit
-    if not _cleanup_and_check(_clock_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    # Check PIN clock rate limit (independent from NFC/QR)
+    if not _cleanup_and_check(_pin_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
-            detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
+            detail=f"Demasiados fichajes por PIN. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
             headers={"Retry-After": "60"},
         )
 
@@ -129,8 +191,8 @@ async def clock_in(
 
     if not matched_emp:
         # Record PIN failure
-        _record(_pin_failures, rate_key)
-        if not _cleanup_and_check(_pin_failures, rate_key, PIN_FAIL_MAX_PER_MINUTE):
+        _record_pin_failure(rate_key)
+        if not _cleanup_and_check_pin_failures(rate_key, PIN_FAIL_MAX_PER_MINUTE):
             _pin_blocks[rate_key] = time_module.time() + PIN_BLOCK_MINUTES * 60
             raise HTTPException(
                 status_code=429,
@@ -142,8 +204,8 @@ async def clock_in(
             detail="PIN incorrecto",
         )
 
-    # Record the clock action for rate limiting (before transition validation)
-    _record(_clock_limits, rate_key)
+    # Record the clock action for PIN rate limiting
+    _record(_pin_limits, rate_key)
 
     # --- Transition validation ---
     # Get the last non-cancelled clock-in for this employee
@@ -242,10 +304,9 @@ async def clock_nfc(
     The terminal uses NFC UID + tenant_id to identify the employee.
     """
     # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
-    client_ip = request.client.host if request.client else "unknown"
-    rate_key = f"{client_ip}:{data.tenant_id}"
+    rate_key = _rate_limit_key(request, data.tenant_id)
 
-    if not _cleanup_and_check(_clock_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    if not _cleanup_and_check(_nfc_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
             detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
@@ -277,7 +338,7 @@ async def clock_nfc(
         )
 
     # Record the clock action for rate limiting
-    _record(_clock_limits, rate_key)
+    _record(_nfc_limits, rate_key)
 
     # --- Auto toggle (same logic as type='auto' in PIN endpoint) ---
     last_clock_result = await db.execute(
@@ -379,10 +440,10 @@ async def clock_qr(
     Register a clock-in/out via QR code. PUBLIC endpoint — no JWT required.
     The terminal scans a QR containing the employee_id and posts it here.
     """
-    client_ip = request.client.host if request.client else "unknown"
-    rate_key = f"{client_ip}:{data.tenant_id}"
+    # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
+    rate_key = _rate_limit_key(request, data.tenant_id)
 
-    if not _cleanup_and_check(_clock_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    if not _cleanup_and_check(_qr_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
             detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
@@ -405,7 +466,7 @@ async def clock_qr(
             detail="Código QR no válido o empleado no encontrado",
         )
 
-    _record(_clock_limits, rate_key)
+    _record(_qr_limits, rate_key)
 
     # --- Auto toggle (same logic as NFC) ---
     last_clock_result = await db.execute(
