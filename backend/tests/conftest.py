@@ -24,7 +24,7 @@ from app.models.employee import Employee
 from app.models.vacation_request import VacationRequest
 from app.models.leave import Leave
 from app.models.holiday import Holiday
-from app.auth import hash_password, create_access_token
+from app.auth import hash_password, create_access_token, compute_pin_hash_fast
 
 
 # ── Event loop ──────────────────────────────────────────────────────────────
@@ -157,6 +157,7 @@ async def seed_data():
             name="Carlos López",
             dni="12345678A",
             pin_hash=hash_password("1234"),
+            pin_hash_fast=compute_pin_hash_fast("1234"),
             nfc_uid="NFC001",
             shift_id=shift_morning.id,
             is_active=True,
@@ -166,6 +167,7 @@ async def seed_data():
             name="Ana Martínez",
             dni="23456789B",
             pin_hash=hash_password("5678"),
+            pin_hash_fast=compute_pin_hash_fast("5678"),
             nfc_uid="NFC002",
             shift_id=shift_afternoon.id,
             is_active=True,
@@ -180,6 +182,7 @@ async def seed_data():
             name="Pedro TenantB",
             dni="99999999Z",
             pin_hash=hash_password("9999"),
+            pin_hash_fast=compute_pin_hash_fast("9999"),
             shift_id=None,
             is_active=True,
         )

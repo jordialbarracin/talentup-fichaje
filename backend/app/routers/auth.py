@@ -2,13 +2,18 @@
 TalentUP Fichaje — Auth router.
 POST /api/auth/login, POST /api/auth/register, GET /api/auth/me
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+import time as _time
+from datetime import datetime, time, timezone
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr, field_validator
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.tenant import Tenant
 from app.models.user import User
+from app.models.shift import Shift
 from app.auth import (
     hash_password,
     verify_password,
@@ -19,6 +24,32 @@ from app.auth import (
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
+# --- Rate limiting for registration ---
+# Simple in-memory rate limiter: {ip: [timestamp1, timestamp2, ...]}
+_register_attempts: dict[str, list[float]] = {}
+REGISTER_RATE_LIMIT = 3  # max 3 per hour
+REGISTER_RATE_WINDOW = 3600  # 1 hour in seconds
+
+
+def _check_register_rate_limit(ip: str):
+    """Check if IP has exceeded register rate limit. Raises 429 if so."""
+    now = _time.time()
+    window_start = now - REGISTER_RATE_WINDOW
+
+    # Clean old entries
+    if ip in _register_attempts:
+        _register_attempts[ip] = [t for t in _register_attempts[ip] if t > window_start]
+    else:
+        _register_attempts[ip] = []
+
+    if len(_register_attempts[ip]) >= REGISTER_RATE_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Demasiados intentos de registro. Intenta de nuevo en una hora.",
+        )
+
+    _register_attempts[ip].append(now)
+
 
 # --- Schemas ---
 class LoginRequest(BaseModel):
@@ -27,17 +58,40 @@ class LoginRequest(BaseModel):
 
 
 class RegisterRequest(BaseModel):
+    restaurant_name: str
+    owner_name: str
     email: str
     password: str
-    name: str
-    role: str = "owner"
-    tenant_id: str = None
+    phone: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v):
+        if len(v) < 6:
+            raise ValueError("La contraseña debe tener al menos 6 caracteres")
+        return v
+
+    @field_validator("restaurant_name")
+    @classmethod
+    def restaurant_name_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("El nombre del restaurante es obligatorio")
+        return v
+
+    @field_validator("owner_name")
+    @classmethod
+    def owner_name_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError("El nombre del propietario es obligatorio")
+        return v
 
 
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: dict
+    tenant_id: Optional[str] = None
+    is_new_tenant: bool = False
 
 
 # --- Endpoints ---
@@ -66,16 +120,27 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
         "tenant_id": str(user.tenant_id) if user.tenant_id else None,
     })
 
-    return AuthResponse(access_token=token, user=user.to_dict())
+    return AuthResponse(
+        access_token=token,
+        user=user.to_dict(),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+    )
 
 
-@router.post("/register", response_model=AuthResponse)
+@router.post("/register", response_model=AuthResponse, status_code=201)
 async def register(
     req: RegisterRequest,
-    current_user: User = Depends(require_super_admin),
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Register a new user (super_admin only)."""
+    """
+    Self-service registration: creates a new tenant + owner user + default shifts.
+    Rate-limited: max 3 per hour per IP.
+    """
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    _check_register_rate_limit(client_ip)
+
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))
     if result.scalar_one_or_none():
@@ -84,25 +149,108 @@ async def register(
             detail="Email ya registrado",
         )
 
-    user = User(
+    # 1. Create tenant
+    tenant = Tenant(
+        name=req.restaurant_name,
+        phone=req.phone,
+        email=req.email,
+        convenio="hosteleria",
+        plan="basic",
+        max_employees=50,
+        setup_completed=False,
+    )
+    db.add(tenant)
+    await db.flush()
+
+    # 2. Create owner user
+    owner = User(
+        tenant_id=tenant.id,
         email=req.email,
         password_hash=hash_password(req.password),
-        name=req.name,
-        role=req.role,
-        tenant_id=req.tenant_id,
+        name=req.owner_name,
+        role="owner",
     )
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
+    db.add(owner)
+    await db.flush()
 
+    # 3. Create 3 default shifts
+    default_shifts = [
+        Shift(
+            tenant_id=tenant.id,
+            name="Manana",
+            code="M",
+            shift_type="morning",
+            start_time=time(7, 0),
+            end_time=time(15, 0),
+            break_min=30,
+            tolerance_min=5,
+            grace_period_min=15,
+            is_split=False,
+            is_night=False,
+            plus_nocturnidad=0,
+            plus_festividad=25,
+            is_rotativo=False,
+            color="#FF6B35",
+            sort_order=1,
+        ),
+        Shift(
+            tenant_id=tenant.id,
+            name="Tarde",
+            code="T",
+            shift_type="afternoon",
+            start_time=time(15, 0),
+            end_time=time(23, 0),
+            break_min=30,
+            tolerance_min=5,
+            grace_period_min=15,
+            is_split=False,
+            is_night=False,
+            plus_nocturnidad=0,
+            plus_festividad=25,
+            is_rotativo=False,
+            color="#0F766E",
+            sort_order=2,
+        ),
+        Shift(
+            tenant_id=tenant.id,
+            name="Noche",
+            code="N",
+            shift_type="night",
+            start_time=time(23, 0),
+            end_time=time(7, 0),
+            break_min=30,
+            tolerance_min=10,
+            grace_period_min=15,
+            is_split=False,
+            is_night=True,
+            plus_nocturnidad=25,
+            plus_festividad=25,
+            is_rotativo=False,
+            color="#1E3A5F",
+            sort_order=3,
+        ),
+    ]
+    for s in default_shifts:
+        db.add(s)
+
+    await db.commit()
+    await db.refresh(tenant)
+    await db.refresh(owner)
+
+    # Generate JWT
     token = create_access_token({
-        "sub": str(user.id),
-        "email": user.email,
-        "role": user.role,
-        "tenant_id": str(user.tenant_id) if user.tenant_id else None,
+        "sub": str(owner.id),
+        "email": owner.email,
+        "role": owner.role,
+        "tenant_id": str(owner.tenant_id) if owner.tenant_id else None,
     })
 
-    return AuthResponse(access_token=token, user=user.to_dict())
+    return AuthResponse(
+        access_token=token,
+        user=owner.to_dict(),
+        tenant_id=str(tenant.id),
+        is_new_tenant=True,
+    )
 
 
 @router.get("/me")

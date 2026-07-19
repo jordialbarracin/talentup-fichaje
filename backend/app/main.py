@@ -32,6 +32,7 @@ from app.routers import (
     notifications,
     calendar,
     incidents,
+    settings,
 )
 
 
@@ -76,6 +77,7 @@ app.include_router(employees.router)
 app.include_router(shifts.router)
 app.include_router(schedules.router)
 app.include_router(clock.router)
+app.include_router(clock.ws_router)
 app.include_router(reports.router)
 app.include_router(tenants.router)
 app.include_router(contracts.router)
@@ -87,6 +89,7 @@ app.include_router(payroll.router)
 app.include_router(notifications.router)
 app.include_router(calendar.router)
 app.include_router(incidents.router)
+app.include_router(settings.router)
 
 
 if __name__ == "__main__":

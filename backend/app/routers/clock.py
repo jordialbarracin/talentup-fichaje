@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timezone
 from typing import Optional, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,7 @@ from app.database import get_db
 from app.models.clock_in import ClockIn
 from app.models.employee import Employee
 from app.models.user import User
-from app.auth import verify_password, require_manager, get_current_user
+from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user
 from app.audit import log_action
 
 router = APIRouter(prefix="/api/clock", tags=["clock"])
@@ -112,21 +112,20 @@ async def clock_in(
             headers={"Retry-After": "60"},
         )
 
-    # Find employee by PIN within the tenant
+    # Find employee by PIN within the tenant using indexed pin_hash_fast
+    pin_fast = compute_pin_hash_fast(data.pin)
     result = await db.execute(
         select(Employee).where(
             Employee.tenant_id == data.tenant_id,
+            Employee.pin_hash_fast == pin_fast,
             Employee.is_active == True,
         )
     )
-    employees = result.scalars().all()
+    matched_emp = result.scalar_one_or_none()
 
-    # Verify PIN against each employee (we can't query by hash directly)
-    matched_emp = None
-    for emp in employees:
-        if verify_password(data.pin, emp.pin_hash):
-            matched_emp = emp
-            break
+    # Double-check with bcrypt verify to be safe (defense in depth)
+    if matched_emp and not verify_password(data.pin, matched_emp.pin_hash):
+        matched_emp = None
 
     if not matched_emp:
         # Record PIN failure
@@ -349,6 +348,17 @@ async def clock_nfc(
     await db.refresh(clock)
 
     _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
+
+    # Broadcast NFC event to all connected WebSocket clients
+    event = {
+        "type": "nfc_read",
+        "uid": data.nfc_uid,
+        "employee": matched_emp.name,
+        "action": data_type,
+        "time": clock.timestamp.strftime("%H:%M") if clock.timestamp else None,
+    }
+    asyncio.ensure_future(nfc_manager.broadcast(event))
+
     return {
         "ok": True,
         "message": f"{matched_emp.name} — {_labels.get(data_type, data_type)} registrada",
@@ -571,3 +581,78 @@ async def cancel_clock(
     await db.commit()
     await db.refresh(clock)
     return clock.to_dict()
+
+
+# ===== NFC WebSocket Manager =====
+import asyncio
+import json
+
+class NfcWebSocketManager:
+    """Manages WebSocket connections for real-time NFC reader status."""
+
+    def __init__(self):
+        self._connections: set[WebSocket] = set()
+        self._lock = asyncio.Lock()
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        async with self._lock:
+            self._connections.add(websocket)
+
+    async def disconnect(self, websocket: WebSocket):
+        async with self._lock:
+            self._connections.discard(websocket)
+
+    async def broadcast(self, event: dict):
+        """Send an event to all connected WebSocket clients."""
+        dead: list[WebSocket] = []
+        async with self._lock:
+            for ws in self._connections:
+                try:
+                    await ws.send_json(event)
+                except Exception:
+                    dead.append(ws)
+            for ws in dead:
+                self._connections.discard(ws)
+
+    @property
+    def connected_count(self) -> int:
+        return len(self._connections)
+
+
+nfc_manager = NfcWebSocketManager()
+
+# Separate router for NFC WebSocket (no /api/clock prefix)
+ws_router = APIRouter(tags=["nfc_ws"])
+
+
+@ws_router.websocket("/ws/nfc")
+async def nfc_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time NFC reader status.
+    The terminal connects here to receive events when an NFC card is read.
+    Events format:
+      {type: 'nfc_read', uid: '04:A1:B2:C3:D4:E5', employee: 'Carlos', action: 'in', time: '14:32'}
+      {type: 'nfc_connected', message: 'Lector NFC conectado'}
+      {type: 'nfc_disconnected', message: 'Lector NFC desconectado'}
+    """
+    await nfc_manager.connect(websocket)
+    try:
+        # Send initial connected status
+        await websocket.send_json({
+            "type": "nfc_connected",
+            "message": "Lector NFC conectado"
+        })
+        # Keep connection alive and listen for client messages
+        while True:
+            try:
+                data = await websocket.receive_text()
+                # Client can send ping to keep alive
+                if data == "ping":
+                    await websocket.send_json({"type": "pong"})
+            except WebSocketDisconnect:
+                break
+    except Exception:
+        pass
+    finally:
+        await nfc_manager.disconnect(websocket)

@@ -50,6 +50,7 @@ class Employee(Base):
 
     # ===== DATOS DE FICHAJE =====
     pin_hash = Column(String(200), nullable=False)
+    pin_hash_fast = Column(String(64), nullable=True, index=True)
     nfc_card_id = Column(String(100), nullable=True)
     nfc_uid = Column(String(50), nullable=True)
     photo_url = Column(Text, nullable=True)

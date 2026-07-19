@@ -687,6 +687,230 @@
     stroke-linejoin: round;
   }
 
+  /* ===== NFC BUTTON ===== */
+  .nfc-btn {
+    margin-top: 12px;
+    height: 52px;
+    border: none;
+    border-radius: 980px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), transform 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: var(--font);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 400px;
+  }
+  .nfc-btn:hover { background: var(--surface2); }
+  .nfc-btn:active { transform: scale(0.97); }
+  .nfc-btn-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nfc-btn-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ===== NFC PANEL (Apple HIG light) ===== */
+  .nfc-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .nfc-overlay.active { display: flex; }
+
+  .nfc-panel {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    animation: nfcPanelIn 300ms cubic-bezier(0.16,1,0.3,1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  @keyframes nfcPanelIn {
+    from { opacity: 0; transform: scale(0.92) translateY(16px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .nfc-panel-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1d1d1f;
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+
+  .nfc-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #e8e8ed;
+  }
+  .nfc-status-row:last-of-type { border-bottom: none; }
+
+  .nfc-status-label {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #8a8a8e;
+  }
+  .nfc-status-value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1d1d1f;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nfc-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .nfc-status-dot.connected {
+    background: #34c759;
+    box-shadow: 0 0 0 3px rgba(52,199,89,0.2);
+  }
+  .nfc-status-dot.disconnected {
+    background: #c7c7cc;
+  }
+
+  .nfc-status-text {
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+  .nfc-status-text.connected { color: #34c759; }
+  .nfc-status-text.disconnected { color: #8a8a8e; }
+
+  .nfc-reader-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .nfc-reader-icon svg {
+    width: 56px;
+    height: 56px;
+  }
+
+  .nfc-empty-state {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .nfc-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .nfc-empty-icon svg {
+    width: 48px;
+    height: 48px;
+    stroke: #c7c7cc;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .nfc-empty-text {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #8a8a8e;
+  }
+
+  .nfc-last-read {
+    background: #f5f5f7;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0 4px;
+  }
+  .nfc-last-read-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8a8a8e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .nfc-last-read-uid {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1d1d1f;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .nfc-last-read-employee {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1d1d1f;
+  }
+  .nfc-last-read-action {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #8a8a8e;
+    margin-top: 2px;
+  }
+  .nfc-last-read-action .highlight-in {
+    color: #34c759;
+    font-weight: 500;
+  }
+  .nfc-last-read-action .highlight-out {
+    color: #FF6B35;
+    font-weight: 500;
+  }
+
+  .nfc-panel-close {
+    margin-top: 20px;
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 200ms ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  .nfc-panel-close:hover { background: #e8e8ed; }
+  .nfc-panel-close:active { transform: scale(0.97); }
+
   /* ===== SCROLLBAR HIDE ===== */
   ::-webkit-scrollbar { display: none; }
 
@@ -765,6 +989,17 @@
     </span>
     Escanear QR
   </button>
+  <button class="nfc-btn" id="nfcBtn">
+    <span class="nfc-btn-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" fill="none"/>
+        <path d="M8 9c2-2 6-2 8 0" stroke="currentColor" fill="none"/>
+        <path d="M9.5 11.5c1-1 3-1 4 0" stroke="currentColor" fill="none"/>
+        <path d="M11 14c.5-.5 1.5-.5 2 0" stroke="currentColor" fill="none"/>
+      </svg>
+    </span>
+    Lector NFC
+  </button>
 </div>
 
 <!-- ===== CONFIRMATION OVERLAY ===== -->
@@ -823,6 +1058,69 @@
     <button class="qr-cancel-btn" id="qrCancelBtn">Cancelar</button>
   </div>
   <div class="qr-error-msg" id="qrErrorMsg"></div>
+</div>
+
+<!-- ===== NFC PANEL OVERLAY ===== -->
+<div class="nfc-overlay" id="nfcOverlay">
+  <div class="nfc-panel">
+    <div class="nfc-reader-icon">
+      <svg viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r="26" stroke="#c7c7cc" stroke-width="2" fill="none"/>
+        <path d="M18 22c4-4 12-4 16 0" stroke="#c7c7cc" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M21 27c3-3 9-3 12 0" stroke="#c7c7cc" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M25 32c1.5-1.5 4.5-1.5 6 0" stroke="#c7c7cc" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="nfc-panel-title">Lector NFC</div>
+
+    <!-- Connection status -->
+    <div class="nfc-status-row">
+      <span class="nfc-status-label">Estado</span>
+      <span class="nfc-status-value" id="nfcConnectionStatus">
+        <span class="nfc-status-dot disconnected" id="nfcStatusDot"></span>
+        <span class="nfc-status-text disconnected" id="nfcStatusText">Lector NFC desconectado</span>
+      </span>
+    </div>
+
+    <!-- Last UID -->
+    <div class="nfc-status-row">
+      <span class="nfc-status-label">Ultimo UID</span>
+      <span class="nfc-status-value" id="nfcLastUid">---</span>
+    </div>
+
+    <!-- Last clock -->
+    <div class="nfc-status-row">
+      <span class="nfc-status-label">Ultimo fichaje</span>
+      <span class="nfc-status-value" id="nfcLastClock">---</span>
+    </div>
+
+    <!-- Last read details -->
+    <div id="nfcLastReadContainer" style="display:none;">
+      <div class="nfc-last-read">
+        <div class="nfc-last-read-label">Ultima lectura</div>
+        <div class="nfc-last-read-uid" id="nfcLastReadUid"></div>
+        <div class="nfc-last-read-employee" id="nfcLastReadEmployee"></div>
+        <div class="nfc-last-read-action" id="nfcLastReadAction"></div>
+      </div>
+    </div>
+
+    <!-- Empty state (when disconnected) -->
+    <div id="nfcEmptyState">
+      <div class="nfc-empty-state">
+        <div class="nfc-empty-icon">
+          <svg viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M15 19c3-3 9-3 12 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M18 24c2-2 6-2 8 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <path d="M21 29c1-1 3-1 4 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="nfc-empty-text">Esperando conexion del lector NFC...</div>
+      </div>
+    </div>
+
+    <button class="nfc-panel-close" id="nfcPanelClose">Cerrar</button>
+  </div>
 </div>
 
 <!-- ===== CONFIRM MODAL (replaces native confirm()) ===== -->
@@ -974,6 +1272,23 @@
   let qrStream = null;
   let qrScanTimer = null;
   let qrScanning = false;
+
+  // NFC refs
+  const nfcBtn = $('nfcBtn');
+  const nfcOverlay = $('nfcOverlay');
+  const nfcPanelClose = $('nfcPanelClose');
+  const nfcStatusDot = $('nfcStatusDot');
+  const nfcStatusText = $('nfcStatusText');
+  const nfcLastUid = $('nfcLastUid');
+  const nfcLastClock = $('nfcLastClock');
+  const nfcLastReadContainer = $('nfcLastReadContainer');
+  const nfcLastReadUid = $('nfcLastReadUid');
+  const nfcLastReadEmployee = $('nfcLastReadEmployee');
+  const nfcLastReadAction = $('nfcLastReadAction');
+  const nfcEmptyState = $('nfcEmptyState');
+  let nfcWs = null;
+  let nfcReconnectTimer = null;
+  let nfcPingInterval = null;
 
   // ===== PERSISTENCE =====
   function loadConfig() {
@@ -1629,6 +1944,137 @@
   qrBtn.addEventListener('click', openQrScanner);
   qrCancelBtn.addEventListener('click', closeQrScanner);
 
+  // ===== NFC WEBSOCKET =====
+  function connectNfcWebSocket() {
+    if (nfcWs && (nfcWs.readyState === WebSocket.OPEN || nfcWs.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
+    const wsUrl = config.backendUrl.replace(/^http/, 'ws') + '/ws/nfc';
+    try {
+      nfcWs = new WebSocket(wsUrl);
+    } catch (e) {
+      updateNfcDisconnected();
+      scheduleNfcReconnect();
+      return;
+    }
+
+    nfcWs.onopen = function() {
+      updateNfcConnected();
+      // Start ping interval
+      if (nfcPingInterval) clearInterval(nfcPingInterval);
+      nfcPingInterval = setInterval(function() {
+        if (nfcWs && nfcWs.readyState === WebSocket.OPEN) {
+          nfcWs.send('ping');
+        }
+      }, 30000);
+    };
+
+    nfcWs.onmessage = function(event) {
+      try {
+        const data = JSON.parse(event.data);
+        handleNfcEvent(data);
+      } catch (e) {
+        // Ignore parse errors
+      }
+    };
+
+    nfcWs.onclose = function() {
+      updateNfcDisconnected();
+      if (nfcPingInterval) {
+        clearInterval(nfcPingInterval);
+        nfcPingInterval = null;
+      }
+      scheduleNfcReconnect();
+    };
+
+    nfcWs.onerror = function() {
+      // onclose will fire after this
+    };
+  }
+
+  function scheduleNfcReconnect() {
+    if (nfcReconnectTimer) clearTimeout(nfcReconnectTimer);
+    nfcReconnectTimer = setTimeout(function() {
+      connectNfcWebSocket();
+    }, 5000);
+  }
+
+  function disconnectNfcWebSocket() {
+    if (nfcReconnectTimer) {
+      clearTimeout(nfcReconnectTimer);
+      nfcReconnectTimer = null;
+    }
+    if (nfcPingInterval) {
+      clearInterval(nfcPingInterval);
+      nfcPingInterval = null;
+    }
+    if (nfcWs) {
+      nfcWs.onclose = null;
+      nfcWs.onerror = null;
+      nfcWs.onmessage = null;
+      nfcWs.close();
+      nfcWs = null;
+    }
+  }
+
+  function updateNfcConnected() {
+    nfcStatusDot.className = 'nfc-status-dot connected';
+    nfcStatusText.className = 'nfc-status-text connected';
+    nfcStatusText.textContent = 'Lector NFC conectado';
+    nfcEmptyState.style.display = 'none';
+  }
+
+  function updateNfcDisconnected() {
+    nfcStatusDot.className = 'nfc-status-dot disconnected';
+    nfcStatusText.className = 'nfc-status-text disconnected';
+    nfcStatusText.textContent = 'Lector NFC desconectado';
+    nfcEmptyState.style.display = '';
+  }
+
+  function handleNfcEvent(data) {
+    if (data.type === 'nfc_connected') {
+      updateNfcConnected();
+    } else if (data.type === 'nfc_disconnected') {
+      updateNfcDisconnected();
+    } else if (data.type === 'nfc_read') {
+      // Update UID
+      nfcLastUid.textContent = data.uid || '---';
+
+      // Update last clock time
+      const actionLabels = { in: 'Entrada', out: 'Salida', break_start: 'Inicio de pausa', break_end: 'Fin de pausa' };
+      const actionLabel = actionLabels[data.action] || data.action;
+      nfcLastClock.textContent = (data.time || '') + ' - ' + actionLabel;
+
+      // Show last read details
+      nfcLastReadContainer.style.display = '';
+      nfcLastReadUid.textContent = data.uid || '';
+      nfcLastReadEmployee.textContent = data.employee || '';
+      const actionClass = data.action === 'in' ? 'highlight-in' : 'highlight-out';
+      nfcLastReadAction.innerHTML = 'Accion: <span class="' + actionClass + '">' + actionLabel + '</span> a las ' + (data.time || '');
+    } else if (data.type === 'pong') {
+      // Keep-alive response, nothing to do
+    }
+  }
+
+  // ===== NFC PANEL =====
+  function openNfcPanel() {
+    if (lockedUntil > Date.now()) {
+      showLockedScreen();
+      return;
+    }
+    nfcOverlay.classList.add('active');
+    connectNfcWebSocket();
+  }
+
+  function closeNfcPanel() {
+    nfcOverlay.classList.remove('active');
+    disconnectNfcWebSocket();
+  }
+
+  nfcBtn.addEventListener('click', openNfcPanel);
+  nfcPanelClose.addEventListener('click', closeNfcPanel);
+
   // ===== KEYBOARD SUPPORT =====
   document.addEventListener('keydown', function(e) {
     if (e.key >= '0' && e.key <= '9') {
@@ -1644,7 +2090,9 @@
       return;
     }
     if (e.key === 'Escape') {
-      if (qrOverlay.classList.contains('active')) {
+      if (nfcOverlay.classList.contains('active')) {
+        closeNfcPanel();
+      } else if (qrOverlay.classList.contains('active')) {
         closeQrScanner();
       } else if (confirmOverlay.classList.contains('active')) {
         confirmOverlay.classList.remove('active');

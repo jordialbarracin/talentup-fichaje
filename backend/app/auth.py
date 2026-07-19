@@ -1,6 +1,7 @@
 """
 TalentUP Fichaje — JWT Authentication & Authorization.
 """
+import hashlib
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -36,6 +37,20 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("JWT_EXPIRE_MINUTES", "480"))  
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
+
+# --- PIN hash fast (SHA256) ---
+# SECRET_SALT for fast PIN hashing — use env var in production, fallback for dev
+_SECRET_SALT = os.environ.get("PIN_HASH_SALT", "TalentUP-Fichaje-PIN-Salt-2024")
+
+
+def compute_pin_hash_fast(pin: str) -> str:
+    """Compute a fast SHA256 hash of the PIN for indexed lookups.
+
+    This is NOT a replacement for bcrypt — it's a first-pass filter
+    so we can query by index instead of iterating all employees.
+    The bcrypt verify_password is still used as the authoritative check.
+    """
+    return hashlib.sha256((pin + _SECRET_SALT).encode("utf-8")).hexdigest()
 
 
 # --- Password helpers ---

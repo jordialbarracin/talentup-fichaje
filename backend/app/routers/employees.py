@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.employee import Employee
 from app.models.user import User
-from app.auth import hash_password, require_owner, get_current_user
+from app.auth import hash_password, compute_pin_hash_fast, require_owner, get_current_user
 from app.audit import log_action
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
@@ -200,6 +200,7 @@ async def create_employee(
         grupo_cotizacion=data.grupo_cotizacion,
         base_cotizacion=data.base_cotizacion,
         pin_hash=hash_password(data.pin),
+        pin_hash_fast=compute_pin_hash_fast(data.pin),
         nfc_card_id=data.nfc_card_id,
         nfc_uid=data.nfc_uid,
         photo_url=data.photo_url,
@@ -285,7 +286,9 @@ async def update_employee(
     if data.horas_diarias is not None: emp.horas_diarias = data.horas_diarias
     if data.grupo_cotizacion is not None: emp.grupo_cotizacion = data.grupo_cotizacion
     if data.base_cotizacion is not None: emp.base_cotizacion = data.base_cotizacion
-    if data.pin is not None: emp.pin_hash = hash_password(data.pin)
+    if data.pin is not None:
+        emp.pin_hash = hash_password(data.pin)
+        emp.pin_hash_fast = compute_pin_hash_fast(data.pin)
     if data.nfc_card_id is not None: emp.nfc_card_id = data.nfc_card_id if data.nfc_card_id != "" else None
     if data.nfc_uid is not None: emp.nfc_uid = data.nfc_uid if data.nfc_uid != "" else None
     if data.photo_url is not None: emp.photo_url = data.photo_url

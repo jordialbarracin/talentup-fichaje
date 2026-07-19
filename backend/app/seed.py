@@ -26,7 +26,7 @@ from app.models.overtime import Overtime
 from app.models.payroll import Payroll
 from app.models.notification import Notification
 from app.models.work_calendar import WorkCalendar
-from app.auth import hash_password
+from app.auth import hash_password, compute_pin_hash_fast
 
 
 async def seed():
@@ -366,6 +366,7 @@ async def seed():
                 saldo_banco_horas=emp_data["saldo_banco_horas"],
                 horas_extra_pendientes=emp_data["horas_extra_pendientes"],
                 pin_hash=hash_password(emp_data["pin"]),
+                pin_hash_fast=compute_pin_hash_fast(emp_data["pin"]),
                 shift_id=emp_data["shift_id"],
                 nfc_uid=emp_data.get("nfc_uid"),
                 food_handling_cert=emp_data["food_handling_cert"],
