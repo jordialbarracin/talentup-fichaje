@@ -18,6 +18,7 @@ from app.models.clock_in import ClockIn
 from app.models.employee import Employee
 from app.models.user import User
 from app.models.device import Device
+from app.models.tenant import Tenant
 from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user
 from app.audit import log_action
 from app.rate_limiter import (
@@ -94,6 +95,15 @@ async def require_device_token(
         )
 
     return device
+
+
+# --- Public tenant list for PWA mobile ---
+@router.get("/tenants")
+async def list_tenants_public(db: AsyncSession = Depends(get_db)):
+    """Public endpoint for PWA mobile to list available restaurants."""
+    result = await db.execute(select(Tenant.id, Tenant.name))
+    rows = result.all()
+    return [{"id": str(r[0]), "name": r[1]} for r in rows]
 
 
 # --- Rate limiting (in-memory) ---
