@@ -1,6 +1,7 @@
 """
 TalentUP Fichaje — Employee model (ampliado con 34 campos nuevos).
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text
@@ -99,22 +100,22 @@ class Employee(Base):
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_code": self.employee_code,
-            "name": self.name,
-            "last_name": self.last_name,
-            "full_name": self.full_name,
+            "name": html.escape(self.name) if self.name else self.name,
+            "last_name": html.escape(self.last_name) if self.last_name else self.last_name,
+            "full_name": html.escape(self.full_name) if self.full_name else self.full_name,
             "dni": self.dni,
             "nie": self.nie,
             "numero_ss": self.numero_ss,
             "nationality": self.nationality,
             "birth_date": self.birth_date.isoformat() if self.birth_date else None,
             "gender": self.gender,
-            "address": self.address,
-            "city": self.city,
-            "province": self.province,
+            "address": html.escape(self.address) if self.address else self.address,
+            "city": html.escape(self.city) if self.city else self.city,
+            "province": html.escape(self.province) if self.province else self.province,
             "postal_code": self.postal_code,
             "phone": self.phone,
             "email": self.email,
-            "emergency_contact_name": self.emergency_contact_name,
+            "emergency_contact_name": html.escape(self.emergency_contact_name) if self.emergency_contact_name else self.emergency_contact_name,
             "emergency_contact_phone": self.emergency_contact_phone,
             "categoria_profesional": self.categoria_profesional,
             "tipo_contrato": self.tipo_contrato,

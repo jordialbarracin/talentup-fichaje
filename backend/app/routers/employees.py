@@ -2,6 +2,8 @@
 TalentUP Fichaje — Employees router (ampliado con todos los campos nuevos).
 GET/POST/PUT/DELETE /api/employees
 """
+import html
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
@@ -13,6 +15,7 @@ from app.models.employee import Employee
 from app.models.user import User
 from app.auth import hash_password, compute_pin_hash_fast, require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/employees", tags=["employees"])
 
@@ -127,19 +130,25 @@ class EmployeeUpdate(BaseModel):
 
 @router.get("")
 async def list_employees(
+    page: int = 1,
+    limit: int = 50,
+    search: Optional[str] = None,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
     """List all employees for the current user's tenant."""
     tenant_id = current_user.tenant_id
     if current_user.role == "super_admin":
-        result = await db.execute(select(Employee))
+        query = select(Employee)
     else:
-        result = await db.execute(
-            select(Employee).where(Employee.tenant_id == tenant_id)
-        )
-    employees = result.scalars().all()
-    return [e.to_dict() for e in employees]
+        query = select(Employee).where(Employee.tenant_id == tenant_id)
+
+    if search:
+        # Literal search only — no SQL interpolation
+        query = query.where(Employee.name.ilike(f"%{search}%"))
+
+    query = query.order_by(Employee.name)
+    return await paginate(db, query, page, limit, item_transform=lambda e: e.to_dict())
 
 
 @router.get("/{employee_id}")
@@ -172,22 +181,22 @@ async def create_employee(
 
     emp = Employee(
         tenant_id=tenant_id,
-        name=data.name,
-        last_name=data.last_name,
-        full_name=data.full_name or data.name,
+        name=html.escape(data.name),
+        last_name=html.escape(data.last_name) if data.last_name else data.last_name,
+        full_name=html.escape(data.full_name) if data.full_name else (html.escape(data.name) if data.name else None),
         dni=data.dni,
         nie=data.nie,
         numero_ss=data.numero_ss,
         nationality=data.nationality,
         birth_date=date.fromisoformat(data.birth_date) if data.birth_date else None,
         gender=data.gender,
-        address=data.address,
-        city=data.city,
-        province=data.province,
+        address=html.escape(data.address) if data.address else data.address,
+        city=html.escape(data.city) if data.city else data.city,
+        province=html.escape(data.province) if data.province else data.province,
         postal_code=data.postal_code,
         phone=data.phone,
         email=data.email,
-        emergency_contact_name=data.emergency_contact_name,
+        emergency_contact_name=html.escape(data.emergency_contact_name) if data.emergency_contact_name else data.emergency_contact_name,
         emergency_contact_phone=data.emergency_contact_phone,
         categoria_profesional=data.categoria_profesional,
         tipo_contrato=data.tipo_contrato,

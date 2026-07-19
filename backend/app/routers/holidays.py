@@ -13,6 +13,7 @@ from app.models.holiday import Holiday
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/holidays", tags=["holidays"])
 
@@ -41,6 +42,8 @@ class HolidayUpdate(BaseModel):
 async def list_holidays(
     year: Optional[int] = None,
     type: Optional[str] = None,
+    page: int = 1,
+    limit: int = 50,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -49,13 +52,11 @@ async def list_holidays(
     if current_user.role != "super_admin":
         query = query.where(Holiday.tenant_id == tenant_id)
     if year:
-        query = query.where(Holiday.year == year)
+        query = query.where(Holiday.year == str(year))
     if type:
         query = query.where(Holiday.type == type)
     query = query.order_by(Holiday.date)
-    result = await db.execute(query)
-    holidays = result.scalars().all()
-    return [h.to_dict() for h in holidays]
+    return await paginate(db, query, page, limit, item_transform=lambda h: h.to_dict())
 
 
 @router.get("/{holiday_id}")

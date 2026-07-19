@@ -14,6 +14,7 @@ from app.models.employee import Employee
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/leave", tags=["leave"])
 
@@ -60,6 +61,8 @@ class LeaveUpdate(BaseModel):
 async def list_leave(
     employee_id: Optional[str] = None,
     status: Optional[str] = None,
+    page: int = 1,
+    limit: int = 50,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -72,19 +75,21 @@ async def list_leave(
     if status:
         query = query.where(Leave.status == status)
     query = query.order_by(Leave.start_date.desc())
-    result = await db.execute(query)
-    items = result.scalars().all()
-
-    emp_ids = {l.employee_id for l in items}
-    emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
-    emp_map = {e.id: e.name for e in emp_result.scalars().all()}
-
-    data = []
-    for l in items:
-        d = l.to_dict()
-        d["employee_name"] = emp_map.get(l.employee_id, "Desconocido")
-        data.append(d)
-    return data
+    page_result = await paginate(
+        db, query, page, limit,
+        item_transform=lambda l: l.to_dict(),
+    )
+    items = page_result["items"]
+    emp_ids = {l.get("employee_id") for l in items if l.get("employee_id")}
+    if emp_ids:
+        emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
+        emp_map = {e.id: e.name for e in emp_result.scalars().all()}
+        for l in items:
+            l["employee_name"] = emp_map.get(l.get("employee_id"), "Desconocido")
+    else:
+        for l in items:
+            l["employee_name"] = "Desconocido"
+    return page_result
 
 
 @router.get("/{leave_id}")

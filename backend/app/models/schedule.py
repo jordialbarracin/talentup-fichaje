@@ -3,7 +3,7 @@ TalentUP Fichaje — Schedule model (asignación empleado-turno-fecha).
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Date, DateTime, ForeignKey, Text, UniqueConstraint
+from sqlalchemy import Column, String, Date, DateTime, ForeignKey, Index, Text, UniqueConstraint
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
@@ -21,6 +21,7 @@ class Schedule(Base):
 
     __table_args__ = (
         UniqueConstraint("tenant_id", "employee_id", "date", name="uq_schedule_employee_date"),
+        Index("ix_schedule_tenant_date", "tenant_id", "date"),
     )
 
     def to_dict(self):

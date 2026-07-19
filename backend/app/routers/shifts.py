@@ -14,6 +14,7 @@ from app.models.shift import Shift
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/shifts", tags=["shifts"])
 
@@ -76,18 +77,17 @@ class ShiftUpdate(BaseModel):
 
 @router.get("")
 async def list_shifts(
+    page: int = 1,
+    limit: int = 50,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
     tenant_id = current_user.tenant_id
     if current_user.role == "super_admin":
-        result = await db.execute(select(Shift))
+        query = select(Shift).order_by(Shift.sort_order)
     else:
-        result = await db.execute(
-            select(Shift).where(Shift.tenant_id == tenant_id)
-        )
-    shifts = result.scalars().all()
-    return [s.to_dict() for s in shifts]
+        query = select(Shift).where(Shift.tenant_id == tenant_id).order_by(Shift.sort_order)
+    return await paginate(db, query, page, limit, item_transform=lambda s: s.to_dict())
 
 
 @router.get("/{shift_id}")

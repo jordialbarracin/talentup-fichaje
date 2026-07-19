@@ -15,6 +15,11 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import select
 
+# Set test Stripe credentials so billing webhook signature logic is reachable
+os.environ.setdefault("STRIPE_SECRET_KEY", "sk_test_dummy")
+os.environ.setdefault("TEST_STRIPE_SECRET_KEY", "sk_test_dummy")
+os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "whsec_test_webhook_secret_32bytes_long")
+
 from app.database import engine, async_session_factory, Base, get_db, init_db
 from app.main import app
 from app.models.tenant import Tenant

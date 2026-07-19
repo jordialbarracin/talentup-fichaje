@@ -419,7 +419,6 @@ const API_BASE = window.location.hostname === 'localhost'
 const STORAGE_KEYS = {
   tenantId: 'talentup_mobile_tenant_id',
   tenantName: 'talentup_mobile_tenant_name',
-  employeePin: 'talentup_mobile_pin',
   pendingClocks: 'talentup_mobile_pending',
   lastSync: 'talentup_mobile_last_sync'
 };
@@ -428,7 +427,7 @@ const STORAGE_KEYS = {
 let state = {
   tenantId: localStorage.getItem(STORAGE_KEYS.tenantId) || '',
   tenantName: localStorage.getItem(STORAGE_KEYS.tenantName) || '',
-  employeePin: localStorage.getItem(STORAGE_KEYS.employeePin) || '',
+  employeePin: '',
   isOnline: navigator.onLine,
   restaurants: [],
   todayClocks: [],
@@ -622,7 +621,6 @@ loginForm.addEventListener('submit', async (e) => {
     state.employeePin = pin;
     state.tenantId = tenantId;
     state.tenantName = loginTenant.options[loginTenant.selectedIndex].text;
-    localStorage.setItem(STORAGE_KEYS.employeePin, pin);
     localStorage.setItem(STORAGE_KEYS.tenantId, tenantId);
     localStorage.setItem(STORAGE_KEYS.tenantName, state.tenantName);
     enterApp();
@@ -643,12 +641,11 @@ function enterApp() {
 
 // ===== CHECK IF LOGGED IN =====
 function checkSession() {
-  if (state.employeePin && state.tenantId) {
-    // Pre-fill login form
+  if (state.tenantId) {
     loginTenant.value = state.tenantId;
-    // We can't pre-fill PIN for security, but we can auto-login
-    // Actually, let the user enter PIN each time for security
   }
+  // PIN is never persisted; ask every time
+  clearPin();
 }
 
 // ===== CLOCK IN/OUT =====

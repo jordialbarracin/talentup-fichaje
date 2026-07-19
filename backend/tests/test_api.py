@@ -68,9 +68,10 @@ class TestEmployees:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert isinstance(body, list)
-        assert len(body) >= 2
-        names = [e["name"] for e in body]
+        assert "items" in body
+        items = body["items"]
+        assert len(items) >= 2
+        names = [e["name"] for e in items]
         assert "Carlos López" in names
         assert "Ana Martínez" in names
 
@@ -121,7 +122,8 @@ class TestEmployees:
             "/api/employees",
             headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
         )
-        ids = [e["id"] for e in resp2.json()]
+        items = resp2.json()["items"]
+        ids = [e["id"] for e in items]
         assert seed_data["emp1_id"] not in ids
 
     async def test_list_employees_without_token(self, client, seed_data):
@@ -137,8 +139,8 @@ class TestEmployees:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert len(body) == 1
-        assert body[0]["name"] == "Pedro TenantB"
+        assert body["total"] == 1
+        assert body["items"][0]["name"] == "Pedro TenantB"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -318,9 +320,10 @@ class TestShifts:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert isinstance(body, list)
-        assert len(body) >= 2
-        names = [s["name"] for s in body]
+        assert "items" in body
+        items = body["items"]
+        assert len(items) >= 2
+        names = [s["name"] for s in items]
         assert "Mañana" in names
         assert "Tarde" in names
 
@@ -411,9 +414,10 @@ class TestVacations:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert isinstance(body, list)
-        assert len(body) >= 1
-        assert body[0]["status"] == "pending"
+        assert "items" in body
+        items = body["items"]
+        assert len(items) >= 1
+        assert items[0]["status"] == "pending"
 
     async def test_create_vacation(self, client, seed_data):
         """POST /api/vacations → solicitar vacaciones"""
@@ -498,10 +502,11 @@ class TestLeave:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert isinstance(body, list)
-        assert len(body) >= 1
+        assert "items" in body
+        items = body["items"]
+        assert len(items) >= 1
         # The leave model uses 'type' field in to_dict
-        assert body[0]["type"] == "medical"
+        assert items[0]["type"] == "medical"
 
     async def test_create_leave(self, client, seed_data):
         """POST /api/leave → registrar baja"""
@@ -556,9 +561,10 @@ class TestHolidays:
         )
         assert resp.status_code == 200
         body = resp.json()
-        assert isinstance(body, list)
-        assert len(body) >= 1
-        assert body[0]["name"] == "Navidad"
+        assert "items" in body
+        items = body["items"]
+        assert len(items) >= 1
+        assert items[0]["name"] == "Navidad"
 
     async def test_create_holiday(self, client, seed_data):
         """POST /api/holidays → crear"""
@@ -589,7 +595,8 @@ class TestHolidays:
             "/api/holidays",
             headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
         )
-        ids = [h["id"] for h in resp2.json()]
+        items = resp2.json()["items"]
+        ids = [h["id"] for h in items]
         assert seed_data["holiday1_id"] not in ids
 
 
@@ -754,7 +761,8 @@ class TestSecurity:
             headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
         )
         body = resp.json()
-        emp_names = [e["name"] for e in body]
+        items = body["items"]
+        emp_names = [e["name"] for e in items]
         assert "Pedro TenantB" not in emp_names
         assert "Carlos López" in emp_names
 

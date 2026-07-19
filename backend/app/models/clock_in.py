@@ -4,13 +4,17 @@ Inmutable: no se editan, solo se cancelan con motivo.
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Float, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Float, DateTime, ForeignKey, Index, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
 
 class ClockIn(Base):
     __tablename__ = "clock_ins"
+
+    __table_args__ = (
+        Index("ix_clock_tenant_emp_time", "tenant_id", "employee_id", "timestamp"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

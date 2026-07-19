@@ -41,14 +41,20 @@ services:
       - "8000:8000"
     environment:
       APP_ENV: ${APP_ENV:-development}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-talentup}:${POSTGRES_PASSWORD:-talentup_secret}@db:5432/${POSTGRES_DB:-talentup_fichaje}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-auto}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-talentup}:${POSTGRES_PASSWORD:-talentup_secret}@db:5432/${POSTGRES_DB:-talentup_fichaje}}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-480}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
       PIN_HASH_SALT: ${PIN_HASH_SALT:-cambia-este-salt-en-produccion}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_BASIC: ${STRIPE_PRICE_BASIC:-price_basic_dev}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-price_pro_dev}
       PORT: "8000"
     depends_on:
       db:
@@ -59,7 +65,7 @@ services:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
       interval: 10s
       timeout: 5s
-      start_period: 15s
+      start_period: 20s
       retries: 5
 
 volumes:

@@ -3,13 +3,17 @@ TalentUP Fichaje — Incident model (ampliado con 12 tipos de incidencia).
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Index, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
 
 class Incident(Base):
     __tablename__ = "incidents"
+
+    __table_args__ = (
+        Index("ix_incident_tenant_type", "tenant_id", "incident_type"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

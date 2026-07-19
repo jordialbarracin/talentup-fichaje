@@ -68,7 +68,17 @@ def _resolve_database_url() -> str:
 
 DATABASE_URL = _resolve_database_url()
 
-engine = create_async_engine(DATABASE_URL, echo=False)
+if _is_postgresql(DATABASE_URL):
+    engine = create_async_engine(
+        DATABASE_URL,
+        echo=False,
+        pool_size=20,
+        max_overflow=40,
+        pool_timeout=30,
+        pool_recycle=1800,
+    )
+else:
+    engine = create_async_engine(DATABASE_URL, echo=False)
 
 async_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

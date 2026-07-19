@@ -21,6 +21,7 @@ from app.models.device import Device
 from app.models.tenant import Tenant
 from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 from app.rate_limiter import (
     _cleanup_and_check,
     _record,
@@ -537,27 +538,23 @@ async def get_history(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
+    page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get clock-in history for the current tenant."""
+    """Get paginated clock-in history for the current tenant."""
     # Super admin can see all or filter by tenant_id
     if current_user.role == "super_admin" and tenant_id:
         query = select(ClockIn).where(ClockIn.tenant_id == tenant_id)
-        count_base = select(ClockIn.id).where(ClockIn.tenant_id == tenant_id)
     elif current_user.role == "super_admin":
         query = select(ClockIn)
-        count_base = select(ClockIn.id)
     else:
         tenant_id_val = current_user.tenant_id
         query = select(ClockIn).where(ClockIn.tenant_id == tenant_id_val)
-        count_base = select(ClockIn.id).where(ClockIn.tenant_id == tenant_id_val)
 
     if employee_id:
         query = query.where(ClockIn.employee_id == employee_id)
-        count_base = count_base.where(ClockIn.employee_id == employee_id)
 
     # Date validation
     if date_from:
@@ -566,29 +563,15 @@ async def get_history(
         except (ValueError, TypeError):
             raise HTTPException(status_code=400, detail=f"Formato de fecha inválido: {date_from}. Use ISO 8601.")
         query = query.where(ClockIn.timestamp >= dt_from)
-        count_base = count_base.where(ClockIn.timestamp >= dt_from)
     if date_to:
         try:
             dt_to = datetime.fromisoformat(date_to)
         except (ValueError, TypeError):
             raise HTTPException(status_code=400, detail=f"Formato de fecha inválido: {date_to}. Use ISO 8601.")
         query = query.where(ClockIn.timestamp <= dt_to)
-        count_base = count_base.where(ClockIn.timestamp <= dt_to)
 
-    # Count total
-    total_result = await db.execute(count_base)
-    total = len(total_result.scalars().all())
-
-    query = query.order_by(ClockIn.timestamp.desc()).offset(offset).limit(limit)
-    result = await db.execute(query)
-    clock_ins = result.scalars().all()
-
-    return {
-        "total": total,
-        "offset": offset,
-        "limit": limit,
-        "items": [c.to_dict() for c in clock_ins],
-    }
+    query = query.order_by(ClockIn.timestamp.desc())
+    return await paginate(db, query, page, limit, item_transform=lambda c: c.to_dict())
 
 
 @router.get("/today")

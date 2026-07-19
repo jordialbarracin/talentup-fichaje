@@ -7,7 +7,7 @@ import io
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +20,7 @@ from app.models.schedule import Schedule
 from app.models.shift import Shift
 from app.models.user import User
 from app.auth import require_manager, get_current_user
+from app.tasks import schedule_report_export
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
@@ -168,6 +169,7 @@ async def report_incidents(
 
 @router.get("/export")
 async def export_report(
+    background_tasks: BackgroundTasks,
     format: str = Query("pdf", pattern="^(pdf|excel)$"),
     date_from: str = Query(...),
     date_to: str = Query(...),
@@ -239,8 +241,26 @@ async def export_report(
         })
 
     if format == "pdf":
+        schedule_report_export(
+            background_tasks,
+            format="pdf",
+            tenant_id=tid,
+            date_from=date_from,
+            date_to=date_to,
+            employee_id=employee_id,
+            user_id=str(current_user.id),
+        )
         return _generate_pdf(report_data, date_from, date_to)
     else:
+        schedule_report_export(
+            background_tasks,
+            format="excel",
+            tenant_id=tid,
+            date_from=date_from,
+            date_to=date_to,
+            employee_id=employee_id,
+            user_id=str(current_user.id),
+        )
         return _generate_excel(report_data, date_from, date_to)
 
 

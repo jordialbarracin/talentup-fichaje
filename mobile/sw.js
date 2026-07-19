@@ -1,6 +1,6 @@
 /* ============================================================
    TalentUP Fichaje — Service Worker
-   Cache-first for app shell, network-first for API calls
+   Cache-first for app shell only; /api/ requests are never cached
    ============================================================ */
 
 const CACHE_NAME = 'talentup-fichaje-v1';
@@ -37,34 +37,20 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ===== FETCH: cache-first for shell, network-first for API =====
+// ===== FETCH: cache-first for shell, network-only for API =====
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API calls — network first, fall back to cached response if offline
+  // API calls — network-first without caching
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          // Cache successful API responses for offline fallback
-          const clone = response.clone();
-          if (response.status === 200) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline: return cached response if available
-          return caches.match(request).then(cached => {
-            return cached || new Response(
-              JSON.stringify({ error: 'offline', message: 'Sin conexión' }),
-              { status: 503, headers: { 'Content-Type': 'application/json' } }
-            );
-          });
-        })
+      fetch(request).catch(() => {
+        return new Response(
+          JSON.stringify({ error: 'offline', message: 'Sin conexion' }),
+          { status: 503, headers: { 'Content-Type': 'application/json' } }
+        );
+      })
     );
     return;
   }

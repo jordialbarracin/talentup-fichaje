@@ -14,6 +14,7 @@ from app.models.employee import Employee
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/vacations", tags=["vacations"])
 
@@ -37,6 +38,8 @@ class VacationApproveReject(BaseModel):
 async def list_vacations(
     employee_id: Optional[str] = None,
     status: Optional[str] = None,
+    page: int = 1,
+    limit: int = 50,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -49,20 +52,21 @@ async def list_vacations(
     if status:
         query = query.where(VacationRequest.status == status)
     query = query.order_by(VacationRequest.created_at.desc())
-    result = await db.execute(query)
-    items = result.scalars().all()
-
-    # Enrich with employee names
-    emp_ids = {v.employee_id for v in items}
-    emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
-    emp_map = {e.id: e.name for e in emp_result.scalars().all()}
-
-    data = []
-    for v in items:
-        d = v.to_dict()
-        d["employee_name"] = emp_map.get(v.employee_id, "Desconocido")
-        data.append(d)
-    return data
+    page_result = await paginate(
+        db, query, page, limit,
+        item_transform=lambda v: v.to_dict(),
+    )
+    items = page_result["items"]
+    emp_ids = {v["employee_id"] for v in items if v.get("employee_id")}
+    if emp_ids:
+        emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
+        emp_map = {e.id: e.name for e in emp_result.scalars().all()}
+        for v in items:
+            v["employee_name"] = emp_map.get(v.get("employee_id"), "Desconocido")
+    else:
+        for v in items:
+            v["employee_name"] = "Desconocido"
+    return page_result
 
 
 @router.get("/{vacation_id}")

@@ -17,6 +17,7 @@ from app.models.schedule import Schedule
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/overtime", tags=["overtime"])
 
@@ -39,6 +40,8 @@ class OvertimeCreate(BaseModel):
 async def list_overtime(
     employee_id: Optional[str] = None,
     compensation_type: Optional[str] = None,
+    page: int = 1,
+    limit: int = 50,
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -51,19 +54,21 @@ async def list_overtime(
     if compensation_type:
         query = query.where(Overtime.compensation_type == compensation_type)
     query = query.order_by(Overtime.date.desc())
-    result = await db.execute(query)
-    items = result.scalars().all()
-
-    emp_ids = {o.employee_id for o in items}
-    emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
-    emp_map = {e.id: e.name for e in emp_result.scalars().all()}
-
-    data = []
-    for o in items:
-        d = o.to_dict()
-        d["employee_name"] = emp_map.get(o.employee_id, "Desconocido")
-        data.append(d)
-    return data
+    page_result = await paginate(
+        db, query, page, limit,
+        item_transform=lambda o: o.to_dict(),
+    )
+    items = page_result["items"]
+    emp_ids = {o.get("employee_id") for o in items if o.get("employee_id")}
+    if emp_ids:
+        emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
+        emp_map = {e.id: e.name for e in emp_result.scalars().all()}
+        for o in items:
+            o["employee_name"] = emp_map.get(o.get("employee_id"), "Desconocido")
+    else:
+        for o in items:
+            o["employee_name"] = "Desconocido"
+    return page_result
 
 
 @router.get("/{overtime_id}")
