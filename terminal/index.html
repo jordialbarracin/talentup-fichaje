@@ -705,6 +705,7 @@
     width: 0%;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 <body>
 
@@ -750,6 +751,20 @@
     <button class="key" data-key="0">0</button>
     <button class="key key-ok" data-key="ok">OK</button>
   </div>
+  <button class="qr-btn" id="qrBtn">
+    <span class="qr-btn-icon">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <line x1="14" y1="14" x2="18" y2="14"/>
+        <line x1="18" y1="14" x2="18" y2="18"/>
+        <line x1="14" y1="18" x2="18" y2="18"/>
+        <line x1="14" y1="14" x2="14" y2="18"/>
+      </svg>
+    </span>
+    Escanear QR
+  </button>
 </div>
 
 <!-- ===== CONFIRMATION OVERLAY ===== -->
@@ -790,6 +805,24 @@
       <button class="modal-btn modal-btn-primary" id="alertOk">Aceptar</button>
     </div>
   </div>
+</div>
+
+<!-- ===== QR SCANNER OVERLAY ===== -->
+<div class="qr-overlay" id="qrOverlay">
+  <video class="qr-video" id="qrVideo" playsinline muted></video>
+  <div class="qr-ui">
+    <div class="qr-label">Escanea tu QR</div>
+    <div class="qr-frame">
+      <div class="qr-frame-inner">
+        <div class="qr-frame-corner tl"></div>
+        <div class="qr-frame-corner tr"></div>
+        <div class="qr-frame-corner bl"></div>
+        <div class="qr-frame-corner br"></div>
+      </div>
+    </div>
+    <button class="qr-cancel-btn" id="qrCancelBtn">Cancelar</button>
+  </div>
+  <div class="qr-error-msg" id="qrErrorMsg"></div>
 </div>
 
 <!-- ===== CONFIRM MODAL (replaces native confirm()) ===== -->
@@ -932,6 +965,15 @@
   const confirmModalMessage = $('confirmModalMessage');
   const confirmYes = $('confirmYes');
   const confirmNo = $('confirmNo');
+  // QR refs
+  const qrOverlay = $('qrOverlay');
+  const qrVideo = $('qrVideo');
+  const qrBtn = $('qrBtn');
+  const qrCancelBtn = $('qrCancelBtn');
+  const qrErrorMsg = $('qrErrorMsg');
+  let qrStream = null;
+  let qrScanTimer = null;
+  let qrScanning = false;
 
   // ===== PERSISTENCE =====
   function loadConfig() {
@@ -1432,6 +1474,161 @@
     document.body.style.filter = `brightness(${config.brightness / 100})`;
   }
 
+  // ===== QR SCANNER =====
+  function openQrScanner() {
+    if (lockedUntil > Date.now()) {
+      showLockedScreen();
+      return;
+    }
+    if (!config.tenantId) {
+      errorMsg.textContent = 'Terminal no configurado. Contacta al administrador.';
+      errorMsg.classList.add('show');
+      return;
+    }
+
+    qrErrorMsg.classList.remove('show');
+    qrErrorMsg.textContent = '';
+    qrOverlay.classList.add('active');
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
+      }).then(function(stream) {
+        qrStream = stream;
+        qrVideo.srcObject = stream;
+        qrVideo.setAttribute('playsinline', '');
+        qrVideo.play();
+        startQrScanning();
+      }).catch(function(err) {
+        qrOverlay.classList.remove('active');
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          showAlert('Camara no disponible', 'Permiso de camara denegado. Para escanear un QR, concede permiso a la camara en los ajustes del navegador.');
+        } else if (err.name === 'NotFoundError') {
+          showAlert('Camara no disponible', 'No se detecto ninguna camara en este dispositivo.');
+        } else {
+          showAlert('Camara no disponible', 'No se pudo abrir la camara: ' + err.message);
+        }
+      });
+    } else {
+      qrOverlay.classList.remove('active');
+      showAlert('Camara no disponible', 'Este navegador no soporta el acceso a la camara. Usa un dispositivo compatible.');
+    }
+  }
+
+  function closeQrScanner() {
+    qrScanning = false;
+    if (qrScanTimer) {
+      clearTimeout(qrScanTimer);
+      qrScanTimer = null;
+    }
+    if (qrStream) {
+      qrStream.getTracks().forEach(function(t) { t.stop(); });
+      qrStream = null;
+    }
+    qrVideo.srcObject = null;
+    qrOverlay.classList.remove('active');
+    qrErrorMsg.classList.remove('show');
+  }
+
+  function startQrScanning() {
+    qrScanning = true;
+    qrErrorMsg.classList.remove('show');
+
+    function scan() {
+      if (!qrScanning) return;
+
+      if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+        const canvas = document.createElement('canvas');
+        canvas.width = qrVideo.videoWidth;
+        canvas.height = qrVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert'
+        });
+
+        if (code && code.data) {
+          // QR detected
+          closeQrScanner();
+          submitQrClock(code.data.trim());
+          return;
+        }
+      }
+
+      qrScanTimer = setTimeout(scan, 300);
+    }
+
+    scan();
+  }
+
+  async function submitQrClock(employeeId) {
+    if (isSubmitting) return;
+    isSubmitting = true;
+    loadingOverlay.classList.add('active');
+
+    const now = new Date();
+    const timeStr = now.toTimeString().slice(0, 8);
+
+    try {
+      const resp = await fetch(config.backendUrl + '/api/clock/qr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: employeeId,
+          type: 'auto',
+          tenant_id: config.tenantId
+        })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        failedAttempts = 0;
+        const clockType = data.type || 'in';
+        const empName = data.employee_name || (data.employee ? data.employee.name : '') || '';
+        const clockTime = data.time || timeStr;
+
+        const labels = {
+          in: 'Entrada registrada',
+          out: 'Salida registrada'
+        };
+
+        playBeep(1200, 0.15, 0.15);
+        confirmIcon.textContent = '✓';
+        confirmText.textContent = labels[clockType] || 'Fichaje registrado';
+        confirmEmployee.textContent = empName;
+        confirmSub.textContent = clockTime;
+        confirmOverlay.classList.add('active');
+      } else {
+        throw new Error('Backend error: ' + resp.status);
+      }
+    } catch {
+      // Offline — save to queue
+      addToOfflineQueue({ employee_id: employeeId, source: 'qr' });
+
+      playBeep(1200, 0.15, 0.15);
+      confirmIcon.textContent = '✓';
+      confirmText.textContent = 'Fichaje guardado (sin conexion)';
+      confirmEmployee.textContent = '';
+      confirmSub.textContent = timeStr;
+      confirmOverlay.classList.add('active');
+    }
+
+    loadingOverlay.classList.remove('active');
+    isSubmitting = false;
+
+    if (confirmTimer) clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(function() {
+      confirmOverlay.classList.remove('active');
+      goToPinScreen();
+    }, 3000);
+  }
+
+  // QR button event
+  qrBtn.addEventListener('click', openQrScanner);
+  qrCancelBtn.addEventListener('click', closeQrScanner);
+
   // ===== KEYBOARD SUPPORT =====
   document.addEventListener('keydown', function(e) {
     if (e.key >= '0' && e.key <= '9') {
@@ -1447,7 +1644,9 @@
       return;
     }
     if (e.key === 'Escape') {
-      if (confirmOverlay.classList.contains('active')) {
+      if (qrOverlay.classList.contains('active')) {
+        closeQrScanner();
+      } else if (confirmOverlay.classList.contains('active')) {
         confirmOverlay.classList.remove('active');
         goToPinScreen();
       } else if (screenAdmin.classList.contains('active')) {

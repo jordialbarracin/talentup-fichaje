@@ -2242,6 +2242,24 @@ function openModal(type, id) {
         <label>PIN (4 dígitos) — solo si se cambia</label>
         <input type="text" id="modal-emp-pin" placeholder="Dejar vacío para mantener el actual" maxlength="4" pattern="[0-9]{4}">
       </div>
+      <div class="form-group">
+        <label>Tarjeta NFC (UID)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="modal-emp-nfc" value="${emp ? (emp.nfc_uid || '') : ''}" placeholder="Ej: 04:12:34:56:78:9A:BC" style="flex:1;font-family:ui-monospace,SF Mono,monospace;font-size:0.8125rem">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="scanNfc()" style="white-space:nowrap">Escanear NFC</button>
+        </div>
+        <div id="nfc-scan-result" style="margin-top:6px;font-size:0.75rem;color:rgba(0,0,0,0.45);min-height:0"></div>
+      </div>
+      <div class="form-group" id="qr-section" style="${id ? '' : 'display:none'}">
+        <label>Codigo QR del empleado</label>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div id="qr-code-container" style="background:#ffffff;border:1px solid rgba(0,0,0,0.08);border-radius:8px;padding:8px;display:inline-flex"></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQR()">Descargar QR</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="printQR()">Imprimir QR</button>
+          </div>
+        </div>
+      </div>
     `;
   } else if (type === 'turno') {
     const shift = id ? state.shifts.find(s => s.id === id) : null;
@@ -2384,6 +2402,11 @@ function openModal(type, id) {
       btn.style.border = '2px solid #1d1d1f';
     });
   });
+
+  // Generate QR if editing existing employee
+  if (type === 'empleado' && id) {
+    generateEmployeeQR(id);
+  }
 }
 
 function closeModal() {
@@ -2401,6 +2424,7 @@ async function saveModal(type, id) {
     const shiftId = document.getElementById('modal-emp-shift').value;
     const status = document.getElementById('modal-emp-status').value;
     const pin = document.getElementById('modal-emp-pin').value.trim();
+    const nfcUid = document.getElementById('modal-emp-nfc').value.trim();
 
     if (!name) { showToast('El nombre es obligatorio', 'warning'); return; }
 
@@ -2417,6 +2441,7 @@ async function saveModal(type, id) {
       is_active: status === 'active'
     };
     if (pin) body.pin = pin;
+    if (nfcUid) body.nfc_uid = nfcUid;
 
     const result = id
       ? await api('PUT', `/employees/${id}`, body)
@@ -2488,6 +2513,97 @@ async function saveModal(type, id) {
       showToast('Error al registrar la baja', 'error');
     }
   }
+}
+
+// ===== NFC & QR =====
+function scanNfc() {
+  const resultEl = document.getElementById('nfc-scan-result');
+  const inputEl = document.getElementById('modal-emp-nfc');
+
+  if ('NDEFReader' in window) {
+    resultEl.textContent = 'Acerca la tarjeta NFC al dispositivo...';
+    resultEl.style.color = '#FF6B35';
+    try {
+      const reader = new NDEFReader();
+      reader.addEventListener('reading', ({ message }) => {
+        for (const record of message.records) {
+          if (record.recordType === 'text' || record.recordType === 'mime') {
+            const decoder = new TextDecoder(record.encoding || 'utf-8');
+            const text = decoder.decode(record.data);
+            inputEl.value = text;
+            resultEl.textContent = 'Tarjeta NFC leida correctamente';
+            resultEl.style.color = '#34C759';
+            return;
+          }
+        }
+        // If no text record, use the serial number if available
+        inputEl.value = reader.serialNumber || '';
+        resultEl.textContent = 'Tarjeta NFC leida correctamente';
+        resultEl.style.color = '#34C759';
+      });
+      reader.addEventListener('readingerror', () => {
+        resultEl.textContent = 'Error al leer la tarjeta. Intentalo de nuevo.';
+        resultEl.style.color = '#FF3B30';
+      });
+      reader.scan().catch(err => {
+        resultEl.textContent = 'Error al iniciar el escaner: ' + err.message;
+        resultEl.style.color = '#FF3B30';
+      });
+    } catch (err) {
+      resultEl.textContent = 'Error: ' + err.message;
+      resultEl.style.color = '#FF3B30';
+    }
+  } else {
+    // Web NFC not available — show instructions
+    resultEl.innerHTML = 'Web NFC no esta disponible en este navegador. Introduce el UID manualmente. El UID suele estar impreso en la tarjeta o puedes leerlo con una app NFC.';
+    resultEl.style.color = 'rgba(0,0,0,0.45)';
+    inputEl.focus();
+  }
+}
+
+function generateEmployeeQR(employeeId) {
+  const container = document.getElementById('qr-code-container');
+  if (!container) return;
+  const emp = state.employees.find(e => e.id === employeeId);
+  if (!emp) return;
+  const qrData = JSON.stringify({ id: emp.id, name: emp.full_name || emp.name });
+  container.innerHTML = '';
+  if (typeof QRCode !== 'undefined') {
+    QRCode.toCanvas(qrData, { width: 120, margin: 1, color: { dark: '#1d1d1f', light: '#ffffff' } }, (err, canvas) => {
+      if (err) {
+        container.innerHTML = '<span class="text-xs text-muted">Error al generar QR</span>';
+        return;
+      }
+      canvas.style.width = '120px';
+      canvas.style.height = '120px';
+      container.appendChild(canvas);
+    });
+  } else {
+    container.innerHTML = '<span class="text-xs text-muted">Cargando libreria QR...</span>';
+  }
+}
+
+function downloadQR() {
+  const canvas = document.querySelector('#qr-code-container canvas');
+  if (!canvas) { showToast('Genera primero el codigo QR', 'warning'); return; }
+  const link = document.createElement('a');
+  link.download = 'qr-empleado.png';
+  link.href = canvas.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('QR descargado', 'success');
+}
+
+function printQR() {
+  const canvas = document.querySelector('#qr-code-container canvas');
+  if (!canvas) { showToast('Genera primero el codigo QR', 'warning'); return; }
+  const win = window.open('', '_blank');
+  if (!win) { showToast('Permite ventanas emergentes para imprimir', 'warning'); return; }
+  win.document.write('<!DOCTYPE html><html><head><title>Imprimir QR</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff}img{max-width:90vw;max-height:90vh}</style></head><body>');
+  win.document.write('<img src="' + canvas.toDataURL('image/png') + '" onload="window.print();window.close()">');
+  win.document.write('</body></html>');
+  win.document.close();
 }
 
 // ===== INIT =====
