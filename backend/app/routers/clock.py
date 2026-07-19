@@ -9,7 +9,7 @@ from typing import Optional, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from pydantic import BaseModel, Field
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -253,15 +253,23 @@ async def clock_nfc(
             headers={"Retry-After": "60"},
         )
 
-    # Find employee by nfc_uid within the tenant
+    # Find employee by nfc_uid within the tenant (normalize UID: accept with or without colons)
+    normalized_uid = data.nfc_uid.replace(":", "").upper()
+    # Build colon format from normalized: "A1B2C3D4" → "A1:B2:C3:D4"
+    colon_uid = ":".join(normalized_uid[i:i+2] for i in range(0, len(normalized_uid), 2))
+    # Search with both the original and the colon format
     result = await db.execute(
         select(Employee).where(
             Employee.tenant_id == data.tenant_id,
-            Employee.nfc_uid == data.nfc_uid,
+            or_(
+                Employee.nfc_uid == data.nfc_uid,
+                Employee.nfc_uid == normalized_uid,
+                Employee.nfc_uid == colon_uid,
+            ),
             Employee.is_active == True,
         )
     )
-    matched_emp = result.scalar_one_or_none()
+    matched_emp = result.scalars().first()
 
     if not matched_emp:
         raise HTTPException(

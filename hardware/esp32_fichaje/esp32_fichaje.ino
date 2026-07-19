@@ -33,7 +33,7 @@
 #define BACKEND_URL     "http://192.168.1.100:8000"
 #endif
 #ifndef TENANT_ID
-#define TENANT_ID       "default"
+#define TENANT_ID       "CAMBIAR-POR-TU-TENANT-ID-UUID"
 #endif
 
 // Pines
@@ -153,9 +153,10 @@ void loop() {
   }
   lastReadTime = now;
 
-  // Convertir UID a hex string mayúsculas
+  // Convertir UID a hex string con formato XX:XX:XX:XX (igual que la BD)
   String uidStr = "";
   for (uint8_t i = 0; i < uidLength; i++) {
+    if (i > 0) uidStr += ":";
     if (uid[i] < 0x10) uidStr += "0";
     uidStr += String(uid[i], HEX);
   }
