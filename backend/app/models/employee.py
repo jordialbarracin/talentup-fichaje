@@ -1,7 +1,11 @@
 """
 TalentUP Fichaje — Employee model (ampliado con 34 campos nuevos).
+
+Security note: XSS escaping is applied once, in the HTTP layer
+(app/routers/employees.py) before the data reaches the database.
+The model itself stores raw input and returns it verbatim in to_dict()
+so we avoid double-escaping values like & → &amp; → &amp;amp;.
 """
-import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text
@@ -96,26 +100,27 @@ class Employee(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
+        # Return stored values verbatim — escaping happens once in the router.
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_code": self.employee_code,
-            "name": html.escape(self.name) if self.name else self.name,
-            "last_name": html.escape(self.last_name) if self.last_name else self.last_name,
-            "full_name": html.escape(self.full_name) if self.full_name else self.full_name,
-            "dni": html.escape(self.dni) if self.dni else self.dni,
-            "nie": html.escape(self.nie) if self.nie else self.nie,
-            "numero_ss": html.escape(self.numero_ss) if self.numero_ss else self.numero_ss,
-            "nationality": html.escape(self.nationality) if self.nationality else self.nationality,
+            "name": self.name,
+            "last_name": self.last_name,
+            "full_name": self.full_name,
+            "dni": self.dni,
+            "nie": self.nie,
+            "numero_ss": self.numero_ss,
+            "nationality": self.nationality,
             "birth_date": self.birth_date.isoformat() if self.birth_date else None,
-            "gender": html.escape(self.gender) if self.gender else self.gender,
-            "address": html.escape(self.address) if self.address else self.address,
-            "city": html.escape(self.city) if self.city else self.city,
-            "province": html.escape(self.province) if self.province else self.province,
-            "postal_code": html.escape(self.postal_code) if self.postal_code else self.postal_code,
-            "phone": html.escape(self.phone) if self.phone else self.phone,
-            "email": html.escape(self.email) if self.email else self.email,
-            "emergency_contact_name": html.escape(self.emergency_contact_name) if self.emergency_contact_name else self.emergency_contact_name,
+            "gender": self.gender,
+            "address": self.address,
+            "city": self.city,
+            "province": self.province,
+            "postal_code": self.postal_code,
+            "phone": self.phone,
+            "email": self.email,
+            "emergency_contact_name": self.emergency_contact_name,
             "emergency_contact_phone": self.emergency_contact_phone,
             "categoria_profesional": self.categoria_profesional,
             "tipo_contrato": self.tipo_contrato,
@@ -144,16 +149,16 @@ class Employee(Base):
             "saldo_banco_horas": float(self.saldo_banco_horas) if self.saldo_banco_horas else None,
             "horas_extra_pendientes": float(self.horas_extra_pendientes) if self.horas_extra_pendientes else None,
             "coste_hora": float(self.coste_hora) if self.coste_hora else None,
-            "iban": html.escape(self.iban) if self.iban else self.iban,
-            "bank_name": html.escape(self.bank_name) if self.bank_name else self.bank_name,
-            "bank_account_holder": html.escape(self.bank_account_holder) if self.bank_account_holder else self.bank_account_holder,
-            "education_level": html.escape(self.education_level) if self.education_level else self.education_level,
-            "qualifications": html.escape(self.qualifications) if self.qualifications else self.qualifications,
+            "iban": self.iban,
+            "bank_name": self.bank_name,
+            "bank_account_holder": self.bank_account_holder,
+            "education_level": self.education_level,
+            "qualifications": self.qualifications,
             "food_handling_cert": self.food_handling_cert,
             "food_handling_expiry": self.food_handling_expiry.isoformat() if self.food_handling_expiry else None,
-            "allergies": html.escape(self.allergies) if self.allergies else self.allergies,
-            "uniform_size": html.escape(self.uniform_size) if self.uniform_size else self.uniform_size,
-            "estado": html.escape(self.estado) if self.estado else self.estado,
+            "allergies": self.allergies,
+            "uniform_size": self.uniform_size,
+            "estado": self.estado,
             "is_active": self.is_active,
             "is_available_for_scheduling": self.is_available_for_scheduling,
             "created_by": str(self.created_by) if self.created_by else None,

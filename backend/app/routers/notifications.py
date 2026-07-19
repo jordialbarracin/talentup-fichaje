@@ -2,7 +2,7 @@
 TalentUP Fichaje — Notifications router.
 GET/POST /api/notifications, POST /api/notifications/send
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, func
@@ -13,6 +13,7 @@ from app.models.notification import Notification
 from app.models.employee import Employee
 from app.models.user import User
 from app.auth import require_owner, get_current_user
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -35,6 +36,8 @@ class NotificationCreate(BaseModel):
 async def list_notifications(
     unread_only: bool = False,
     category: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -47,9 +50,7 @@ async def list_notifications(
     if category:
         query = query.where(Notification.category == category)
     query = query.order_by(Notification.created_at.desc())
-    result = await db.execute(query)
-    items = result.scalars().all()
-    return [n.to_dict() for n in items]
+    return await paginate(db, query, page, limit, item_transform=lambda n: n.to_dict())
 
 
 @router.get("/unread")

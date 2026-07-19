@@ -3,13 +3,17 @@ TalentUP Fichaje — Overtime model (horas extra).
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
 
 class Overtime(Base):
     __tablename__ = "overtime"
+
+    __table_args__ = (
+        Index('ix_overtime_tenant_date', 'tenant_id', 'date'),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

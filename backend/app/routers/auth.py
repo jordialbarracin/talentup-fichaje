@@ -18,6 +18,8 @@ from app.auth import (
     hash_password,
     verify_password,
     create_access_token,
+    create_refresh_token,
+    decode_token,
     get_current_user,
     require_super_admin,
 )
@@ -88,16 +90,28 @@ class RegisterRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
     user: dict
     tenant_id: Optional[str] = None
     is_new_tenant: bool = False
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: dict
+    tenant_id: Optional[str] = None
+
+
 # --- Endpoints ---
 @router.post("/login", response_model=AuthResponse)
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Authenticate user and return JWT token."""
+    """Authenticate user and return JWT access + refresh tokens."""
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
 
@@ -113,15 +127,63 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
             detail="Usuario inactivo",
         )
 
-    token = create_access_token({
+    access_token = create_access_token({
+        "sub": str(user.id),
+        "email": user.email,
+        "role": user.role,
+        "tenant_id": str(user.tenant_id) if user.tenant_id else None,
+    })
+    refresh_token = create_refresh_token(user)
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=user.to_dict(),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+    )
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """Exchange a valid refresh token for a new short-lived access token."""
+    try:
+        payload = decode_token(req.refresh_token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token inválido o expirado",
+        ) from exc
+
+    if payload.get("type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token no válido para refresh",
+        )
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token inválido",
+        )
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario no encontrado o inactivo",
+        )
+
+    access_token = create_access_token({
         "sub": str(user.id),
         "email": user.email,
         "role": user.role,
         "tenant_id": str(user.tenant_id) if user.tenant_id else None,
     })
 
-    return AuthResponse(
-        access_token=token,
+    return RefreshResponse(
+        access_token=access_token,
         user=user.to_dict(),
         tenant_id=str(user.tenant_id) if user.tenant_id else None,
     )
@@ -238,15 +300,17 @@ async def register(
     await db.refresh(owner)
 
     # Generate JWT
-    token = create_access_token({
+    access_token = create_access_token({
         "sub": str(owner.id),
         "email": owner.email,
         "role": owner.role,
         "tenant_id": str(owner.tenant_id) if owner.tenant_id else None,
     })
+    refresh_token = create_refresh_token(owner)
 
     return AuthResponse(
-        access_token=token,
+        access_token=access_token,
+        refresh_token=refresh_token,
         user=owner.to_dict(),
         tenant_id=str(tenant.id),
         is_new_tenant=True,

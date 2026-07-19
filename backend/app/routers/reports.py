@@ -21,6 +21,7 @@ from app.models.shift import Shift
 from app.models.user import User
 from app.auth import require_manager, get_current_user
 from app.tasks import schedule_report_export
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
@@ -48,6 +49,8 @@ async def report_hours(
     employee_id: Optional[str] = None,
     date_from: str = Query(...),
     date_to: str = Query(...),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -64,8 +67,9 @@ async def report_hours(
         emp_query = select(Employee)
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
-    result = await db.execute(emp_query)
-    employees = result.scalars().all()
+    emp_query = emp_query.order_by(Employee.name)
+    employees_page = await paginate(db, emp_query, page, limit, item_transform=lambda e: e)
+    employees = employees_page["items"]
 
     # Get clock-ins in range
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
@@ -77,6 +81,14 @@ async def report_hours(
     )
     if tid:
         clock_query = clock_query.where(ClockIn.tenant_id == tid)
+    if employee_id:
+        clock_query = clock_query.where(ClockIn.employee_id == employee_id)
+    else:
+        emp_ids = [e.id for e in employees]
+        if emp_ids:
+            clock_query = clock_query.where(ClockIn.employee_id.in_(emp_ids))
+        else:
+            clock_query = clock_query.where(False)
     clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp)
     result = await db.execute(clock_query)
     all_clock_ins = result.scalars().all()
@@ -119,6 +131,10 @@ async def report_hours(
         "date_to": date_to,
         "tenant_id": str(tid) if tid else "all",
         "employees": report,
+        "page": employees_page["page"],
+        "limit": employees_page["limit"],
+        "total": employees_page["total"],
+        "pages": employees_page["pages"],
     }
 
 
@@ -128,6 +144,8 @@ async def report_incidents(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     incident_type: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -148,8 +166,10 @@ async def report_incidents(
         query = query.where(Incident.type == incident_type)
 
     query = query.order_by(Incident.date.desc(), Incident.created_at.desc())
-    result = await db.execute(query)
-    incidents = result.scalars().all()
+
+    # Paginate raw incidents, then enrich page items only.
+    page_result = await paginate(db, query, page, limit, item_transform=lambda i: i)
+    incidents = page_result["items"]
 
     # Enrich with employee names
     emp_ids = {i.employee_id for i in incidents}
@@ -164,7 +184,8 @@ async def report_incidents(
         item["employee_name"] = emp_map.get(inc.employee_id, "Desconocido")
         items.append(item)
 
-    return {"items": items, "total": len(items)}
+    page_result["items"] = items
+    return page_result
 
 
 @router.get("/export")

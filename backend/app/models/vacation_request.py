@@ -3,13 +3,17 @@ TalentUP Fichaje — VacationRequest model (solicitudes de vacaciones/permisos).
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Numeric, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Numeric, Date, DateTime, ForeignKey, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
 
 class VacationRequest(Base):
     __tablename__ = "vacation_requests"
+
+    __table_args__ = (
+        Index('ix_vacation_tenant_status', 'tenant_id', 'status'),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

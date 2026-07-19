@@ -4,12 +4,16 @@ Bajas IT (Incapacidad Temporal), permisos, ausencias.
 """
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Text, Numeric
+from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Text, Numeric, Index
 from app.database import Base
 
 
 class Leave(Base):
     __tablename__ = "leaves"
+
+    __table_args__ = (
+        Index('ix_leave_tenant_emp', 'tenant_id', 'employee_id'),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

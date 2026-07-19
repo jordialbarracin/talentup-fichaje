@@ -5,11 +5,12 @@ import os
 import sys
 import time
 import uuid
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -56,10 +57,21 @@ APP_VERSION = "2.0.0"
 
 
 # ── Redis helper (lazy) ─────────────────────────────────────────────────────
+def _is_production() -> bool:
+    env = os.environ.get("APP_ENV", os.environ.get("ENVIRONMENT", "")).lower()
+    return env in {"production", "prod"}
+
+
 def _get_redis_client():
-    """Devuelve un cliente Redis si está disponible y configurado; si no, None."""
+    """Devuelve un cliente Redis si está disponible y configurado; si no, None.
+
+    En producción REDIS_URL es obligatoria: si no está configurada, falla
+    el arranque con un error claro.
+    """
     redis_url = os.environ.get("REDIS_URL", "")
     if not redis_url:
+        if _is_production():
+            raise RuntimeError("REDIS_URL requerido en produccion")
         return None
     try:
         import redis as _redis
@@ -91,12 +103,41 @@ MAX_BODY_SIZE = 1 * 1024 * 1024
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
+        # Generate a per-request nonce so we can enforce a strict CSP without
+        # 'unsafe-inline'. HTML responses must inject the nonce into any inline
+        # <script> / <style> tags. See `add_csp_nonce` below.
+        request.state.csp_nonce = secrets.token_urlsafe(16)
         response = await call_next(request)
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'"
+        nonce = request.state.csp_nonce
+        csp = (
+            "default-src 'self'; "
+            f"script-src 'self' 'nonce-{nonce}' cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'"
+        )
+        response.headers["Content-Security-Policy"] = csp
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Strict-Transport-Security"] = "max-age=31536000"
         return response
+
+
+# Helper to inject the CSP nonce into HTML responses served by FastAPI.
+# Static HTML files (e.g. Vite-built apps) should add nonce="{{ nonce }}"
+# server-side or be served through this middleware.
+def add_csp_nonce(html_content: str, nonce: str) -> str:
+    """Add nonce attribute to inline <script> tags that don't already have one."""
+    import re
+    return re.sub(
+        r'(<script(?![^>]*\snonce=)[^>]*\u003e)',
+        lambda m: m.group(1).replace('>', f' nonce="{nonce}">'),
+        html_content,
+        flags=re.IGNORECASE,
+    )
 
 
 class BodySizeLimitMiddleware(BaseHTTPMiddleware):

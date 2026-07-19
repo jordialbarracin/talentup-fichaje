@@ -2,7 +2,7 @@
 TalentUP Fichaje — Payroll router (nóminas).
 GET /api/payroll/{month}/{year}, POST /api/payroll/close
 """
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, func
@@ -25,6 +25,8 @@ async def list_payroll(
     year: Optional[int] = None,
     month: Optional[int] = None,
     employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -39,6 +41,7 @@ async def list_payroll(
     if employee_id:
         query = query.where(Payroll.employee_id == employee_id)
     query = query.order_by(Payroll.year.desc(), Payroll.month.desc())
+
     result = await db.execute(query)
     items = result.scalars().all()
 
@@ -51,7 +54,19 @@ async def list_payroll(
         d = p.to_dict()
         d["employee_name"] = emp_map.get(p.employee_id, "Desconocido")
         data.append(d)
-    return data
+
+    page = max(page, 1)
+    limit = max(min(limit, 500), 1)
+    total = len(data)
+    start = (page - 1) * limit
+    end = start + limit
+    return {
+        "items": data[start:end],
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "pages": (total + limit - 1) // limit,
+    }
 
 
 @router.get("/{month}/{year}")

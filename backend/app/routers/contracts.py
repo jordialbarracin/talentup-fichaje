@@ -2,7 +2,7 @@
 TalentUP Fichaje — Contracts router.
 GET/POST/PUT/DELETE /api/contracts
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, delete
@@ -13,6 +13,7 @@ from app.models.contract import Contract
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 
@@ -63,6 +64,8 @@ class ContractUpdate(BaseModel):
 @router.get("")
 async def list_contracts(
     employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -74,9 +77,7 @@ async def list_contracts(
     if employee_id:
         query = query.where(Contract.employee_id == employee_id)
     query = query.order_by(Contract.start_date.desc())
-    result = await db.execute(query)
-    contracts = result.scalars().all()
-    return [c.to_dict() for c in contracts]
+    return await paginate(db, query, page, limit, item_transform=lambda c: c.to_dict())
 
 
 @router.get("/{contract_id}")

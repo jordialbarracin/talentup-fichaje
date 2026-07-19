@@ -2,7 +2,7 @@
 TalentUP Fichaje — Calendar router (calendario laboral).
 GET/POST /api/calendar
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, delete
@@ -14,6 +14,7 @@ from app.models.holiday import Holiday
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
@@ -30,19 +31,18 @@ class CalendarDayUpdate(BaseModel):
 @router.get("")
 async def get_calendar(
     year: int,
+    page: int = Query(1, ge=1),
+    limit: int = Query(366, ge=1, le=500),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
     """Get work calendar for a given year."""
     tenant_id = current_user.tenant_id
-    result = await db.execute(
-        select(WorkCalendar).where(
-            WorkCalendar.tenant_id == tenant_id,
-            WorkCalendar.year == year,
-        ).order_by(WorkCalendar.date)
-    )
-    days = result.scalars().all()
-    return [d.to_dict() for d in days]
+    query = select(WorkCalendar).where(
+        WorkCalendar.tenant_id == tenant_id,
+        WorkCalendar.year == year,
+    ).order_by(WorkCalendar.date)
+    return await paginate(db, query, page, limit, item_transform=lambda d: d.to_dict())
 
 
 @router.post("/generate")

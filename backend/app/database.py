@@ -36,10 +36,7 @@ def _resolve_database_url() -> str:
     Rules:
     - If DATABASE_URL contains 'sqlite', use SQLite (dev/tests only).
     - If DATABASE_URL contains 'postgresql', use PostgreSQL.
-    - If DATABASE_URL is not set and we are NOT in production, fall back
-      to the local SQLite database for convenience.
-    - If DATABASE_URL is not set and we ARE in production, raise a clear
-      error requiring PostgreSQL.
+    - If DATABASE_URL is not set, raise a clear error requiring configuration.
     """
     if _is_sqlite(_DATABASE_URL):
         return _DATABASE_URL
@@ -52,12 +49,9 @@ def _resolve_database_url() -> str:
         return url
 
     if not _DATABASE_URL:
-        if _is_production():
-            raise RuntimeError(
-                "DATABASE_URL requerida en produccion. Configura PostgreSQL."
-            )
-        # Dev/test fallback
-        return "sqlite+aiosqlite:///./talentup_fichaje.db"
+        raise RuntimeError(
+            "DATABASE_URL requerido. Configura PostgreSQL o SQLite para desarrollo."
+        )
 
     # Any other unsupported scheme
     raise RuntimeError(
