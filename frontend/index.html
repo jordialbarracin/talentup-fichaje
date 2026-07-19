@@ -925,6 +925,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <div class="settings-tab" data-tab="calendario">Calendario laboral</div>
         <div class="settings-tab" data-tab="festivos">Festivos</div>
         <div class="settings-tab" data-tab="notificaciones">Notificaciones</div>
+        <div class="settings-tab" data-tab="facturacion">Facturación</div>
       </div>
 
       <div class="settings-panel active" id="panel-restaurante">
@@ -1075,6 +1076,90 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             </select>
           </div>
           <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+        </div>
+      </div>
+
+      <!-- PANEL: FACTURACIÓN -->
+      <div class="settings-panel" id="panel-facturacion">
+        <div class="settings-card" style="max-width:600px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,107,53,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;margin:0">Facturación y plan</h3>
+              <p style="font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:2px 0 0">Gestiona tu suscripción y método de pago</p>
+            </div>
+          </div>
+
+          <div id="billing-loading" style="text-align:center;padding:24px;color:rgba(0,0,0,0.35);font-size:0.875rem">
+            Cargando información de facturación…
+          </div>
+
+          <div id="billing-content" class="hidden">
+            <!-- Plan actual -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:#f5f5f7;border-radius:8px;margin-bottom:16px">
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Plan actual</div>
+                <div id="billing-plan-name" style="font-size:1.125rem;font-weight:600;color:#1d1d1f;text-transform:capitalize">—</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Estado</div>
+                <div id="billing-status" style="font-size:0.875rem;font-weight:500">—</div>
+              </div>
+            </div>
+
+            <!-- Próximo cobro -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f5f5f7;border-radius:8px;margin-bottom:20px">
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px">Próxima renovación</div>
+                <div id="billing-next-payment" style="font-size:0.875rem;font-weight:500;color:#1d1d1f">—</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px">Importe</div>
+                <div id="billing-amount" style="font-size:0.875rem;font-weight:500;color:#1d1d1f">—</div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" onclick="changePlan()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Cambiar plan
+              </button>
+              <button class="btn btn-secondary" onclick="manageSubscription()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Gestionar suscripción
+              </button>
+            </div>
+
+            <!-- Planes disponibles -->
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(0,0,0,0.06)">
+              <h4 style="font-size:0.8125rem;font-weight:600;color:#1d1d1f;margin:0 0 12px">Planes disponibles</h4>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+                <div style="padding:14px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;text-align:center">
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Básico</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">29€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">/mes</div>
+                </div>
+                <div style="padding:14px;border:2px solid #FF6B35;border-radius:8px;text-align:center;position:relative">
+                  <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#FF6B35;color:#fff;font-size:0.625rem;font-weight:600;padding:2px 8px;border-radius:4px">Popular</div>
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Pro</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">39€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">/mes</div>
+                </div>
+                <div style="padding:14px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;text-align:center">
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Kit inicial</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">49€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">pago único</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="billing-error" class="hidden" style="text-align:center;padding:24px;color:#FF3B30;font-size:0.875rem">
+            No se pudo cargar la información de facturación.
+          </div>
         </div>
       </div>
     </div>
@@ -2471,6 +2556,136 @@ async function saveSettings() {
   }
 }
 
+// ===== FACTURACIÓN / BILLING =====
+async function loadBilling() {
+  const loading = document.getElementById('billing-loading');
+  const content = document.getElementById('billing-content');
+  const error = document.getElementById('billing-error');
+  loading.classList.remove('hidden');
+  content.classList.add('hidden');
+  error.classList.add('hidden');
+
+  const tenantId = state.user?.tenant_id;
+  if (!tenantId) {
+    loading.classList.add('hidden');
+    error.classList.remove('hidden');
+    error.textContent = 'No hay tenant asociado a tu cuenta.';
+    return;
+  }
+
+  const status = await api('GET', `/billing/status/${tenantId}`);
+  if (!status) {
+    loading.classList.add('hidden');
+    error.classList.remove('hidden');
+    return;
+  }
+
+  loading.classList.add('hidden');
+  content.classList.remove('hidden');
+
+  // Plan name
+  const planNames = { basic: 'Básico', pro: 'Pro', kit: 'Kit inicial' };
+  document.getElementById('billing-plan-name').textContent = planNames[status.plan] || status.plan;
+
+  // Status badge
+  const statusEl = document.getElementById('billing-status');
+  const statusLabels = {
+    active: 'Activa',
+    canceled: 'Cancelada',
+    past_due: 'Pendiente de pago',
+    trialing: 'Prueba gratuita',
+    incomplete: 'Incompleta',
+    unpaid: 'No pagada',
+  };
+  const statusColor = status.subscription_status === 'active' || status.subscription_status === 'trialing'
+    ? '#34C759' : status.subscription_status === 'canceled' ? '#FF3B30' : '#FF9500';
+  statusEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px">
+    <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
+    ${statusLabels[status.subscription_status] || status.subscription_status}
+  </span>`;
+
+  // Next payment
+  const nextPaymentEl = document.getElementById('billing-next-payment');
+  if (status.current_period_end) {
+    const d = new Date(status.current_period_end);
+    nextPaymentEl.textContent = d.toLocaleDateString('es-ES', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  } else {
+    nextPaymentEl.textContent = '—';
+  }
+
+  // Amount
+  const planAmounts = { basic: '29€/mes', pro: '39€/mes', kit: '49€ (único)' };
+  document.getElementById('billing-amount').textContent = planAmounts[status.plan] || '—';
+}
+
+async function changePlan() {
+  const tenantId = state.user?.tenant_id;
+  if (!tenantId) { showToast('No hay tenant asociado', 'error'); return; }
+
+  // Show a simple plan selector modal
+  const plans = [
+    { id: 'basic', name: 'Básico', price: '29€/mes' },
+    { id: 'pro', name: 'Pro', price: '39€/mes' },
+    { id: 'kit', name: 'Kit inicial', price: '49€ (único)' },
+  ];
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.12)">
+      <h3 style="font-size:1rem;font-weight:600;margin:0 0 4px">Seleccionar plan</h3>
+      <p style="font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:0 0 16px">Elige el plan al que deseas cambiarte</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        ${plans.map(p => `
+          <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:pointer;transition:border-color 200ms">
+            <input type="radio" name="plan-select" value="${p.id}" style="accent-color:#FF6B35">
+            <div>
+              <div style="font-weight:500;font-size:0.875rem">${p.name}</div>
+              <div style="font-size:0.75rem;color:rgba(0,0,0,0.45)">${p.price}</div>
+            </div>
+          </label>
+        `).join('')}
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="this.closest('div[style]').parentElement.remove()">Cancelar</button>
+        <button class="btn btn-primary" id="btn-confirm-plan">Continuar al pago</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('btn-confirm-plan').addEventListener('click', async () => {
+    const selected = modal.querySelector('input[name="plan-select"]:checked');
+    if (!selected) { showToast('Selecciona un plan', 'warning'); return; }
+    modal.remove();
+
+    showToast('Redirigiendo a Stripe…', 'info');
+    const result = await api('POST', '/billing/checkout-session', {
+      plan: selected.value,
+      tenant_id: tenantId,
+    });
+    if (result && result.url) {
+      window.location.href = result.url;
+    } else {
+      showToast('Error al crear la sesión de pago', 'error');
+    }
+  });
+}
+
+async function manageSubscription() {
+  const tenantId = state.user?.tenant_id;
+  if (!tenantId) { showToast('No hay tenant asociado', 'error'); return; }
+
+  const result = await api('POST', `/billing/portal/${tenantId}`);
+  if (result && result.url) {
+    window.location.href = result.url;
+  } else {
+    showToast('Error al abrir el portal de gestión', 'error');
+  }
+}
+
 // ===== SETTINGS TABS =====
 document.querySelectorAll('.settings-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -2478,6 +2693,11 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
     document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+
+    // Load billing data when billing tab is selected
+    if (tab.dataset.tab === 'facturacion') {
+      loadBilling();
+    }
   });
 });
 

@@ -17,6 +17,8 @@ from .work_calendar import WorkCalendar
 from .geofence import Geofence
 from .document_template import DocumentTemplate
 
+from .billing_record import BillingRecord
+
 __all__ = [
     "Tenant",
     "User",
@@ -36,4 +38,5 @@ __all__ = [
     "WorkCalendar",
     "Geofence",
     "DocumentTemplate",
+    "BillingRecord",
 ]

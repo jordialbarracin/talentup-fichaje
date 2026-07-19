@@ -54,6 +54,8 @@ class Tenant(Base):
 
     # Plan / Billing
     plan = Column(String(20), default="basic")
+    subscription_status = Column(String(20), default="active")
+    current_period_end = Column(DateTime(timezone=True), nullable=True)
     max_employees = Column(Integer, default=50)
     billing_email = Column(String(200), nullable=True)
     stripe_customer_id = Column(String(100), nullable=True)
@@ -101,6 +103,8 @@ class Tenant(Base):
             "ss_employee_percent": float(self.ss_employee_percent) if self.ss_employee_percent else None,
             "ss_company_percent": float(self.ss_company_percent) if self.ss_company_percent else None,
             "plan": self.plan,
+            "subscription_status": self.subscription_status,
+            "current_period_end": self.current_period_end.isoformat() if self.current_period_end else None,
             "max_employees": self.max_employees,
             "billing_email": self.billing_email,
             "stripe_customer_id": self.stripe_customer_id,

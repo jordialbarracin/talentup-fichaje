@@ -1,8 +1,12 @@
-"""
-TalentUP Fichaje — Database connection.
+"""TalentUP Fichaje — Database connection.
 Async SQLAlchemy with PostgreSQL support, SQLite fallback for development.
+
+Migration strategy:
+- Production (PostgreSQL): uses Alembic migrations via `alembic upgrade head`
+- Development (SQLite): uses create_all() for simplicity and seed compatibility
 """
 import os
+import sys
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -36,14 +40,39 @@ async def get_db():
             await session.close()
 
 
+def _is_sqlite(url: str) -> bool:
+    """Check if the database URL points to a SQLite database."""
+    return "sqlite" in url
+
+
 async def init_db():
-    """Create all tables. Safe to call on every startup (no-op if exist)."""
-    async with engine.begin() as conn:
-        from app.database import Base
-        from app.models import (  # noqa: F401 — ensure models are imported so tables register
-            Tenant, User, Employee, Shift, Schedule, ClockIn, Incident, AuditLog,
-            VacationRequest, Leave, Holiday,
-            Contract, Overtime, Payroll, Notification, WorkCalendar,
-            Geofence, DocumentTemplate,
+    """Create all tables or run migrations depending on environment.
+
+    - In development (SQLite): uses create_all() — simple, no-op if tables exist.
+    - In production (PostgreSQL): runs `alembic upgrade head` via subprocess.
+    """
+    if _is_sqlite(DATABASE_URL):
+        # Development: use create_all() — keeps seed and tests working
+        async with engine.begin() as conn:
+            from app.database import Base
+            from app.models import (  # noqa: F401 — ensure models are imported so tables register
+                Tenant, User, Employee, Shift, Schedule, ClockIn, Incident, AuditLog,
+                VacationRequest, Leave, Holiday,
+                Contract, Overtime, Payroll, Notification, WorkCalendar,
+                Geofence, DocumentTemplate, BillingRecord,
+            )
+            await conn.run_sync(Base.metadata.create_all)
+    else:
+        # Production: run Alembic migrations
+        import subprocess
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            cwd=backend_dir,
+            capture_output=True,
+            text=True,
         )
-        await conn.run_sync(Base.metadata.create_all)
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"Alembic migration failed:\n{result.stderr}\n{result.stdout}"
+            )

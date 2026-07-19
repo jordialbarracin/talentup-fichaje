@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fichaje">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FF6B35">
+<link rel="manifest" href="/mobile/manifest.json">
+<link rel="apple-touch-icon" href="/mobile/icons/icon-192.png">
+<title>TalentUP Fichaje</title>
+<style>
+/* ============================================================
+   TalentUP Fichaje — Mobile PWA
+   Apple HIG Light · Brand #FF6B35 · No emojis · SF Symbols SVG
+   ============================================================ */
+
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  background:#ffffff;
+  color:#1d1d1f;
+  font-weight:400;
+  line-height:1.5;
+  letter-spacing:-0.022em;
+  min-height:100vh;
+  min-height:100dvh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overscroll-behavior-y:none;
+  user-select:none;
+  -webkit-user-select:none
+}
+button{cursor:pointer;font-family:inherit;font-size:inherit;border:none;background:none;color:inherit;letter-spacing:inherit;-webkit-tap-highlight-color:transparent}
+input,select{font-family:inherit;font-size:inherit;color:#1d1d1f;background:#f5f5f7;border:none;border-radius:12px;padding:14px 16px;outline:none;transition:box-shadow 200ms ease,background 200ms ease;font-weight:400;letter-spacing:-0.022em;width:100%;-webkit-appearance:none;appearance:none}
+input:focus,select:focus{box-shadow:0 0 0 2px rgba(255,107,53,0.3);background:#ffffff}
+input::placeholder{color:rgba(0,0,0,0.25)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+a{color:#FF6B35;text-decoration:none}
+::selection{background:rgba(255,107,53,0.2);color:#1d1d1f}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:2px}
+
+/* ===== UTILITY ===== */
+.hidden{display:none!important}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-center{justify-content:center}
+.justify-between{justify-content:space-between}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.gap-4{gap:16px}
+.mt-4{margin-top:16px}
+.mb-4{margin-bottom:16px}
+.text-center{text-align:center}
+.text-sm{font-size:0.8125rem}
+.text-xs{font-size:0.6875rem}
+.text-muted{color:rgba(0,0,0,0.45)}
+.font-medium{font-weight:500}
+.w-full{width:100%}
+.p-4{padding:16px}
+.px-4{padding-left:16px;padding-right:16px}
+.py-3{padding-top:12px;padding-bottom:12px}
+
+/* ===== SAFE AREA ===== */
+.safe-top{padding-top:env(safe-area-inset-top,12px)}
+.safe-bottom{padding-bottom:env(safe-area-inset-bottom,12px)}
+
+/* ===== SCREENS ===== */
+.screen{display:none;min-height:100vh;min-height:100dvh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ===== LOGIN SCREEN ===== */
+#login-screen{align-items:center;justify-content:center;padding:24px;background:#ffffff}
+.login-card{width:100%;max-width:340px}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.login-brand h1{font-size:1.375rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.028em;line-height:1.1}
+.login-sub{color:rgba(0,0,0,0.45);font-size:0.875rem;margin-bottom:32px}
+.login-form{display:flex;flex-direction:column;gap:16px}
+.login-form label{display:block;font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.login-form .btn{margin-top:4px;width:100%;padding:14px;font-size:0.9375rem;font-weight:500}
+.login-error{color:#FF3B30;font-size:0.8125rem;text-align:center;min-height:20px;font-weight:400;margin-top:4px}
+
+/* ===== PIN INPUT ===== */
+.pin-inputs{display:flex;gap:10px;justify-content:center}
+.pin-inputs input{
+  width:52px;height:58px;text-align:center;font-size:1.5rem;font-weight:600;
+  padding:0;border-radius:12px;background:#f5f5f7;caret-color:#FF6B35;
+  -webkit-appearance:none;appearance:none
+}
+.pin-inputs input:focus{box-shadow:0 0 0 2px rgba(255,107,53,0.3);background:#ffffff}
+.pin-inputs input.filled{background:#ffffff;box-shadow:0 0 0 1.5px rgba(255,107,53,0.2)}
+
+/* ===== MAIN SCREEN ===== */
+#main-screen{background:#ffffff}
+.main-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;padding-top:max(16px,env(safe-area-inset-top,16px));
+  border-bottom:1px solid rgba(0,0,0,0.06)
+}
+.main-header h1{font-size:1.125rem;font-weight:600;letter-spacing:-0.025em}
+.main-header-actions{display:flex;align-items:center;gap:8px}
+.main-content{flex:1;padding:24px 20px;display:flex;flex-direction:column;gap:24px;overflow-y:auto}
+
+/* ===== CLOCK BUTTON ===== */
+.clock-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0}
+.clock-btn{
+  width:200px;height:200px;border-radius:50%;
+  background:#FF6B35;color:#ffffff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;font-weight:600;letter-spacing:-0.022em;
+  box-shadow:0 4px 20px rgba(255,107,53,0.3);
+  transition:all 250ms cubic-bezier(0.16,1,0.3,1);
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent
+}
+.clock-btn:active{transform:scale(0.95);box-shadow:0 2px 10px rgba(255,107,53,0.2)}
+.clock-btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.3);transform:scale(0);animation:ripple 600ms ease-out}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+.clock-btn-label{display:flex;flex-direction:column;align-items:center;gap:4px}
+.clock-btn-label svg{margin-bottom:2px}
+.clock-status{font-size:0.875rem;color:rgba(0,0,0,0.45);font-weight:400;text-align:center;min-height:24px}
+
+/* ===== CONFIRMATION TOAST ===== */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1d1d1f;color:#ffffff;padding:14px 24px;border-radius:14px;
+  font-size:0.9375rem;font-weight:500;letter-spacing:-0.022em;
+  box-shadow:0 4px 24px rgba(0,0,0,0.15);
+  opacity:0;transition:all 400ms cubic-bezier(0.16,1,0.3,1);
+  z-index:100;pointer-events:none;white-space:nowrap;
+  display:flex;align-items:center;gap:10px
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-icon{flex-shrink:0;display:flex}
+
+/* ===== TODAY HISTORY ===== */
+.history-section{display:flex;flex-direction:column;gap:12px}
+.history-header{display:flex;align-items:center;justify-content:space-between}
+.history-header h2{font-size:0.9375rem;font-weight:600;letter-spacing:-0.022em}
+.history-list{display:flex;flex-direction:column;gap:8px}
+.history-empty{
+  text-align:center;padding:32px 16px;color:rgba(0,0,0,0.3);
+  font-size:0.875rem;display:flex;flex-direction:column;align-items:center;gap:8px
+}
+.history-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;background:#ffffff;border-radius:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.03);
+  transition:all 200ms ease
+}
+.history-item:active{background:rgba(0,0,0,0.02)}
+.history-item-left{display:flex;align-items:center;gap:12px}
+.history-item-type{font-weight:600;font-size:0.875rem}
+.history-item-type.entrada{color:#34C759}
+.history-item-type.salida{color:#FF6B35}
+.history-item-time{font-size:0.8125rem;color:rgba(0,0,0,0.45)}
+.history-item-location{font-size:0.6875rem;color:rgba(0,0,0,0.3);display:flex;align-items:center;gap:4px;margin-top:2px}
+
+/* ===== OFFLINE BANNER ===== */
+.offline-banner{
+  background:rgba(255,149,0,0.1);color:#FF9500;
+  text-align:center;padding:8px 16px;font-size:0.75rem;font-weight:500;
+  display:none;align-items:center;justify-content:center;gap:6px;
+  letter-spacing:-0.01em
+}
+.offline-banner.show{display:flex}
+
+/* ===== PENDING SYNC BADGE ===== */
+.pending-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(255,149,0,0.12);color:#FF9500;
+  font-size:0.6875rem;font-weight:500;padding:3px 8px;border-radius:980px
+}
+
+/* ===== BUTTONS ===== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:7px 14px;border-radius:980px;font-weight:500;
+  font-size:0.8125rem;letter-spacing:-0.022em;
+  transition:all 200ms ease;white-space:nowrap;line-height:1.2
+}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:#FF6B35;color:#ffffff}
+.btn-primary:active{background:#E55A2B}
+.btn-secondary{background:transparent;color:#FF6B35;border:1px solid rgba(255,107,53,0.35)}
+.btn-secondary:active{background:rgba(255,107,53,0.06);border-color:#FF6B35}
+.btn-ghost{background:transparent;color:rgba(0,0,0,0.5)}
+.btn-ghost:active{color:#1d1d1f;background:rgba(0,0,0,0.04)}
+.btn-danger{background:#FF3B30;color:#ffffff}
+.btn-sm{padding:5px 12px;font-size:0.75rem}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none!important}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.3);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+  animation:fadeIn 200ms ease
+}
+.modal-overlay.show{display:flex}
+.modal-sheet{
+  background:#ffffff;border-radius:16px 16px 0 0;
+  width:100%;max-width:400px;padding:24px 20px;
+  padding-bottom:max(24px,env(safe-area-inset-bottom,24px));
+  animation:slideUp 300ms cubic-bezier(0.16,1,0.3,1);
+  max-height:80vh;overflow-y:auto
+}
+.modal-handle{width:36px;height:4px;background:rgba(0,0,0,0.12);border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:1.0625rem;font-weight:600;margin-bottom:20px;text-align:center;letter-spacing:-0.022em}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1;padding:12px;font-size:0.875rem}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ===== RESTAURANT LIST ===== */
+.restaurant-list{display:flex;flex-direction:column;gap:6px}
+.restaurant-option{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-radius:12px;background:#f5f5f7;
+  transition:all 200ms ease;cursor:pointer
+}
+.restaurant-option:active{background:rgba(255,107,53,0.08)}
+.restaurant-option.selected{background:rgba(255,107,53,0.1);box-shadow:0 0 0 1.5px rgba(255,107,53,0.25)}
+.restaurant-option-name{font-weight:500;font-size:0.875rem}
+.restaurant-option-address{font-size:0.75rem;color:rgba(0,0,0,0.45);margin-top:1px}
+
+/* ===== SVG ICON HELPERS ===== */
+.icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-16{width:16px;height:16px}
+.icon-18{width:18px;height:18px}
+.icon-20{width:20px;height:20px}
+.icon-24{width:24px;height:24px}
+.icon-28{width:28px;height:28px}
+.icon-32{width:32px;height:32px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:420px){
+  .clock-btn{width:170px;height:170px;font-size:1.25rem}
+  .main-content{padding:20px 16px}
+  .pin-inputs input{width:48px;height:52px;font-size:1.375rem}
+}
+@media(min-width:421px){
+  .main-content{max-width:400px;margin:0 auto;width:100%}
+  .login-card{max-width:360px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="screen active">
+  <div class="login-card">
+    <div class="login-brand">
+      <!-- SF Symbols-style clock icon -->
+      <svg class="icon icon-28" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 15"/>
+      </svg>
+      <h1>TalentUP</h1>
+    </div>
+    <p class="login-sub">Fichaje para empleados</p>
+    <form id="login-form" class="login-form" autocomplete="off">
+      <div>
+        <label for="login-pin">PIN de empleado</label>
+        <div class="pin-inputs" id="pin-inputs">
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="pin-digit" data-index="0" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="pin-digit" data-index="1" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="pin-digit" data-index="2" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="pin-digit" data-index="3" autocomplete="off" autocorrect="off" spellcheck="false">
+        </div>
+      </div>
+      <div>
+        <label for="login-tenant">Restaurante</label>
+        <select id="login-tenant">
+          <option value="">Seleccionar restaurante</option>
+        </select>
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        <!-- SVG: arrow right -->
+        <svg class="icon icon-18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+        Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MAIN SCREEN ===== -->
+<div id="main-screen" class="screen">
+  <!-- Offline banner -->
+  <div class="offline-banner" id="offline-banner">
+    <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23"/>
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+      <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+      <line x1="12" y1="20" x2="12.01" y2="20"/>
+    </svg>
+    Sin conexion — los fichajes se guardaran y enviaran al reconectar
+  </div>
+
+  <!-- Header -->
+  <div class="main-header">
+    <div class="flex items-center gap-2">
+      <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 15"/>
+      </svg>
+      <h1>TalentUP</h1>
+    </div>
+    <div class="main-header-actions">
+      <span id="pending-badge" class="pending-badge hidden">
+        <svg class="icon icon-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        <span id="pending-count">0</span>
+      </span>
+      <button class="btn btn-ghost btn-icon" id="change-tenant-btn" aria-label="Cambiar restaurante">
+        <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Clock button section -->
+    <div class="clock-section">
+      <button class="clock-btn" id="clock-btn">
+        <span class="clock-btn-label">
+          <svg class="icon icon-32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 7 12 12 15 15"/>
+          </svg>
+          Fichar
+        </span>
+      </button>
+      <div class="clock-status" id="clock-status">Pulsa para fichar</div>
+    </div>
+
+    <!-- Today's history -->
+    <div class="history-section">
+      <div class="history-header">
+        <h2>Fichajes de hoy</h2>
+        <button class="btn btn-ghost btn-sm" id="refresh-history-btn">
+          <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="history-empty" id="history-empty">
+          <svg class="icon icon-24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 7 12 12 15 15"/>
+          </svg>
+          No hay fichajes hoy
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">
+    <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  </span>
+  <span id="toast-text">Fichaje registrado</span>
+</div>
+
+<!-- ===== CHANGE RESTAURANT MODAL ===== -->
+<div class="modal-overlay" id="tenant-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Cambiar restaurante</div>
+    <div class="restaurant-list" id="tenant-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tenant-modal-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TalentUP Fichaje — Mobile PWA App Logic
+   ============================================================ */
+
+// ===== CONFIG =====
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000/api'
+  : '/api';
+
+const STORAGE_KEYS = {
+  tenantId: 'talentup_mobile_tenant_id',
+  tenantName: 'talentup_mobile_tenant_name',
+  employeePin: 'talentup_mobile_pin',
+  pendingClocks: 'talentup_mobile_pending',
+  lastSync: 'talentup_mobile_last_sync'
+};
+
+// ===== STATE =====
+let state = {
+  tenantId: localStorage.getItem(STORAGE_KEYS.tenantId) || '',
+  tenantName: localStorage.getItem(STORAGE_KEYS.tenantName) || '',
+  employeePin: localStorage.getItem(STORAGE_KEYS.employeePin) || '',
+  isOnline: navigator.onLine,
+  restaurants: [],
+  todayClocks: [],
+  pendingClocks: []
+};
+
+// ===== DOM REFS =====
+const $ = id => document.getElementById(id);
+const loginScreen = $('login-screen');
+const mainScreen = $('main-screen');
+const loginForm = $('login-form');
+const loginError = $('login-error');
+const loginBtn = $('login-btn');
+const loginTenant = $('login-tenant');
+const pinDigits = document.querySelectorAll('.pin-digit');
+const clockBtn = $('clock-btn');
+const clockStatus = $('clock-status');
+const historyList = $('history-list');
+const historyEmpty = $('history-empty');
+const toast = $('toast');
+const toastText = $('toast-text');
+const toastIcon = $('toast-icon');
+const offlineBanner = $('offline-banner');
+const pendingBadge = $('pending-badge');
+const pendingCount = $('pending-count');
+const changeTenantBtn = $('change-tenant-btn');
+const tenantModal = $('tenant-modal');
+const tenantList = $('tenant-list');
+const tenantModalCancel = $('tenant-modal-cancel');
+const refreshHistoryBtn = $('refresh-history-btn');
+
+// ===== SVG ICONS =====
+const ICONS = {
+  entrada: '<svg class="icon icon-18" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+  salida: '<svg class="icon icon-18" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  location: '<svg class="icon icon-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  check: '<svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  wifiOff: '<svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>'
+};
+
+// ===== API HELPER =====
+async function api(method, path, body) {
+  const url = `${API_BASE}${path}`;
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const res = await fetch(url, opts);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Error ${res.status}`);
+    }
+    return await res.json();
+  } catch(e) {
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('ERR_CONNECTION')) {
+      return null; // offline
+    }
+    throw e;
+  }
+}
+
+// ===== RESTAURANTS =====
+async function loadRestaurants() {
+  try {
+    const data = await api('GET', '/tenants');
+    if (data && Array.isArray(data)) {
+      state.restaurants = data;
+    } else if (data && data.tenants) {
+      state.restaurants = data.tenants;
+    }
+  } catch(e) {
+    console.warn('Failed to load restaurants:', e);
+  }
+  // Fallback demo restaurants if API unavailable
+  if (state.restaurants.length === 0) {
+    state.restaurants = [
+      { id: 'demo_01', name: 'Restaurante Demo Centro', address: 'Calle Mayor 1' },
+      { id: 'demo_02', name: 'Restaurante Demo Norte', address: 'Av. de la Constitucion 42' },
+      { id: 'demo_03', name: 'Restaurante Demo Sur', address: 'Plaza del Sol 8' }
+    ];
+  }
+  return state.restaurants;
+}
+
+function populateTenantSelect(restaurants) {
+  loginTenant.innerHTML = '<option value="">Seleccionar restaurante</option>';
+  restaurants.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.id || r.tenant_id || r;
+    opt.textContent = r.name || r.nombre || r.id || r;
+    loginTenant.appendChild(opt);
+  });
+  // Restore saved tenant
+  if (state.tenantId) {
+    loginTenant.value = state.tenantId;
+  }
+}
+
+function populateTenantModalList(restaurants) {
+  tenantList.innerHTML = '';
+  restaurants.forEach(r => {
+    const id = r.id || r.tenant_id || r;
+    const name = r.name || r.nombre || id;
+    const address = r.address || r.direccion || r.address || '';
+    const div = document.createElement('div');
+    div.className = 'restaurant-option' + (id === state.tenantId ? ' selected' : '');
+    div.innerHTML = `
+      <div>
+        <div class="restaurant-option-name">${name}</div>
+        ${address ? `<div class="restaurant-option-address">${address}</div>` : ''}
+      </div>
+    `;
+    div.addEventListener('click', () => selectTenant(id, name));
+    tenantList.appendChild(div);
+  });
+}
+
+function selectTenant(id, name) {
+  state.tenantId = id;
+  state.tenantName = name;
+  localStorage.setItem(STORAGE_KEYS.tenantId, id);
+  localStorage.setItem(STORAGE_KEYS.tenantName, name);
+  closeTenantModal();
+  updateHeaderTenant();
+  loadTodayHistory();
+}
+
+function updateHeaderTenant() {
+  // Update header subtitle if we add one
+}
+
+// ===== PIN INPUT LOGIC =====
+pinDigits.forEach((input, idx) => {
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, 1);
+    if (input.value) {
+      input.classList.add('filled');
+      if (idx < 3) pinDigits[idx + 1].focus();
+    } else {
+      input.classList.remove('filled');
+    }
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !input.value && idx > 0) {
+      pinDigits[idx - 1].focus();
+      pinDigits[idx - 1].value = '';
+      pinDigits[idx - 1].classList.remove('filled');
+    }
+  });
+  input.addEventListener('focus', () => input.select());
+});
+
+function getPin() {
+  return Array.from(pinDigits).map(i => i.value).join('');
+}
+
+function clearPin() {
+  pinDigits.forEach(i => { i.value = ''; i.classList.remove('filled'); });
+  pinDigits[0].focus();
+}
+
+// ===== LOGIN =====
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pin = getPin();
+  const tenantId = loginTenant.value;
+
+  if (pin.length !== 4) {
+    loginError.textContent = 'El PIN debe tener 4 digitos';
+    return;
+  }
+  if (!tenantId) {
+    loginError.textContent = 'Selecciona un restaurante';
+    return;
+  }
+
+  loginError.textContent = '';
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<svg class="icon icon-18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" stroke="currentColor"/></svg> Verificando...';
+
+  try {
+    // Verify PIN by attempting to get today's clocks (validates PIN + tenant)
+    const result = await api('POST', '/clock/verify', { pin, tenant_id: tenantId });
+    if (result === null) {
+      // Network error — allow offline login if we have saved credentials
+      loginError.textContent = 'Sin conexion. Intentalo de nuevo cuando tengas red.';
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = 'Entrar';
+      return;
+    }
+    // Success
+    state.employeePin = pin;
+    state.tenantId = tenantId;
+    state.tenantName = loginTenant.options[loginTenant.selectedIndex].text;
+    localStorage.setItem(STORAGE_KEYS.employeePin, pin);
+    localStorage.setItem(STORAGE_KEYS.tenantId, tenantId);
+    localStorage.setItem(STORAGE_KEYS.tenantName, state.tenantName);
+    enterApp();
+  } catch(e) {
+    loginError.textContent = e.message || 'Error al verificar el PIN';
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = 'Entrar';
+  }
+});
+
+// ===== ENTER APP =====
+function enterApp() {
+  loginScreen.classList.remove('active');
+  mainScreen.classList.add('active');
+  loadTodayHistory();
+  syncPendingClocks();
+}
+
+// ===== CHECK IF LOGGED IN =====
+function checkSession() {
+  if (state.employeePin && state.tenantId) {
+    // Pre-fill login form
+    loginTenant.value = state.tenantId;
+    // We can't pre-fill PIN for security, but we can auto-login
+    // Actually, let the user enter PIN each time for security
+  }
+}
+
+// ===== CLOCK IN/OUT =====
+clockBtn.addEventListener('click', async () => {
+  if (clockBtn.disabled) return;
+  clockBtn.disabled = true;
+
+  // Get geolocation if available
+  let lat = null, lng = null;
+  try {
+    if (navigator.geolocation) {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, () => reject(), {
+          enableHighAccuracy: false,
+          timeout: 3000,
+          maximumAge: 60000
+        });
+      });
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    }
+  } catch(e) {
+    // Geolocation not available or denied — continue without it
+  }
+
+  const payload = {
+    pin: state.employeePin,
+    type: 'auto',
+    tenant_id: state.tenantId
+  };
+  if (lat !== null && lng !== null) {
+    payload.latitude = lat;
+    payload.longitude = lng;
+  }
+
+  try {
+    const result = await api('POST', '/clock', payload);
+    if (result === null) {
+      // Offline — save to pending queue
+      savePendingClock(payload);
+      showToast('Fichaje guardado sin conexion', 'check');
+      clockStatus.textContent = 'Se sincronizara cuando haya red';
+    } else {
+      // Success
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      const type = result.type || (result.is_entry !== false ? 'Entrada' : 'Salida');
+      showToast(`${type} ${timeStr}`, 'check');
+      clockStatus.textContent = `Fichado a las ${timeStr}`;
+      loadTodayHistory();
+    }
+  } catch(e) {
+    showToast('Error al fichar', 'check');
+    clockStatus.textContent = 'Intentalo de nuevo';
+  }
+
+  clockBtn.disabled = false;
+});
+
+// ===== PENDING CLOCKS (OFFLINE QUEUE) =====
+function savePendingClock(payload) {
+  const pending = getPendingClocks();
+  pending.push({ ...payload, timestamp: new Date().toISOString(), id: Date.now() });
+  localStorage.setItem(STORAGE_KEYS.pendingClocks, JSON.stringify(pending));
+  state.pendingClocks = pending;
+  updatePendingBadge();
+}
+
+function getPendingClocks() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.pendingClocks)) || [];
+  } catch { return []; }
+}
+
+async function syncPendingClocks() {
+  if (!navigator.onLine) return;
+  const pending = getPendingClocks();
+  if (pending.length === 0) return;
+
+  const toSync = [...pending];
+  const failed = [];
+
+  for (const clock of toSync) {
+    try {
+      const result = await api('POST', '/clock', {
+        pin: clock.pin,
+        type: clock.type || 'auto',
+        tenant_id: clock.tenant_id,
+        timestamp: clock.timestamp,
+        latitude: clock.latitude,
+        longitude: clock.longitude
+      });
+      if (result !== null) {
+        // Synced successfully
+        continue;
+      }
+      failed.push(clock);
+    } catch {
+      failed.push(clock);
+    }
+  }
+
+  if (failed.length === 0) {
+    localStorage.removeItem(STORAGE_KEYS.pendingClocks);
+    state.pendingClocks = [];
+    showToast('Fichajes pendientes sincronizados', 'check');
+  } else {
+    localStorage.setItem(STORAGE_KEYS.pendingClocks, JSON.stringify(failed));
+    state.pendingClocks = failed;
+  }
+  updatePendingBadge();
+  loadTodayHistory();
+}
+
+function updatePendingBadge() {
+  const count = state.pendingClocks.length;
+  if (count > 0) {
+    pendingBadge.classList.remove('hidden');
+    pendingCount.textContent = count;
+  } else {
+    pendingBadge.classList.add('hidden');
+  }
+}
+
+// ===== TODAY HISTORY =====
+async function loadTodayHistory() {
+  if (!state.tenantId) return;
+
+  try {
+    const data = await api('GET', `/clock/today?tenant_id=${state.tenantId}&pin=${state.employeePin}`);
+    if (data === null) {
+      // Offline — show cached or empty
+      return;
+    }
+    state.todayClocks = Array.isArray(data) ? data : (data.clocks || data.entries || []);
+  } catch(e) {
+    console.warn('Failed to load history:', e);
+    state.todayClocks = [];
+  }
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const clocks = state.todayClocks;
+  historyList.innerHTML = '';
+
+  if (clocks.length === 0) {
+    historyList.appendChild(historyEmpty);
+    return;
+  }
+
+  clocks.forEach(c => {
+    const time = c.time || c.created_at || c.timestamp || '';
+    const timeStr = time ? new Date(time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+    const type = c.type || (c.is_entry !== false ? 'Entrada' : 'Salida');
+    const typeLower = type.toLowerCase();
+    const isEntry = typeLower === 'entrada' || typeLower === 'in' || c.is_entry !== false;
+    const typeLabel = isEntry ? 'Entrada' : 'Salida';
+    const typeClass = isEntry ? 'entrada' : 'salida';
+    const hasLocation = c.latitude && c.longitude;
+
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <div class="history-item-left">
+        ${isEntry ? ICONS.entrada : ICONS.salida}
+        <div>
+          <div class="history-item-type ${typeClass}">${typeLabel}</div>
+          <div class="history-item-time">${timeStr}</div>
+          ${hasLocation ? `<div class="history-item-location">${ICONS.location} Con ubicacion</div>` : ''}
+        </div>
+      </div>
+    `;
+    historyList.appendChild(item);
+  });
+}
+
+refreshHistoryBtn.addEventListener('click', loadTodayHistory);
+
+// ===== TOAST =====
+let toastTimeout = null;
+
+function showToast(text, icon = 'check') {
+  toastText.textContent = text;
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2500);
+}
+
+// ===== TENANT MODAL =====
+changeTenantBtn.addEventListener('click', () => {
+  populateTenantModalList(state.restaurants);
+  tenantModal.classList.add('show');
+});
+
+tenantModalCancel.addEventListener('click', closeTenantModal);
+tenantModal.addEventListener('click', (e) => {
+  if (e.target === tenantModal) closeTenantModal();
+});
+
+function closeTenantModal() {
+  tenantModal.classList.remove('show');
+}
+
+// ===== ONLINE/OFFLINE =====
+window.addEventListener('online', () => {
+  state.isOnline = true;
+  offlineBanner.classList.remove('show');
+  syncPendingClocks();
+  loadTodayHistory();
+});
+
+window.addEventListener('offline', () => {
+  state.isOnline = false;
+  offlineBanner.classList.add('show');
+});
+
+// ===== SERVICE WORKER REGISTRATION =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/mobile/sw.js').then(reg => {
+      console.log('SW registered:', reg.scope);
+    }).catch(err => {
+      console.warn('SW registration failed:', err);
+    });
+  });
+}
+
+// ===== INIT =====
+(async function init() {
+  // Load restaurants
+  const restaurants = await loadRestaurants();
+  populateTenantSelect(restaurants);
+  populateTenantModalList(restaurants);
+
+  // Check for saved session
+  checkSession();
+
+  // Show offline banner if offline
+  if (!navigator.onLine) {
+    offlineBanner.classList.add('show');
+  }
+
+  // Load pending count
+  state.pendingClocks = getPendingClocks();
+  updatePendingBadge();
+})();
+</script>
+</body>
+</html>
