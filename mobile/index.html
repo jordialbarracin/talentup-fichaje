@@ -644,8 +644,10 @@ function checkSession() {
   if (state.tenantId) {
     loginTenant.value = state.tenantId;
   }
-  // PIN is never persisted; ask every time
+  // Siempre pedir PIN; nunca se persiste
   clearPin();
+  // Asegurar que no quede un PIN antiguo en memoria ni en storage
+  state.employeePin = '';
 }
 
 // ===== CLOCK IN/OUT =====

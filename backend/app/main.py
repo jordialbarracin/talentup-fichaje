@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Ensure the backend directory is in the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -88,6 +89,28 @@ app = FastAPI(
 # Body size limit middleware (1 MB)
 MAX_BODY_SIZE = 1 * 1024 * 1024
 
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        return response
+
+
+class BodySizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.method in ("POST", "PUT", "PATCH"):
+            body = await request.body()
+            if len(body) > MAX_BODY_SIZE:
+                return JSONResponse(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    content={"detail": "Body too large"},
+                )
+        return await call_next(request)
+
+
 @app.middleware("http")
 async def body_size_limit(request: Request, call_next):
     if request.method in ("POST", "PUT", "PATCH"):
@@ -95,9 +118,13 @@ async def body_size_limit(request: Request, call_next):
         if len(body) > MAX_BODY_SIZE:
             return JSONResponse(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                content={"detail": "Payload demasiado grande"},
+                content={"detail": "Body too large"},
             )
     return await call_next(request)
+
+# Keep legacy http middleware for compatibility; add BaseHTTPMiddleware classes next.
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(BodySizeLimitMiddleware)
 
 # CORS — allow specific origins from env var
 _cors_origins = os.environ.get(
