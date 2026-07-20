@@ -2,6 +2,7 @@
 TalentUP Fichaje — Auth router.
 POST /api/auth/login, POST /api/auth/register, GET /api/auth/me
 """
+import html
 import time as _time
 from datetime import datetime, time, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -230,8 +231,10 @@ async def register(
         )
 
     # 1. Create tenant
+    safe_restaurant_name = html.escape(req.restaurant_name)
+    safe_owner_name = html.escape(req.owner_name)
     tenant = Tenant(
-        name=req.restaurant_name,
+        name=safe_restaurant_name,
         phone=req.phone,
         email=req.email,
         convenio="hosteleria",
@@ -247,7 +250,7 @@ async def register(
         tenant_id=tenant.id,
         email=req.email,
         password_hash=hash_password(req.password),
-        name=req.owner_name,
+        name=safe_owner_name,
         role="owner",
     )
     db.add(owner)

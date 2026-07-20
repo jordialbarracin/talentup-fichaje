@@ -212,12 +212,12 @@ class TestStripeWebhook:
     """Stripe webhook endpoints require a valid signature."""
 
     async def test_stripe_webhook_missing_signature(self, client, seed_data):
-        """POST /api/billing/webhook sin Stripe-Signature → 403"""
+        """POST /api/billing/webhook sin Stripe-Signature → 400"""
         resp = await client.post(
             "/api/billing/webhook",
             json={"type": "invoice.paid", "data": {"object": {}}},
         )
-        assert resp.status_code == 403
+        assert resp.status_code == 400
 
     async def test_stripe_webhook_invalid_signature(self, client, seed_data):
         """POST /api/billing/webhook con firma falsa → 400"""

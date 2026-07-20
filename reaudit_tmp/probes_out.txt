@@ -1,0 +1,14 @@
+0. Health
+{
+    "status": "ok",
+    "service": "TalentUP Fichaje API",
+    "version": "2.0.0",
+    "started_at": "2026-07-20T00:14:42Z",
+    "uptime_seconds": 954,
+    "db_status": "ok",
+    "redis_status": "disabled"
+}
+1. CSP nonce
+content-security-policy: default-src 'self'; script-src 'self' 'nonce-GkGluOK5A9cfdK6JysCYkQ' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'
+2. Body limit 413
+413

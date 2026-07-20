@@ -1339,6 +1339,29 @@ function isTokenExpired(token) {
   return Date.now() >= payload.exp * 1000;
 }
 
+// Cookie helper for httpOnly access_token cookie (with localStorage fallback)
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+function setStoredToken(token) {
+  try {
+    localStorage.setItem('talentup_token', token);
+  } catch { /* ignore */ }
+}
+function removeStoredToken() {
+  try {
+    localStorage.removeItem('talentup_token');
+  } catch { /* ignore */ }
+}
+function getInitialToken() {
+  const cookieToken = getCookie('access_token');
+  if (cookieToken) return cookieToken;
+  try {
+    return localStorage.getItem('talentup_token');
+  } catch { return null; }
+}
+
 // ===== NAVIGATION =====
 function navigate(page) {
   state.currentPage = page;
@@ -1399,7 +1422,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     state.token = result.access_token;
     state.user = result.user;
     state.isDemo = false;
-    localStorage.setItem('talentup_token', result.access_token);
+    setStoredToken(result.access_token);
     enterApp();
   } else {
     // Only real credentials work — no mock fallback
@@ -1480,7 +1503,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     state.isDemo = false;
     state.isNewTenant = result.is_new_tenant || false;
     state.tenantId = result.tenant_id;
-    localStorage.setItem('talentup_token', result.access_token);
+    setStoredToken(result.access_token);
     closeRegisterModal();
     enterApp();
     // Show onboarding wizard for new tenants
@@ -1645,7 +1668,7 @@ function logout() {
   state.user = null;
   state.token = null;
   state.isDemo = false;
-  localStorage.removeItem('talentup_token');
+  removeStoredToken();
   document.getElementById('app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-email').value = '';
@@ -3321,7 +3344,7 @@ function printQR() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  const savedToken = localStorage.getItem('talentup_token');
+  const savedToken = getInitialToken();
   if (savedToken && !isTokenExpired(savedToken)) {
     state.token = savedToken;
     api('GET', '/auth/me').then(user => {
@@ -3331,7 +3354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enterApp();
         return;
       }
-      localStorage.removeItem('talentup_token');
+      removeStoredToken();
       state.token = null;
     });
   }

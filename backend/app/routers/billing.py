@@ -179,27 +179,25 @@ async def create_checkout_session(
 async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Handle Stripe webhook events.
-    Uses STRIPE_WEBHOOK_SECRET to verify signature.
+    Uses STRIPE_WEBHOOK_SECRET to verify signature (fail-closed).
     """
     stripe = _get_stripe()
     if stripe is None:
         raise HTTPException(status_code=503, detail="Stripe no configurado")
 
-    sig_header = request.headers.get("stripe-signature", "")
     if not STRIPE_WEBHOOK_SECRET:
-        # Fallback to test secret so the endpoint remains testable when Stripe isn't configured
-        effective_secret = TEST_STRIPE_WEBHOOK_SECRET
-    else:
-        effective_secret = STRIPE_WEBHOOK_SECRET
+        logger.error("STRIPE_WEBHOOK_SECRET no configurado — rechazando webhook")
+        raise HTTPException(status_code=403, detail="Webhook secret no configurado")
 
+    sig_header = request.headers.get("stripe-signature", "")
     if not sig_header:
-        raise HTTPException(status_code=403, detail="Firma de webhook requerida")
+        raise HTTPException(status_code=400, detail="Firma de webhook requerida")
 
     payload = await request.body()
 
     # Verify webhook signature
     try:
-        event = stripe.Webhook.construct_event(payload, sig_header, effective_secret)
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:

@@ -40,8 +40,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 # --- PIN hash fast (SHA256) ---
-# SECRET_SALT for fast PIN hashing — use env var in production, fallback for dev
-_SECRET_SALT = os.environ.get("PIN_HASH_SALT", "TalentUP-Fichaje-PIN-Salt-2024")
+# SECRET_SALT for fast PIN hashing — required in production; dev fallback.
+import sys
+_ENV = os.environ.get("APP_ENV", "development").lower()
+_PIN_HASH_SALT = os.environ.get("PIN_HASH_SALT")
+if _PIN_HASH_SALT:
+    _SECRET_SALT = _PIN_HASH_SALT
+elif _ENV in ("production", "prod"):
+    raise RuntimeError("PIN_HASH_SALT requerido en produccion")
+else:
+    _SECRET_SALT = "TalentUP-Fichaje-PIN-Salt-2024-dev-only"
 
 
 def compute_pin_hash_fast(pin: str) -> str:

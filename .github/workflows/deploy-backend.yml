@@ -7,6 +7,7 @@ on:
       - master
     paths:
       - 'backend/**'
+      - 'Dockerfile'
       - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
@@ -14,9 +15,6 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
 
     steps:
       - name: Checkout repository
