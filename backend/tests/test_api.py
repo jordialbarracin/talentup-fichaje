@@ -4,6 +4,9 @@ Covers: auth, employees, clock, shifts, vacations, leave, holidays, reports, sec
 """
 import pytest
 from datetime import datetime, timezone, date, timedelta
+from httpx import AsyncClient, ASGITransport
+
+from app.main import app
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -12,6 +15,64 @@ from datetime import datetime, timezone, date, timedelta
 
 class TestAuth:
     """POST /api/auth/login and GET /api/auth/me"""
+
+    async def test_login_returns_cookies(self, client, seed_data):
+        """Login sets httpOnly access_token and refresh_token cookies."""
+        resp = await client.post("/api/auth/login", json={
+            "email": "owner@latagliatella.es",
+            "password": "owner123",
+        })
+        assert resp.status_code == 200
+        cookies = resp.cookies
+        assert "access_token" in cookies
+        assert "refresh_token" in cookies
+        assert cookies["access_token"]
+        assert cookies["refresh_token"]
+
+    async def test_employees_with_cookie_no_header(self, client, seed_data):
+        """GET /api/employees works using only the access_token cookie."""
+        login = await client.post("/api/auth/login", json={
+            "email": "owner@latagliatella.es",
+            "password": "owner123",
+        })
+        assert login.status_code == 200
+        access_token = login.cookies["access_token"]
+
+        cookie_client = AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            cookies={"access_token": access_token},
+            follow_redirects=False,
+        )
+        async with cookie_client as cc:
+            resp = await cc.get("/api/employees")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "items" in body
+        names = [e["name"] for e in body["items"]]
+        assert "Carlos López" in names
+
+    async def test_refresh_with_cookie(self, client, seed_data):
+        """POST /api/auth/refresh using refresh_token cookie returns new access_token."""
+        login = await client.post("/api/auth/login", json={
+            "email": "owner@latagliatella.es",
+            "password": "owner123",
+        })
+        assert login.status_code == 200
+        refresh_token = login.cookies["refresh_token"]
+
+        refresh_client = AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            cookies={"refresh_token": refresh_token},
+            follow_redirects=False,
+        )
+        async with refresh_client as rc:
+            resp = await rc.post("/api/auth/refresh")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "access_token" in body
+        assert body["access_token"]
 
     async def test_login_correct(self, client, seed_data):
         """Login with correct credentials → 200 + token"""

@@ -390,3 +390,33 @@ async def register(
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current authenticated user info."""
     return current_user.to_dict()
+
+
+@router.post("/logout")
+async def logout(request: Request, response: Response):
+    """Logout: read token from cookie or header and clear httpOnly cookies."""
+    token = request.cookies.get("access_token")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:]
+
+    # Always clear cookies, even if no token is present
+    response.set_cookie(
+        key="access_token",
+        value="",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=0,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value="",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=0,
+    )
+
+    return {"ok": True, "message": "Sesion cerrada"}

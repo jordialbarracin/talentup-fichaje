@@ -1643,7 +1643,12 @@ function enterApp() {
 }
 
 // ===== LOGOUT =====
-function logout() {
+async function logout() {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+  } catch (e) {
+    console.warn('Logout request failed:', e.message);
+  }
   state.user = null;
   state.isDemo = false;
   document.getElementById('app').classList.add('hidden');
