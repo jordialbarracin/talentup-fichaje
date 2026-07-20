@@ -1,11 +1,22 @@
 """
 TalentUP Fichaje — Payroll model (nóminas).
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Integer, Numeric, Date, DateTime, ForeignKey, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Payroll(Base):
@@ -80,10 +91,10 @@ class Payroll(Base):
             "employee_id": str(self.employee_id) if self.employee_id else None,
             "year": self.year,
             "month": self.month,
-            "period_label": self.period_label,
-            "contract_type": self.contract_type,
-            "professional_category": self.professional_category,
-            "work_day_type": self.work_day_type,
+            "period_label": _s(self.period_label),
+            "contract_type": _s(self.contract_type),
+            "professional_category": _s(self.professional_category),
+            "work_day_type": _s(self.work_day_type),
             "weekly_hours": float(self.weekly_hours) if self.weekly_hours else None,
             "scheduled_hours": float(self.scheduled_hours) if self.scheduled_hours else None,
             "worked_hours": float(self.worked_hours) if self.worked_hours else None,
@@ -111,15 +122,15 @@ class Payroll(Base):
             "other_deductions": float(self.other_deductions) if self.other_deductions else None,
             "gross_total": float(self.gross_total) if self.gross_total else None,
             "net_total": float(self.net_total) if self.net_total else None,
-            "status": self.status,
+            "status": _s(self.status),
             "approved_by": str(self.approved_by) if self.approved_by else None,
             "approved_at": self.approved_at.isoformat() if self.approved_at else None,
             "paid_at": self.paid_at.isoformat() if self.paid_at else None,
-            "payment_method": self.payment_method,
-            "payment_reference": self.payment_reference,
-            "payroll_document_url": self.payroll_document_url,
-            "settlement_document_url": self.settlement_document_url,
-            "notes": self.notes,
+            "payment_method": _s(self.payment_method),
+            "payment_reference": _s(self.payment_reference),
+            "payroll_document_url": _s(self.payroll_document_url),
+            "settlement_document_url": _s(self.settlement_document_url),
+            "notes": _s(self.notes),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

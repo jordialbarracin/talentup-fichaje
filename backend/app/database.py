@@ -97,7 +97,7 @@ async def _set_tenant_context(db: AsyncSession) -> None:
 
     tenant_id = tenant_id_ctx.get()
     if tenant_id:
-        await db.execute(text(f"SET app.tenant_id = '{tenant_id}'"))
+        await db.execute(text("SET app.tenant_id = :tenant_id").bindparams(tenant_id=tenant_id))
     else:
         await db.execute(text("SET app.tenant_id = ''"))
 

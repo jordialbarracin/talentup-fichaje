@@ -125,7 +125,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = csp
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         return response
 
 
@@ -185,17 +185,6 @@ class BodySizeLimitMiddleware(BaseHTTPMiddleware):
                 )
         return await call_next(request)
 
-
-@app.middleware("http")
-async def body_size_limit(request: Request, call_next):
-    if request.method in ("POST", "PUT", "PATCH"):
-        body = await request.body()
-        if len(body) > MAX_BODY_SIZE:
-            return JSONResponse(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                content={"detail": "Body too large"},
-            )
-    return await call_next(request)
 
 # Keep legacy http middleware for compatibility; add BaseHTTPMiddleware classes next.
 app.add_middleware(SecurityHeadersMiddleware)

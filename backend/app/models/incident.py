@@ -1,11 +1,22 @@
 """
 TalentUP Fichaje — Incident model (ampliado con 12 tipos de incidencia).
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Index, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Incident(Base):
@@ -47,17 +58,17 @@ class Incident(Base):
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_id": str(self.employee_id) if self.employee_id else None,
             "date": self.date.isoformat() if self.date else None,
-            "incident_type": self.incident_type,
-            "description": self.description,
-            "severity": self.severity,
+            "incident_type": _s(self.incident_type),
+            "description": _s(self.description),
+            "severity": _s(self.severity),
             "clock_in_id": str(self.clock_in_id) if self.clock_in_id else None,
             "schedule_id": str(self.schedule_id) if self.schedule_id else None,
             "shift_id": str(self.shift_id) if self.shift_id else None,
             "is_resolved": self.is_resolved,
-            "resolution": self.resolution,
+            "resolution": _s(self.resolution),
             "resolved_by": str(self.resolved_by) if self.resolved_by else None,
             "resolved_at": self.resolved_at.isoformat() if self.resolved_at else None,
-            "source": self.source,
+            "source": _s(self.source),
             "reported_by": str(self.reported_by) if self.reported_by else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

@@ -67,13 +67,20 @@ class BillingStatusResponse(BaseModel):
 
 # ── Helpers ────────────────────────────────────────────────────────────
 def _get_price_id(plan: str) -> str:
-    """Map plan name to Stripe Price ID."""
+    """Map plan name to Stripe Price ID.
+
+    Raises ValueError when the price ID for the requested plan is not
+    configured, so callers can return a clear 503 before contacting Stripe.
+    """
     mapping = {
         "basic": STRIPE_PRICE_BASIC,
         "pro": STRIPE_PRICE_PRO,
         "kit": STRIPE_PRICE_KIT,
     }
-    return mapping.get(plan, STRIPE_PRICE_BASIC)
+    price_id = mapping.get(plan, STRIPE_PRICE_BASIC)
+    if not price_id:
+        raise ValueError(f"Stripe price ID no configurado para el plan '{plan}'")
+    return price_id
 
 
 def _get_plan_amount(plan: str) -> Optional[float]:
@@ -135,7 +142,14 @@ async def create_checkout_session(
             logger.error(f"Failed to create Stripe customer: {e}")
             raise HTTPException(status_code=500, detail="Error al crear cliente en Stripe")
 
-    price_id = _get_price_id(data.plan)
+    try:
+        price_id = _get_price_id(data.plan)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Stripe price IDs no configurados",
+        ) from exc
+
     mode = "payment" if data.plan == "kit" else "subscription"
 
     success_url = data.success_url or f"{DOMAIN}/configuracion?billing=success"

@@ -1,11 +1,22 @@
 """
 TalentUP Fichaje — Geofence model (geocercas para validación de fichaje).
 Define zonas válidas donde un empleado puede fichar.
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Numeric, DateTime, ForeignKey, Text
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Geofence(Base):
@@ -33,12 +44,12 @@ class Geofence(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "name": self.name,
-            "description": self.description,
+            "name": _s(self.name),
+            "description": _s(self.description),
             "latitude": float(self.latitude) if self.latitude else None,
             "longitude": float(self.longitude) if self.longitude else None,
             "radius_meters": float(self.radius_meters) if self.radius_meters else None,
-            "polygon_geojson": self.polygon_geojson,
+            "polygon_geojson": _s(self.polygon_geojson),
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

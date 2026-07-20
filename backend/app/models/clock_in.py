@@ -1,12 +1,23 @@
 """
 TalentUP Fichaje — ClockIn model (fichajes).
 Inmutable: no se editan, solo se cancelan con motivo.
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Float, DateTime, ForeignKey, Index, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class ClockIn(Base):
@@ -35,14 +46,14 @@ class ClockIn(Base):
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_id": str(self.employee_id) if self.employee_id else None,
-            "type": self.type,
+            "type": _s(self.type),
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "latitude": self.latitude,
             "longitude": self.longitude,
             "is_offline": self.is_offline,
             "synced_at": self.synced_at.isoformat() if self.synced_at else None,
             "is_cancelled": self.is_cancelled,
-            "cancel_reason": self.cancel_reason,
+            "cancel_reason": _s(self.cancel_reason),
             "cancelled_by": str(self.cancelled_by) if self.cancelled_by else None,
             "cancelled_at": self.cancelled_at.isoformat() if self.cancelled_at else None,
         }

@@ -1,11 +1,22 @@
 """
 TalentUP Fichaje — Schedule model (asignación empleado-turno-fecha).
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Date, DateTime, ForeignKey, Index, Text, UniqueConstraint
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Schedule(Base):
@@ -31,6 +42,6 @@ class Schedule(Base):
             "employee_id": str(self.employee_id) if self.employee_id else None,
             "shift_id": str(self.shift_id) if self.shift_id else None,
             "date": self.date.isoformat() if self.date else None,
-            "notes": self.notes,
+            "notes": _s(self.notes),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

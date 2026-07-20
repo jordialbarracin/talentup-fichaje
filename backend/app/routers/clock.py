@@ -445,7 +445,13 @@ async def clock_nfc(
         "action": data_type,
         "time": clock.timestamp.strftime("%H:%M") if clock.timestamp else None,
     }
-    asyncio.ensure_future(nfc_manager.broadcast(event))
+    # Fire-and-forget broadcast as a tracked task; avoid orphan ensure_future tasks
+    # that can accumulate and saturate the event loop during long test suites.
+    nfc_broadcast_task = asyncio.create_task(nfc_manager.broadcast(event))
+    # Keep a weak reference so the task is not garbage-collected mid-flight.
+    # The router module is long-lived, so a small set of recent tasks is fine.
+    _pending_nfc_broadcasts.add(nfc_broadcast_task)
+    nfc_broadcast_task.add_done_callback(_pending_nfc_broadcasts.discard)
 
     return {
         "ok": True,
@@ -656,6 +662,10 @@ async def cancel_clock(
 # ===== NFC WebSocket Manager =====
 import asyncio
 import json
+
+# Track in-flight NFC broadcast tasks so they are not garbage-collected
+# while running, preventing event-loop saturation in long test runs.
+_pending_nfc_broadcasts: set[asyncio.Task] = set()
 
 class NfcWebSocketManager:
     """Manages WebSocket connections for real-time NFC reader status."""

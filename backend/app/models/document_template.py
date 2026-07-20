@@ -1,11 +1,22 @@
 """
 TalentUP Fichaje — DocumentTemplate model (plantillas de documentos legales).
 Contratos, recibos de nómina, partes de baja, certificados.
+
+Security note: XSS escaping is applied once, in to_dict(), so API
+responses are safe while raw values are preserved in the database.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class DocumentTemplate(Base):
@@ -34,12 +45,12 @@ class DocumentTemplate(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "name": self.name,
-            "type": self.type,
-            "description": self.description,
-            "template_html": self.template_html[:200] + "..." if self.template_html and len(self.template_html) > 200 else self.template_html,
-            "language": self.language,
-            "version": self.version,
+            "name": _s(self.name),
+            "type": _s(self.type),
+            "description": _s(self.description),
+            "template_html": _s(self.template_html[:200] + "..." if self.template_html and len(self.template_html) > 200 else self.template_html),
+            "language": _s(self.language),
+            "version": _s(self.version),
             "is_active": self.is_active,
             "created_by": str(self.created_by) if self.created_by else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,

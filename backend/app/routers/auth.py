@@ -41,6 +41,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 # Cookie security: env override for local HTTP dev/tests.
 # Default True (production). Set COOKIE_SECURE=false for Playwright E2E over HTTP.
 _COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() == "true"
+# SameSite: default 'lax' (production). Set COOKIE_SAMESITE=none for cross-origin E2E.
+_COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
 
 # --- Rate limiting for registration ---
 # Redis-backed when REDIS_URL is available; in-memory fallback for dev/tests.
@@ -191,7 +193,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
         value=access_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
     response.set_cookie(
@@ -199,7 +201,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
         value=refresh_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
 
@@ -278,7 +280,7 @@ async def refresh(
         value=access_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
     response.set_cookie(
@@ -286,7 +288,7 @@ async def refresh(
         value=new_refresh_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
 
@@ -424,7 +426,7 @@ async def register(
         value=access_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
     response.set_cookie(
@@ -432,7 +434,7 @@ async def register(
         value=refresh_token,
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=28800,
     )
 
@@ -460,12 +462,16 @@ async def logout(request: Request, response: Response):
             token = auth_header[7:]
 
     # Always clear cookies, even if no token is present
+    refresh_token = request.cookies.get("refresh_token")
+    if refresh_token:
+        await _revoke_refresh_token(refresh_token)
+
     response.set_cookie(
         key="access_token",
         value="",
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=0,
     )
     response.set_cookie(
@@ -473,7 +479,7 @@ async def logout(request: Request, response: Response):
         value="",
         httponly=True,
         secure=_COOKIE_SECURE,
-        samesite="lax",
+        samesite=_COOKIE_SAMESITE,
         max_age=0,
     )
 

@@ -45,6 +45,15 @@ const API_BASE = window.location.hostname === 'localhost'
   : '/api';
 const PAGE_SIZE = 20;
 
+// Show demo button only on localhost
+(function showDemoButtonIfLocalhost() {
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    const demoBtn = document.getElementById('demo-btn');
+    if (demoBtn) demoBtn.classList.remove('hidden');
+  }
+})();
+
 const EMPTY_ICON = '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>';
 
 const LOADING_ROW = (cols, text) => `<tr><td colspan="${cols}" class="empty-state"><span class="spinner spinner-lg"></span><div class="empty-state-title" style="margin-top:8px">${text}</div></td></tr>`;
