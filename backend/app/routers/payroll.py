@@ -42,8 +42,8 @@ async def list_payroll(
         query = query.where(Payroll.employee_id == employee_id)
     query = query.order_by(Payroll.year.desc(), Payroll.month.desc())
 
-    result = await db.execute(query)
-    items = result.scalars().all()
+    page_data = await paginate(db, query, page, limit)
+    items = page_data["items"]
 
     emp_ids = {p.employee_id for p in items}
     emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
@@ -55,18 +55,8 @@ async def list_payroll(
         d["employee_name"] = emp_map.get(p.employee_id, "Desconocido")
         data.append(d)
 
-    page = max(page, 1)
-    limit = max(min(limit, 500), 1)
-    total = len(data)
-    start = (page - 1) * limit
-    end = start + limit
-    return {
-        "items": data[start:end],
-        "total": total,
-        "page": page,
-        "limit": limit,
-        "pages": (total + limit - 1) // limit,
-    }
+    page_data["items"] = data
+    return page_data
 
 
 @router.get("/{month}/{year}")
