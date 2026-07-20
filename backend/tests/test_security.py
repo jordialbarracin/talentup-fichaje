@@ -254,7 +254,9 @@ class TestWebSocket:
         from starlette.testclient import TestClient
         from app.main import app
         with TestClient(app) as test_client:
-            with test_client.websocket_connect("/ws/nfc") as ws:
+            # WS /ws/nfc requires auth — connect with manager token
+            token = seed_data['manager_a_token']
+            with test_client.websocket_connect(f"/ws/nfc?token={token}") as ws:
                 initial = ws.receive_json()
                 assert initial["type"] == "nfc_connected"
                 # No debe contener datos sensibles (pin, tenant_id, empleado privado)

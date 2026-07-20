@@ -4,7 +4,9 @@ GET /api/reports/hours, GET /api/reports/incidents, GET /api/reports/export
 GET /api/reports/inspection, GET /api/reports/absenteeism, GET /api/reports/labor-costs
 """
 import io
+from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
+from math import ceil
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
@@ -68,10 +70,16 @@ async def report_hours(
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
     emp_query = emp_query.order_by(Employee.name)
-    employees_page = await paginate(db, emp_query, page, limit)
 
-    emp_ids = [row[0] for row in employees_page["items"]]
-    emp_names = {row[0]: row[1] for row in employees_page["items"]}
+    # Count total for pagination metadata
+    count_q = select(func.count()).select_from(emp_query.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+    # Manual pagination for multi-column select (paginate() uses .scalars() which flattens tuples)
+    offset = (page - 1) * limit
+    emp_rows = (await db.execute(emp_query.offset(offset).limit(limit))).all()
+    emp_ids = [row[0] for row in emp_rows]
+    emp_names = {row[0]: row[1] for row in emp_rows}
+    pages = int(ceil(total / limit)) if limit else 1
 
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     day_end = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
@@ -81,6 +89,7 @@ async def report_hours(
         select(
             ClockIn.employee_id,
             func.date(ClockIn.timestamp).label("clock_date"),
+            ClockIn.type.label("type"),
             func.strftime("%s", ClockIn.timestamp).label("in_epoch"),
             func.strftime("%s", func.lead(ClockIn.timestamp).over(
                 partition_by=ClockIn.employee_id,
@@ -130,7 +139,9 @@ async def report_hours(
     daily_breakdown = defaultdict(lambda: defaultdict(float))
     for emp_id, clock_date, hours, seconds in daily_rows:
         totals[emp_id] = totals.get(emp_id, 0) + (seconds or 0)
-        daily_breakdown[emp_id][clock_date.isoformat()] += float(hours or 0)
+        # clock_date comes as string from SQLite func.date(); normalize to ISO string
+        date_key = clock_date.isoformat() if hasattr(clock_date, 'isoformat') else str(clock_date)
+        daily_breakdown[emp_id][date_key] += float(hours or 0)
 
     report = []
     for emp_id in emp_ids:
@@ -149,10 +160,10 @@ async def report_hours(
         "date_to": date_to,
         "tenant_id": str(tid) if tid else "all",
         "employees": report,
-        "page": employees_page["page"],
-        "limit": employees_page["limit"],
-        "total": employees_page["total"],
-        "pages": employees_page["pages"],
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "pages": pages,
     }
 
 
@@ -252,9 +263,13 @@ async def export_report(
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
     emp_query = emp_query.order_by(Employee.name)
-    employees_page = await paginate(db, emp_query, page, limit)
-    emp_ids = [row[0] for row in employees_page["items"]]
-    emp_info = {row[0]: (row[1], row[2] or "") for row in employees_page["items"]}
+    # Manual pagination for multi-column select (same as report_hours)
+    export_count_q = select(func.count()).select_from(emp_query.subquery())
+    export_total = (await db.execute(export_count_q)).scalar() or 0
+    export_offset = (page - 1) * limit
+    emp_rows = (await db.execute(emp_query.offset(export_offset).limit(limit))).all()
+    emp_ids = [row[0] for row in emp_rows]
+    emp_info = {row[0]: (row[1], row[2] or "") for row in emp_rows}
 
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     day_end = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
@@ -264,6 +279,7 @@ async def export_report(
         select(
             ClockIn.employee_id,
             func.date(ClockIn.timestamp).label("clock_date"),
+            ClockIn.type.label("type"),
             func.strftime("%s", ClockIn.timestamp).label("in_epoch"),
             func.strftime("%s", func.lead(ClockIn.timestamp).over(
                 partition_by=ClockIn.employee_id,
@@ -316,10 +332,19 @@ async def export_report(
     for emp_id, clock_date, first_in_epoch, last_out_epoch, total_seconds in rows:
         if not first_in_epoch or not last_out_epoch:
             continue
-        first_in_dt = datetime.fromtimestamp(first_in_epoch, tz=timezone.utc)
-        last_out_dt = datetime.fromtimestamp(last_out_epoch, tz=timezone.utc)
+        # SQLite returns epoch strings; PostgreSQL returns ints. Normalize.
+        try:
+            first_in_epoch_int = int(first_in_epoch)
+        except (TypeError, ValueError):
+            continue
+        try:
+            last_out_epoch_int = int(last_out_epoch)
+        except (TypeError, ValueError):
+            continue
+        first_in_dt = datetime.fromtimestamp(first_in_epoch_int, tz=timezone.utc)
+        last_out_dt = datetime.fromtimestamp(last_out_epoch_int, tz=timezone.utc)
         entries_by_emp[emp_id].append({
-            "date": clock_date.isoformat(),
+            "date": clock_date.isoformat() if hasattr(clock_date, 'isoformat') else str(clock_date),
             "in": first_in_dt.strftime("%H:%M"),
             "out": last_out_dt.strftime("%H:%M"),
             "hours": round(total_seconds / 3600, 2),

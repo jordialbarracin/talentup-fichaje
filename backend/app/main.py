@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, Response
 from sqlalchemy import text
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -115,7 +115,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         csp = (
             "default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline'; "
+            f"style-src 'self' 'nonce-{nonce}'; "
             "img-src 'self' data: blob:; "
             "font-src 'self'; "
             "connect-src 'self'; "
@@ -133,14 +133,45 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 # Static HTML files (e.g. Vite-built apps) should add nonce="{{ nonce }}"
 # server-side or be served through this middleware.
 def add_csp_nonce(html_content: str, nonce: str) -> str:
-    """Add nonce attribute to inline <script> tags that don't already have one."""
+    """Add nonce attribute to inline <script>/<style> tags that don't already have one."""
     import re
-    return re.sub(
+    html_content = re.sub(
         r'(<script(?![^>]*\snonce=)[^>]*\u003e)',
         lambda m: m.group(1).replace('>', f' nonce="{nonce}">'),
         html_content,
         flags=re.IGNORECASE,
     )
+    html_content = re.sub(
+        r'(<style(?![^>]*\snonce=)[^>]*\u003e)',
+        lambda m: m.group(1).replace('>', f' nonce="{nonce}">'),
+        html_content,
+        flags=re.IGNORECASE,
+    )
+    return html_content
+
+
+class PrometheusMetricsMiddleware(BaseHTTPMiddleware):
+    """Collect HTTP request duration and count metrics for Prometheus."""
+
+    async def dispatch(self, request, call_next):
+        from app.metrics import HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION_SECONDS, ACTIVE_CONNECTIONS
+
+        ACTIVE_CONNECTIONS.inc()
+        start = time.perf_counter()
+        try:
+            response = await call_next(request)
+        finally:
+            ACTIVE_CONNECTIONS.dec()
+
+        duration = time.perf_counter() - start
+        method = request.method
+        path = request.url.path
+        status_code = str(response.status_code)
+
+        HTTP_REQUESTS_TOTAL.labels(method=method, endpoint=path, status=status_code).inc()
+        HTTP_REQUEST_DURATION_SECONDS.labels(method=method, endpoint=path).observe(duration)
+
+        return response
 
 
 class BodySizeLimitMiddleware(BaseHTTPMiddleware):
@@ -168,6 +199,7 @@ async def body_size_limit(request: Request, call_next):
 
 # Keep legacy http middleware for compatibility; add BaseHTTPMiddleware classes next.
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(PrometheusMetricsMiddleware)
 app.add_middleware(BodySizeLimitMiddleware)
 
 # CORS — allow specific origins from env var
@@ -297,6 +329,14 @@ async def health():
         checks["status"] = "degraded"
 
     return JSONResponse(status_code=status_code, content=checks)
+
+
+# ── Metrics endpoint ─────────────────────────────────────────────────────────
+@app.get("/api/metrics")
+async def metrics():
+    """Expose Prometheus metrics for scraping. Public endpoint."""
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 # Register routers

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.employee import Employee
+from app.models.tenant import Tenant
 from app.models.user import User
 from app.auth import hash_password, compute_pin_hash_fast, require_owner, get_current_user
 from app.audit import log_action
@@ -176,6 +177,21 @@ async def create_employee(
     tenant_id = current_user.tenant_id
     if current_user.role == "super_admin" and not tenant_id:
         raise HTTPException(status_code=400, detail="Super admin debe especificar tenant_id")
+
+    # Validate tenant employee limit
+    tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = tenant_result.scalar_one_or_none()
+    if tenant:
+        current_count_result = await db.execute(
+            select(Employee).where(Employee.tenant_id == tenant_id)
+        )
+        current_count = len(current_count_result.scalars().all())
+        max_employees = tenant.max_employees or 50
+        if current_count >= max_employees:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Límite de empleados alcanzado ({max_employees}). Contacta con soporte para ampliar tu plan.",
+            )
 
     emp = Employee(
         tenant_id=tenant_id,

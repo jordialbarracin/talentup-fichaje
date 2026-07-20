@@ -33,7 +33,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           echo "Deploying backend to Railway..."
-          railway up --service=talentup-backend --detach
+          railway up --service=talentup-backend --detach --dockerfile ./backend/Dockerfile
 
       - name: Run migrations (optional)
         env:

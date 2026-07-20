@@ -472,12 +472,16 @@ async function loadDashboard() {
   document.getElementById('dashboard-date').textContent = new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
   // Load stats from API
-  const [history, employees, overtime, vacations] = await Promise.all([
+  const [history_, employees_, overtime_, vacations_] = await Promise.all([
     api('GET', `/clock/history?date=${today}`),
     api('GET', '/employees'),
     api('GET', '/overtime?week=' + getWeekStart()),
     api('GET', '/vacations?status=pending')
   ]);
+  let history = Array.isArray(history_) ? history_ : [];
+  let employees = Array.isArray(employees_) ? employees_ : [];
+  let overtime = Array.isArray(overtime_) ? overtime_ : [];
+  let vacations = Array.isArray(vacations_) ? vacations_ : [];
 
   if (!history && !employees) {
     // If backend is down, show demo banner
@@ -503,9 +507,13 @@ async function loadDashboard() {
   if (overtime) state.overtime = overtime;
   if (vacations) state.vacations = vacations;
 
-  const activeEmployees = new Set((history || []).map(r => r.employee_id)).size;
-  const totalClocks = (history || []).length;
-  const incidents = (history || []).filter(r => r.status === 'incident').length;
+  history = Array.isArray(history) ? history : [];
+  const safeEmployees = Array.isArray(employees) ? employees : [];
+  overtime = Array.isArray(overtime) ? overtime : [];
+
+  const activeEmployees = new Set(history.map(r => r.employee_id)).size;
+  const totalClocks = history.length;
+  const incidents = history.filter(r => r.status === 'incident').length;
 
   // Overtime from API (GET /api/overtime)
   let extraHours = '0.0';
@@ -514,14 +522,15 @@ async function loadDashboard() {
     extraHours = (totalMin / 60).toFixed(1);
   }
 
+  // Alert: employees without clock today
+  const clockedIds = new Set(history.map(r => r.employee_id));
+  const noClock = safeEmployees.filter(e => e.is_active !== false && !clockedIds.has(e.id));
+  document.getElementById('stat-extras').textContent = `${extraHours}h`;
+
   document.getElementById('stat-empleados').textContent = activeEmployees;
   document.getElementById('stat-fichajes').textContent = totalClocks;
   document.getElementById('stat-incidencias').textContent = incidents;
-  document.getElementById('stat-extras').textContent = `${extraHours}h`;
 
-  // Alert: employees without clock today
-  const clockedIds = new Set((history || []).map(r => r.employee_id));
-  const noClock = (employees || []).filter(e => e.is_active !== false && !clockedIds.has(e.id));
   document.getElementById('alert-no-clock').innerHTML = noClock.length > 0
     ? noClock.slice(0, 5).map(e => `<div style="padding:4px 0">• ${e.full_name || e.name}</div>`).join('') + (noClock.length > 5 ? `<div style="padding:4px 0;color:rgba(0,0,0,0.3)">+${noClock.length - 5} más</div>` : '')
     : '<span style="color:#248A3D">✓ Todos han fichado</span>';
@@ -562,7 +571,8 @@ function getWeekStart() {
 // ===== EMPLEADOS =====
 async function loadEmpleados() {
   let employees = await api('GET', '/employees');
-  if (!employees) {
+  employees = Array.isArray(employees) ? employees : [];
+  if (employees.length === 0) {
     state.isDemo = true;
     updateDemoBanner();
     updateOnlineStatus();
@@ -578,9 +588,9 @@ async function loadEmpleados() {
   const turnoFilter = document.getElementById('emp-filter-turno');
   const shiftIds = new Set(employees.map(e => e.shift_id || e.default_shift_id).filter(Boolean));
   const shifts = state.shifts.length ? state.shifts : await api('GET', '/shifts') || [];
-  state.shifts = shifts;
+  state.shifts = Array.isArray(shifts) ? shifts : [];
   turnoFilter.innerHTML = '<option value="">Todos los turnos</option>' +
-    shifts.filter(s => shiftIds.has(s.id)).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    state.shifts.filter(s => shiftIds.has(s.id)).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
   state.empPage = 1;
   filterEmpleados();
