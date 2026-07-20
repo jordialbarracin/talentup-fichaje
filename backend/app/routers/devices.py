@@ -2,6 +2,7 @@
 TalentUP Fichaje — Devices router.
 POST /api/devices to register a new terminal/device.
 """
+import hashlib
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -17,6 +18,10 @@ from app.models.user import User
 from app.auth import require_manager
 
 router = APIRouter(prefix="/api/devices", tags=["devices"])
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 class DeviceCreate(BaseModel):
@@ -64,9 +69,10 @@ async def create_device(
         )
 
     token = data.device_token or secrets.token_urlsafe(32)
+    token_hash = _hash_token(token)
 
-    # Ensure uniqueness
-    existing = await db.execute(select(Device).where(Device.device_token == token))
+    # Ensure uniqueness against hashed tokens
+    existing = await db.execute(select(Device).where(Device.device_token == token_hash))
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -75,7 +81,7 @@ async def create_device(
 
     device = Device(
         tenant_id=data.tenant_id,
-        device_token=token,
+        device_token=token_hash,
         name=data.name,
         is_active=data.is_active,
     )
@@ -86,7 +92,7 @@ async def create_device(
     return DeviceResponse(
         id=str(device.id),
         tenant_id=str(device.tenant_id),
-        device_token=device.device_token,
+        device_token=token,
         name=device.name,
         is_active=device.is_active,
         created_at=str(device.created_at) if hasattr(device, 'created_at') and device.created_at else None,

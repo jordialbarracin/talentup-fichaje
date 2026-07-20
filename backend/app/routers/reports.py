@@ -60,70 +60,88 @@ async def report_hours(
     start_date = _parse_date(date_from, "date_from")
     end_date = _parse_date(date_to, "date_to")
 
-    # Get employees
+    # Resolve which employee IDs to include and paginate on employee level
     if tid:
-        emp_query = select(Employee).where(Employee.tenant_id == tid)
+        emp_query = select(Employee.id, Employee.name).where(Employee.tenant_id == tid)
     else:
-        emp_query = select(Employee)
+        emp_query = select(Employee.id, Employee.name)
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
     emp_query = emp_query.order_by(Employee.name)
-    employees_page = await paginate(db, emp_query, page, limit, item_transform=lambda e: e)
-    employees = employees_page["items"]
+    employees_page = await paginate(db, emp_query, page, limit)
 
-    # Get clock-ins in range
+    emp_ids = [row[0] for row in employees_page["items"]]
+    emp_names = {row[0]: row[1] for row in employees_page["items"]}
+
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     day_end = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
-    clock_query = select(ClockIn).where(
-        ClockIn.timestamp >= day_start,
-        ClockIn.timestamp <= day_end,
-        ClockIn.is_cancelled == False,
+
+    # Aggregate daily totals in the DB using a CTE pairing consecutive in/out rows.
+    clock_pairs_cte = (
+        select(
+            ClockIn.employee_id,
+            func.date(ClockIn.timestamp).label("clock_date"),
+            func.strftime("%s", ClockIn.timestamp).label("in_epoch"),
+            func.strftime("%s", func.lead(ClockIn.timestamp).over(
+                partition_by=ClockIn.employee_id,
+                order_by=ClockIn.timestamp,
+            )).label("out_epoch"),
+            func.lead(ClockIn.type).over(
+                partition_by=ClockIn.employee_id,
+                order_by=ClockIn.timestamp,
+            ).label("next_type"),
+        )
+        .where(
+            ClockIn.timestamp >= day_start,
+            ClockIn.timestamp <= day_end,
+            ClockIn.is_cancelled == False,
+            ClockIn.type.in_(["in", "out"]),
+        )
     )
     if tid:
-        clock_query = clock_query.where(ClockIn.tenant_id == tid)
+        clock_pairs_cte = clock_pairs_cte.where(ClockIn.tenant_id == tid)
     if employee_id:
-        clock_query = clock_query.where(ClockIn.employee_id == employee_id)
+        clock_pairs_cte = clock_pairs_cte.where(ClockIn.employee_id == employee_id)
     else:
-        emp_ids = [e.id for e in employees]
         if emp_ids:
-            clock_query = clock_query.where(ClockIn.employee_id.in_(emp_ids))
+            clock_pairs_cte = clock_pairs_cte.where(ClockIn.employee_id.in_(emp_ids))
         else:
-            clock_query = clock_query.where(False)
-    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp)
-    result = await db.execute(clock_query)
-    all_clock_ins = result.scalars().all()
+            clock_pairs_cte = clock_pairs_cte.where(False)
+    clock_pairs_cte = clock_pairs_cte.cte("clock_pairs")
 
-    # Group by employee
-    from collections import defaultdict
-    clock_by_emp = defaultdict(list)
-    for ci in all_clock_ins:
-        clock_by_emp[ci.employee_id].append(ci)
+    daily_totals = select(
+        clock_pairs_cte.c.employee_id,
+        clock_pairs_cte.c.clock_date,
+        func.round(func.sum(clock_pairs_cte.c.out_epoch - clock_pairs_cte.c.in_epoch) / 3600.0, 2).label("daily_hours"),
+        func.sum(clock_pairs_cte.c.out_epoch - clock_pairs_cte.c.in_epoch).label("daily_seconds"),
+    ).where(
+        clock_pairs_cte.c.type == "in",
+        clock_pairs_cte.c.next_type == "out",
+        clock_pairs_cte.c.out_epoch.is_not(None),
+    ).group_by(
+        clock_pairs_cte.c.employee_id,
+        clock_pairs_cte.c.clock_date,
+    )
+
+    result = await db.execute(daily_totals)
+    daily_rows = result.all()
+
+    totals = {}
+    daily_breakdown = defaultdict(lambda: defaultdict(float))
+    for emp_id, clock_date, hours, seconds in daily_rows:
+        totals[emp_id] = totals.get(emp_id, 0) + (seconds or 0)
+        daily_breakdown[emp_id][clock_date.isoformat()] += float(hours or 0)
 
     report = []
-    for emp in employees:
-        emp_clock = clock_by_emp.get(emp.id, [])
-        # Calculate hours by pairing in/out
-        total_seconds = 0
-        daily_breakdown = defaultdict(float)
-        current_in = None
-
-        for ci in emp_clock:
-            ci_date = ci.timestamp.date()
-            if ci.type == "in":
-                current_in = ci.timestamp
-            elif ci.type == "out" and current_in:
-                delta = (ci.timestamp - current_in).total_seconds()
-                total_seconds += delta
-                daily_breakdown[ci_date.isoformat()] += delta / 3600
-                current_in = None
-
+    for emp_id in emp_ids:
+        total_seconds = totals.get(emp_id, 0)
         report.append({
-            "employee_id": str(emp.id),
-            "employee_name": emp.name,
+            "employee_id": str(emp_id),
+            "employee_name": emp_names.get(emp_id, "Desconocido"),
             "total_hours": round(total_seconds / 3600, 2),
             "total_minutes": int(total_seconds / 60),
-            "days": len(daily_breakdown),
-            "daily_hours": dict(daily_breakdown),
+            "days": len(daily_breakdown[emp_id]),
+            "daily_hours": dict(daily_breakdown[emp_id]),
         })
 
     return {
@@ -151,11 +169,14 @@ async def report_incidents(
     db: AsyncSession = Depends(get_db),
 ):
     """List incidents with filters."""
+    # Aggregate incident counts by type instead of loading all rows into memory.
     tid = _resolve_tenant_id(current_user, tenant_id)
-    query = select(Incident)
+    query = select(
+        Incident.incident_type,
+        func.count(Incident.id).label("count"),
+    )
     if tid:
         query = query.where(Incident.tenant_id == tid)
-
     if employee_id:
         query = query.where(Incident.employee_id == employee_id)
     if date_from:
@@ -163,20 +184,36 @@ async def report_incidents(
     if date_to:
         query = query.where(Incident.date <= _parse_date(date_to, "date_to"))
     if incident_type:
-        query = query.where(Incident.type == incident_type)
-
-    query = query.order_by(Incident.date.desc(), Incident.created_at.desc())
+        query = query.where(Incident.incident_type == incident_type)
+    query = query.group_by(Incident.incident_type).order_by(func.count(Incident.id).desc())
+    agg_result = await db.execute(query)
+    summary = [{"incident_type": t, "count": c} for t, c in agg_result.all()]
 
     # Paginate raw incidents, then enrich page items only.
+    query = select(Incident)
+    if tid:
+        query = query.where(Incident.tenant_id == tid)
+    if employee_id:
+        query = query.where(Incident.employee_id == employee_id)
+    if date_from:
+        query = query.where(Incident.date >= _parse_date(date_from, "date_from"))
+    if date_to:
+        query = query.where(Incident.date <= _parse_date(date_to, "date_to"))
+    if incident_type:
+        query = query.where(Incident.incident_type == incident_type)
+    query = query.order_by(Incident.date.desc(), Incident.created_at.desc())
+
     page_result = await paginate(db, query, page, limit, item_transform=lambda i: i)
     incidents = page_result["items"]
 
-    # Enrich with employee names
+    # Enrich with employee names for the page only.
     emp_ids = {i.employee_id for i in incidents}
-    emp_result = await db.execute(
-        select(Employee).where(Employee.id.in_(emp_ids))
-    )
-    emp_map = {e.id: e.name for e in emp_result.scalars().all()}
+    emp_map = {}
+    if emp_ids:
+        emp_result = await db.execute(
+            select(Employee.id, Employee.name).where(Employee.id.in_(emp_ids))
+        )
+        emp_map = {e_id: name for e_id, name in emp_result.all()}
 
     items = []
     for inc in incidents:
@@ -185,6 +222,7 @@ async def report_incidents(
         items.append(item)
 
     page_result["items"] = items
+    page_result["summary"] = summary
     return page_result
 
 
@@ -195,6 +233,8 @@ async def export_report(
     date_from: str = Query(...),
     date_to: str = Query(...),
     employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(100, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -204,61 +244,98 @@ async def export_report(
     start_date = _parse_date(date_from, "date_from")
     end_date = _parse_date(date_to, "date_to")
 
-    # Get data
+    # Paginate employees and only load relevant fields.
     if tid:
-        emp_query = select(Employee).where(Employee.tenant_id == tid)
+        emp_query = select(Employee.id, Employee.name, Employee.dni).where(Employee.tenant_id == tid)
     else:
-        emp_query = select(Employee)
+        emp_query = select(Employee.id, Employee.name, Employee.dni)
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
-    result = await db.execute(emp_query)
-    employees = result.scalars().all()
+    emp_query = emp_query.order_by(Employee.name)
+    employees_page = await paginate(db, emp_query, page, limit)
+    emp_ids = [row[0] for row in employees_page["items"]]
+    emp_info = {row[0]: (row[1], row[2] or "") for row in employees_page["items"]}
 
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     day_end = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
-    clock_query = select(ClockIn).where(
-        ClockIn.timestamp >= day_start,
-        ClockIn.timestamp <= day_end,
-        ClockIn.is_cancelled == False,
+
+    # Aggregate clock entries at DB level using window functions.
+    clock_pairs_cte = (
+        select(
+            ClockIn.employee_id,
+            func.date(ClockIn.timestamp).label("clock_date"),
+            func.strftime("%s", ClockIn.timestamp).label("in_epoch"),
+            func.strftime("%s", func.lead(ClockIn.timestamp).over(
+                partition_by=ClockIn.employee_id,
+                order_by=ClockIn.timestamp,
+            )).label("out_epoch"),
+            func.lead(ClockIn.type).over(
+                partition_by=ClockIn.employee_id,
+                order_by=ClockIn.timestamp,
+            ).label("next_type"),
+        )
+        .where(
+            ClockIn.timestamp >= day_start,
+            ClockIn.timestamp <= day_end,
+            ClockIn.is_cancelled == False,
+            ClockIn.type.in_(["in", "out"]),
+        )
     )
     if tid:
-        clock_query = clock_query.where(ClockIn.tenant_id == tid)
-    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp)
-    result = await db.execute(clock_query)
-    all_clock_ins = result.scalars().all()
+        clock_pairs_cte = clock_pairs_cte.where(ClockIn.tenant_id == tid)
+    if employee_id:
+        clock_pairs_cte = clock_pairs_cte.where(ClockIn.employee_id == employee_id)
+    elif emp_ids:
+        clock_pairs_cte = clock_pairs_cte.where(ClockIn.employee_id.in_(emp_ids))
+    else:
+        clock_pairs_cte = clock_pairs_cte.where(False)
+    clock_pairs_cte = clock_pairs_cte.cte("clock_pairs")
+
+    entries_query = (
+        select(
+            clock_pairs_cte.c.employee_id,
+            clock_pairs_cte.c.clock_date,
+            func.min(clock_pairs_cte.c.in_epoch).label("first_in_epoch"),
+            func.max(clock_pairs_cte.c.out_epoch).label("last_out_epoch"),
+            func.sum(clock_pairs_cte.c.out_epoch - clock_pairs_cte.c.in_epoch).label("total_seconds"),
+        )
+        .where(
+            clock_pairs_cte.c.type == "in",
+            clock_pairs_cte.c.next_type == "out",
+            clock_pairs_cte.c.out_epoch.is_not(None),
+        )
+        .group_by(clock_pairs_cte.c.employee_id, clock_pairs_cte.c.clock_date)
+        .order_by(clock_pairs_cte.c.employee_id, clock_pairs_cte.c.clock_date)
+    )
+    result = await db.execute(entries_query)
+    rows = result.all()
 
     from collections import defaultdict
-    clock_by_emp = defaultdict(list)
-    for ci in all_clock_ins:
-        clock_by_emp[ci.employee_id].append(ci)
+    entries_by_emp = defaultdict(list)
+    totals_by_emp = defaultdict(int)
+    for emp_id, clock_date, first_in_epoch, last_out_epoch, total_seconds in rows:
+        if not first_in_epoch or not last_out_epoch:
+            continue
+        first_in_dt = datetime.fromtimestamp(first_in_epoch, tz=timezone.utc)
+        last_out_dt = datetime.fromtimestamp(last_out_epoch, tz=timezone.utc)
+        entries_by_emp[emp_id].append({
+            "date": clock_date.isoformat(),
+            "in": first_in_dt.strftime("%H:%M"),
+            "out": last_out_dt.strftime("%H:%M"),
+            "hours": round(total_seconds / 3600, 2),
+        })
+        totals_by_emp[emp_id] += total_seconds or 0
 
-    # Build report data
+    # Build report data only for the requested page of employees.
     report_data = []
-    for emp in employees:
-        emp_clock = clock_by_emp.get(emp.id, [])
-        total_seconds = 0
-        current_in = None
-        entries = []
-
-        for ci in emp_clock:
-            if ci.type == "in":
-                current_in = ci.timestamp
-            elif ci.type == "out" and current_in:
-                delta = (ci.timestamp - current_in).total_seconds()
-                total_seconds += delta
-                entries.append({
-                    "date": ci.timestamp.date().isoformat(),
-                    "in": current_in.strftime("%H:%M"),
-                    "out": ci.timestamp.strftime("%H:%M"),
-                    "hours": round(delta / 3600, 2),
-                })
-                current_in = None
-
+    for emp_id in emp_ids:
+        name, dni = emp_info.get(emp_id, ("Desconocido", ""))
+        total_seconds = totals_by_emp.get(emp_id, 0)
         report_data.append({
-            "name": emp.name,
-            "dni": emp.dni or "",
+            "name": name,
+            "dni": dni,
             "total_hours": round(total_seconds / 3600, 2),
-            "entries": entries,
+            "entries": entries_by_emp.get(emp_id, []),
         })
 
     if format == "pdf":

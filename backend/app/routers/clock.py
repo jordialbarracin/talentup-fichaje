@@ -3,6 +3,7 @@ TalentUP Fichaje — Clock router.
 POST /api/clock (PIN), /api/clock/nfc, /api/clock/qr, GET /api/clock/history, GET /api/clock/today
 NFC and QR endpoints require a valid device token.
 """
+import hashlib
 import json
 import time as time_module
 from datetime import date, datetime, time, timezone
@@ -19,7 +20,7 @@ from app.models.employee import Employee
 from app.models.user import User
 from app.models.device import Device
 from app.models.tenant import Tenant
-from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user
+from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user, decode_token
 from app.audit import log_action
 from app.pagination import paginate
 from app.rate_limiter import (
@@ -70,6 +71,8 @@ async def require_device_token(
             detail="Device token vacío",
         )
 
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+
     # Body not yet parsed here; peek the raw JSON for tenant_id. Fast enough for small posts.
     body = await request.body()
     tenant_id = None
@@ -82,7 +85,7 @@ async def require_device_token(
 
     result = await db.execute(
         select(Device).where(
-            Device.device_token == token,
+            Device.device_token == token_hash,
             Device.is_active == True,
         )
     )
@@ -694,15 +697,39 @@ ws_router = APIRouter(tags=["nfc_ws"])
 
 
 @ws_router.websocket("/ws/nfc")
-async def nfc_websocket(websocket: WebSocket):
+async def nfc_websocket(websocket: WebSocket, db: AsyncSession = Depends(get_db)):
     """
     WebSocket endpoint for real-time NFC reader status.
-    The terminal connects here to receive events when an NFC card is read.
-    Events format:
-      {type: 'nfc_read', uid: '04:A1:B2:C3:D4:E5', employee: 'Carlos', action: 'in', time: '14:32'}
-      {type: 'nfc_connected', message: 'Lector NFC conectado'}
-      {type: 'nfc_disconnected', message: 'Lector NFC desconectado'}
+    Requires a valid JWT access token from the 'access_token' cookie or ?token= query param.
+    Rejects unauthenticated connections with code 1008.
     """
+    token = websocket.cookies.get("access_token") or websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=1008, reason="Autenticación requerida")
+        return
+
+    try:
+        payload = decode_token(token)
+    except Exception:
+        await websocket.close(code=1008, reason="Token inválido o expirado")
+        return
+
+    user_id = payload.get("sub")
+    if not user_id:
+        await websocket.close(code=1008, reason="Token inválido")
+        return
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None or not user.is_active:
+        await websocket.close(code=1008, reason="Usuario no encontrado o inactivo")
+        return
+
+    # Enforce manager+ role for NFC WebSocket access
+    if user.role not in ("super_admin", "owner", "manager"):
+        await websocket.close(code=1008, reason="Permisos insuficientes")
+        return
+
     await nfc_manager.connect(websocket)
     try:
         # Send initial connected status

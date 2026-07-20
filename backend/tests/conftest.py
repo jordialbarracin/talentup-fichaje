@@ -7,8 +7,8 @@ import os
 import uuid
 from datetime import datetime, timezone, time, date, timedelta
 
-# Force in-memory SQLite BEFORE importing app modules
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
+# Allow CI to override database URL; default to in-memory SQLite
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite://")
 
 # Required secrets (no hard-coded fallbacks in source)
 os.environ.setdefault("PIN_HASH_SALT", "test-salt")

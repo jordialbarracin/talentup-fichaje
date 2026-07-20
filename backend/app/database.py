@@ -8,11 +8,17 @@ Migration strategy:
 """
 import os
 import sys
+from contextvars import ContextVar
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
 _ENV = os.environ.get("APP_ENV", os.environ.get("ENVIRONMENT", "")).lower()
 _DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+# Per-request tenant id used by get_db to configure the PostgreSQL session.
+tenant_id_ctx: ContextVar[str | None] = ContextVar("tenant_id_ctx", default=None)
 
 
 def _is_sqlite(url: str) -> bool:
@@ -81,10 +87,30 @@ class Base(DeclarativeBase):
     pass
 
 
+async def _set_tenant_context(db: AsyncSession) -> None:
+    """Set the PostgreSQL session-level tenant id used by RLS policies.
+
+    SQLite does not support RLS, so this is a no-op there.
+    """
+    if not _is_postgresql(DATABASE_URL):
+        return
+
+    tenant_id = tenant_id_ctx.get()
+    if tenant_id:
+        await db.execute(text(f"SET app.tenant_id = '{tenant_id}'"))
+    else:
+        await db.execute(text("SET app.tenant_id = ''"))
+
+
 async def get_db():
-    """FastAPI dependency that yields an async DB session."""
+    """FastAPI dependency that yields an async DB session.
+
+    On PostgreSQL it also sets the `app.tenant_id` configuration variable
+    so that Row Level Security policies filter rows by tenant.
+    """
     async with async_session_factory() as session:
         try:
+            await _set_tenant_context(session)
             yield session
         finally:
             await session.close()

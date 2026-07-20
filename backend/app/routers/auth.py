@@ -31,6 +31,8 @@ from app.auth import (
     decode_token,
     get_current_user,
     require_super_admin,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -40,6 +42,45 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 _register_attempts: dict[str, list[float]] = {}
 REGISTER_RATE_LIMIT = 3  # max 3 per hour
 REGISTER_RATE_WINDOW = 3600  # 1 hour in seconds
+
+# --- Refresh token revocation store ---
+# Redis-backed when REDIS_URL is available; in-memory fallback for dev/tests.
+# Stores revoked token JTI (or token signature) with TTL matching the refresh
+# token lifetime so replayed tokens are rejected even if still within expiry.
+_revoked_refresh_tokens: set[str] = set()
+REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60  # 30 days
+
+
+def _revoked_refresh_key(token: str) -> str:
+    """Derive a stable key for a refresh token. Uses the last 32 chars of the token."""
+    return token[-32:]
+
+
+async def _revoke_refresh_token(token: str):
+    """Add a refresh token to the revocation list."""
+    key = _revoked_refresh_key(token)
+    client = _get_redis_client()
+    if client is not None:
+        try:
+            redis_key = f"refresh:revoked:{key}"
+            await client.setex(redis_key, REFRESH_TOKEN_TTL_SECONDS, "1")
+            return
+        except Exception:
+            pass
+    _revoked_refresh_tokens.add(key)
+
+
+async def _is_refresh_token_revoked(token: str) -> bool:
+    """Check whether a refresh token has been revoked."""
+    key = _revoked_refresh_key(token)
+    client = _get_redis_client()
+    if client is not None:
+        try:
+            redis_key = f"refresh:revoked:{key}"
+            return await client.exists(redis_key) > 0
+        except Exception:
+            pass
+    return key in _revoked_refresh_tokens
 
 
 async def _check_register_rate_limit(ip: str):
@@ -196,6 +237,12 @@ async def refresh(
             detail="Token no válido para refresh",
         )
 
+    if await _is_refresh_token_revoked(refresh_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token revocado",
+        )
+
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
@@ -211,6 +258,9 @@ async def refresh(
             detail="Usuario no encontrado o inactivo",
         )
 
+    # Rotate: invalidate the used refresh token and issue a new one.
+    await _revoke_refresh_token(refresh_token)
+    new_refresh_token = create_refresh_token(user)
     access_token = create_access_token({
         "sub": str(user.id),
         "email": user.email,
@@ -221,6 +271,14 @@ async def refresh(
     response.set_cookie(
         key="access_token",
         value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
         httponly=True,
         secure=True,
         samesite="lax",

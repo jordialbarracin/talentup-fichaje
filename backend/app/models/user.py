@@ -1,11 +1,20 @@
 """
 TalentUP Fichaje — User model (super_admin, owner, manager).
+XSS escaping applied in to_dict() for safe API responses.
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class User(Base):
@@ -25,9 +34,9 @@ class User(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "email": self.email,
-            "name": self.name,
-            "role": self.role,
+            "email": _s(self.email),
+            "name": _s(self.name),
+            "role": _s(self.role),
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

@@ -19,8 +19,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}/backend
 
 jobs:
-  test:
-    name: Run pytest
+  test-sqlite:
+    name: Run pytest (SQLite)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,11 +44,72 @@ jobs:
         run: pytest --tb=short -q
         env:
           DATABASE_URL: sqlite+aiosqlite://
+          PIN_HASH_SALT: test-salt
+          JWT_SECRET: test-secret
           APP_ENV: test
+
+  test-postgres:
+    name: Run pytest (PostgreSQL)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/talentup_test
+      PIN_HASH_SALT: test-salt
+      JWT_SECRET: test-secret
+      APP_ENV: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: talentup_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start PostgreSQL 16 with docker-compose
+        run: |
+          docker compose up -d db
+          for i in {1..30}; do
+            docker compose exec -T db pg_isready -U postgres && break
+            sleep 2
+          done
+          docker compose exec -T db psql -U postgres -c "CREATE DATABASE talentup_test;"
+        working-directory: .
+
+      - name: Run Alembic migrations
+        run: alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/talentup_test
+
+      - name: Run pytest
+        run: pytest tests/ --tb=short -q
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/talentup_test
+          PIN_HASH_SALT: test-salt
+          JWT_SECRET: test-secret
+          APP_ENV: test
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker compose down
+        working-directory: .
 
   build-and-push:
     name: Build and push Docker image to GHCR
-    needs: test
+    needs:
+      - test-sqlite
+      - test-postgres
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:

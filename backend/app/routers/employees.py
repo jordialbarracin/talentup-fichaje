@@ -2,8 +2,6 @@
 TalentUP Fichaje — Employees router (ampliado con todos los campos nuevos).
 GET/POST/PUT/DELETE /api/employees
 """
-import html
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
@@ -181,22 +179,22 @@ async def create_employee(
 
     emp = Employee(
         tenant_id=tenant_id,
-        name=html.escape(data.name),
-        last_name=html.escape(data.last_name) if data.last_name else data.last_name,
-        full_name=html.escape(data.full_name) if data.full_name else (html.escape(data.name) if data.name else None),
+        name=data.name,
+        last_name=data.last_name,
+        full_name=data.full_name if data.full_name else (data.name if data.name else None),
         dni=data.dni,
         nie=data.nie,
         numero_ss=data.numero_ss,
         nationality=data.nationality,
         birth_date=date.fromisoformat(data.birth_date) if data.birth_date else None,
         gender=data.gender,
-        address=html.escape(data.address) if data.address else data.address,
-        city=html.escape(data.city) if data.city else data.city,
-        province=html.escape(data.province) if data.province else data.province,
+        address=data.address,
+        city=data.city,
+        province=data.province,
         postal_code=data.postal_code,
         phone=data.phone,
         email=data.email,
-        emergency_contact_name=html.escape(data.emergency_contact_name) if data.emergency_contact_name else data.emergency_contact_name,
+        emergency_contact_name=data.emergency_contact_name,
         emergency_contact_phone=data.emergency_contact_phone,
         categoria_profesional=data.categoria_profesional,
         tipo_contrato=data.tipo_contrato,
@@ -268,59 +266,59 @@ async def update_employee(
     if current_user.role != "super_admin" and emp.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=403, detail="Acceso denegado")
 
-    if data.name is not None: emp.name = html.escape(data.name)
-    if data.last_name is not None: emp.last_name = html.escape(data.last_name)
-    if data.full_name is not None: emp.full_name = html.escape(data.full_name)
-    if data.dni is not None: emp.dni = html.escape(data.dni)
-    if data.nie is not None: emp.nie = html.escape(data.nie)
-    if data.numero_ss is not None: emp.numero_ss = html.escape(data.numero_ss)
-    if data.nationality is not None: emp.nationality = html.escape(data.nationality)
+    if data.name is not None: emp.name = data.name
+    if data.last_name is not None: emp.last_name = data.last_name
+    if data.full_name is not None: emp.full_name = data.full_name
+    if data.dni is not None: emp.dni = data.dni
+    if data.nie is not None: emp.nie = data.nie
+    if data.numero_ss is not None: emp.numero_ss = data.numero_ss
+    if data.nationality is not None: emp.nationality = data.nationality
     if data.birth_date is not None: emp.birth_date = date.fromisoformat(data.birth_date)
-    if data.gender is not None: emp.gender = html.escape(data.gender)
-    if data.address is not None: emp.address = html.escape(data.address)
-    if data.city is not None: emp.city = html.escape(data.city)
-    if data.province is not None: emp.province = html.escape(data.province)
-    if data.postal_code is not None: emp.postal_code = html.escape(data.postal_code)
-    if data.phone is not None: emp.phone = html.escape(data.phone)
-    if data.email is not None: emp.email = html.escape(data.email)
-    if data.emergency_contact_name is not None: emp.emergency_contact_name = html.escape(data.emergency_contact_name)
-    if data.emergency_contact_phone is not None: emp.emergency_contact_phone = html.escape(data.emergency_contact_phone)
-    if data.categoria_profesional is not None: emp.categoria_profesional = html.escape(data.categoria_profesional)
-    if data.tipo_contrato is not None: emp.tipo_contrato = html.escape(data.tipo_contrato)
+    if data.gender is not None: emp.gender = data.gender
+    if data.address is not None: emp.address = data.address
+    if data.city is not None: emp.city = data.city
+    if data.province is not None: emp.province = data.province
+    if data.postal_code is not None: emp.postal_code = data.postal_code
+    if data.phone is not None: emp.phone = data.phone
+    if data.email is not None: emp.email = data.email
+    if data.emergency_contact_name is not None: emp.emergency_contact_name = data.emergency_contact_name
+    if data.emergency_contact_phone is not None: emp.emergency_contact_phone = data.emergency_contact_phone
+    if data.categoria_profesional is not None: emp.categoria_profesional = data.categoria_profesional
+    if data.tipo_contrato is not None: emp.tipo_contrato = data.tipo_contrato
     if data.fecha_alta is not None: emp.fecha_alta = date.fromisoformat(data.fecha_alta)
     if data.fecha_baja is not None: emp.fecha_baja = date.fromisoformat(data.fecha_baja)
-    if data.motivo_baja is not None: emp.motivo_baja = html.escape(data.motivo_baja)
-    if data.tipo_jornada is not None: emp.tipo_jornada = html.escape(data.tipo_jornada)
+    if data.motivo_baja is not None: emp.motivo_baja = data.motivo_baja
+    if data.tipo_jornada is not None: emp.tipo_jornada = data.tipo_jornada
     if data.horas_semanales is not None: emp.horas_semanales = data.horas_semanales
     if data.horas_diarias is not None: emp.horas_diarias = data.horas_diarias
-    if data.grupo_cotizacion is not None: emp.grupo_cotizacion = html.escape(data.grupo_cotizacion)
+    if data.grupo_cotizacion is not None: emp.grupo_cotizacion = data.grupo_cotizacion
     if data.base_cotizacion is not None: emp.base_cotizacion = data.base_cotizacion
     if data.pin is not None:
         emp.pin_hash = hash_password(data.pin)
         emp.pin_hash_fast = compute_pin_hash_fast(data.pin)
-    if data.nfc_card_id is not None: emp.nfc_card_id = html.escape(data.nfc_card_id) if data.nfc_card_id != "" else None
-    if data.nfc_uid is not None: emp.nfc_uid = html.escape(data.nfc_uid) if data.nfc_uid != "" else None
-    if data.photo_url is not None: emp.photo_url = html.escape(data.photo_url)
-    if data.shift_id is not None: emp.shift_id = html.escape(data.shift_id)
-    if data.clock_method is not None: emp.clock_method = html.escape(data.clock_method)
+    if data.nfc_card_id is not None: emp.nfc_card_id = data.nfc_card_id if data.nfc_card_id != "" else None
+    if data.nfc_uid is not None: emp.nfc_uid = data.nfc_uid if data.nfc_uid != "" else None
+    if data.photo_url is not None: emp.photo_url = data.photo_url
+    if data.shift_id is not None: emp.shift_id = data.shift_id
+    if data.clock_method is not None: emp.clock_method = data.clock_method
     if data.vacation_annual_days is not None: emp.vacation_annual_days = data.vacation_annual_days
     if data.saldo_vacaciones is not None: emp.saldo_vacaciones = data.saldo_vacaciones
     if data.saldo_banco_horas is not None: emp.saldo_banco_horas = data.saldo_banco_horas
     if data.horas_extra_pendientes is not None: emp.horas_extra_pendientes = data.horas_extra_pendientes
     if data.coste_hora is not None: emp.coste_hora = data.coste_hora
-    if data.iban is not None: emp.iban = html.escape(data.iban)
-    if data.bank_name is not None: emp.bank_name = html.escape(data.bank_name)
-    if data.bank_account_holder is not None: emp.bank_account_holder = html.escape(data.bank_account_holder)
-    if data.education_level is not None: emp.education_level = html.escape(data.education_level)
-    if data.qualifications is not None: emp.qualifications = html.escape(data.qualifications)
+    if data.iban is not None: emp.iban = data.iban
+    if data.bank_name is not None: emp.bank_name = data.bank_name
+    if data.bank_account_holder is not None: emp.bank_account_holder = data.bank_account_holder
+    if data.education_level is not None: emp.education_level = data.education_level
+    if data.qualifications is not None: emp.qualifications = data.qualifications
     if data.food_handling_cert is not None: emp.food_handling_cert = data.food_handling_cert
     if data.food_handling_expiry is not None: emp.food_handling_expiry = date.fromisoformat(data.food_handling_expiry)
-    if data.allergies is not None: emp.allergies = html.escape(data.allergies)
-    if data.uniform_size is not None: emp.uniform_size = html.escape(data.uniform_size)
-    if data.estado is not None: emp.estado = html.escape(data.estado)
+    if data.allergies is not None: emp.allergies = data.allergies
+    if data.uniform_size is not None: emp.uniform_size = data.uniform_size
+    if data.estado is not None: emp.estado = data.estado
     if data.is_active is not None: emp.is_active = data.is_active
     if data.is_available_for_scheduling is not None: emp.is_available_for_scheduling = data.is_available_for_scheduling
-    if data.employee_code is not None: emp.employee_code = html.escape(data.employee_code)
+    if data.employee_code is not None: emp.employee_code = data.employee_code
 
     old_value = emp.to_dict()
     await db.commit()

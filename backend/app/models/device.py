@@ -1,6 +1,12 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from app.database import Base
+import hashlib
+
+
+def _hash_token(token: str) -> str:
+    """Return SHA-256 hash of a device token for storage/comparison."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _s(value):
