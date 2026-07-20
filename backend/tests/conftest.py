@@ -10,6 +10,10 @@ from datetime import datetime, timezone, time, date, timedelta
 # Force in-memory SQLite BEFORE importing app modules
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
 
+# Required secrets (no hard-coded fallbacks in source)
+os.environ.setdefault("PIN_HASH_SALT", "test-salt")
+os.environ.setdefault("JWT_SECRET", "test-secret")
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport

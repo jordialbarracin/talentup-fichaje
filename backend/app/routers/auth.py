@@ -15,6 +15,14 @@ from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.models.shift import Shift
+from app.rate_limiter import (
+    check_rate_limit,
+    record_rate,
+    _cleanup_and_check,
+    _record,
+    WINDOW_SECONDS,
+    _get_redis_client,
+)
 from app.auth import (
     hash_password,
     verify_password,
@@ -28,30 +36,33 @@ from app.auth import (
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 # --- Rate limiting for registration ---
-# Simple in-memory rate limiter: {ip: [timestamp1, timestamp2, ...]}
+# Redis-backed when REDIS_URL is available; in-memory fallback for dev/tests.
 _register_attempts: dict[str, list[float]] = {}
 REGISTER_RATE_LIMIT = 3  # max 3 per hour
 REGISTER_RATE_WINDOW = 3600  # 1 hour in seconds
 
 
-def _check_register_rate_limit(ip: str):
+async def _check_register_rate_limit(ip: str):
     """Check if IP has exceeded register rate limit. Raises 429 if so."""
-    now = _time.time()
-    window_start = now - REGISTER_RATE_WINDOW
-
-    # Clean old entries
-    if ip in _register_attempts:
-        _register_attempts[ip] = [t for t in _register_attempts[ip] if t > window_start]
-    else:
-        _register_attempts[ip] = []
-
-    if len(_register_attempts[ip]) >= REGISTER_RATE_LIMIT:
+    key = f"register:{ip}"
+    allowed = await check_rate_limit(key, REGISTER_RATE_LIMIT, REGISTER_RATE_WINDOW)
+    if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Demasiados intentos de registro. Intenta de nuevo en una hora.",
         )
 
-    _register_attempts[ip].append(now)
+    # Keep in-memory store accurate when Redis is disabled.
+    if _get_redis_client() is None:
+        if not _cleanup_and_check(_register_attempts, ip, REGISTER_RATE_LIMIT, REGISTER_RATE_WINDOW):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Demasiados intentos de registro. Intenta de nuevo en una hora.",
+            )
+        _record(_register_attempts, ip)
+        return
+
+    await record_rate(key)
 
 
 # --- Schemas ---
@@ -99,7 +110,7 @@ class AuthResponse(BaseModel):
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = ""
 
 
 class RefreshResponse(BaseModel):
@@ -162,10 +173,25 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
 
 
 @router.post("/refresh", response_model=RefreshResponse)
-async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
-    """Exchange a valid refresh token for a new short-lived access token."""
+async def refresh(
+    request: Request,
+    response: Response,
+    req: RefreshRequest = Depends(),
+    db: AsyncSession = Depends(get_db),
+):
+    """Exchange a valid refresh token for a new short-lived access token.
+
+    Reads refresh_token from the httpOnly cookie first; falls back to the request body.
+    """
+    refresh_token = request.cookies.get("refresh_token") or req.refresh_token
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token requerido",
+        )
+
     try:
-        payload = decode_token(req.refresh_token)
+        payload = decode_token(refresh_token)
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -200,6 +226,15 @@ async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
         "tenant_id": str(user.tenant_id) if user.tenant_id else None,
     })
 
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
+
     return RefreshResponse(
         access_token=access_token,
         user=user.to_dict(),
@@ -220,7 +255,7 @@ async def register(
     """
     # Rate limiting
     client_ip = request.client.host if request.client else "unknown"
-    _check_register_rate_limit(client_ip)
+    await _check_register_rate_limit(client_ip)
 
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == req.email))

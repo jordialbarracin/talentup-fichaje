@@ -22,11 +22,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 
-# ── Config ──────────────────────────────────────────────────────────────
+# ── Config ──
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-# Hard-coded test webhook secret used in tests so signature verification is reachable
-TEST_STRIPE_WEBHOOK_SECRET = os.environ.get("TEST_STRIPE_WEBHOOK_SECRET", "whsec_test_webhook_secret_32bytes_long")
 # Price IDs — set via env or use dev/test placeholders
 STRIPE_PRICE_BASIC = os.environ.get("STRIPE_PRICE_BASIC", "price_basic_dev")
 STRIPE_PRICE_PRO = os.environ.get("STRIPE_PRICE_PRO", "price_pro_dev")
@@ -35,10 +33,9 @@ DOMAIN = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
 
 def _get_stripe():
-    """Lazy import of stripe — returns a mock-like client if not installed/configured.
+    """Lazy import of stripe — returns None if not installed/configured.
 
-    In production STRIPE_SECRET_KEY must be set. For tests/CI a dummy key is
-    accepted so signature verification logic remains reachable.
+    In production STRIPE_SECRET_KEY must be set.
     """
     try:
         import stripe as _stripe
@@ -46,10 +43,9 @@ def _get_stripe():
         logger.warning("stripe library not installed — billing endpoints will return 503")
         return None
 
-    key = STRIPE_SECRET_KEY or os.environ.get("TEST_STRIPE_SECRET_KEY")
-    if not key:
+    if not STRIPE_SECRET_KEY:
         return None
-    _stripe.api_key = key
+    _stripe.api_key = STRIPE_SECRET_KEY
     return _stripe
 
 

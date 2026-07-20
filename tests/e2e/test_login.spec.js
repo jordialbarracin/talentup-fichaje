@@ -21,5 +21,5 @@ test('login con credenciales reales entra al dashboard', async ({ page }) => {
   await expect(page.locator('#app')).toBeVisible();
   await expect(page.locator('#sidebar')).toBeVisible();
   await expect(page.locator('#page-dashboard')).toBeVisible();
-  await expect(page.locator('#navbar-name')).toContainText(LOGIN_EMAIL);
+  await expect(page.locator('#navbar-name')).toHaveText(/María García|owner@latagliatella\.es/);
 });

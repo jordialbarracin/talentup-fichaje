@@ -1349,6 +1349,7 @@
       try {
         const resp = await fetch(config.backendUrl + '/api/clock', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             pin: entry.pin,
@@ -1497,6 +1498,7 @@
     try {
       const resp = await fetch(config.backendUrl + '/api/clock', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pin: currentPin,
@@ -1658,6 +1660,7 @@
 
     fetch(config.backendUrl + '/api/auth/login', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     })
@@ -1889,6 +1892,7 @@
     try {
       const resp = await fetch(config.backendUrl + '/api/clock/qr', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           employee_id: employeeId,

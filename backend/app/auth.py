@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -23,9 +23,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 _jwt_secret = os.environ.get("JWT_SECRET")
+_ENV = os.environ.get("APP_ENV", "development").lower()
 if _jwt_secret:
     SECRET_KEY = _jwt_secret
 else:
+    if _ENV in ("production", "prod"):
+        raise RuntimeError("JWT_SECRET requerido en produccion")
     # In dev, generate a random secret and log it
     SECRET_KEY = secrets.token_urlsafe(32)
     logger.warning(
@@ -40,16 +43,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 # --- PIN hash fast (SHA256) ---
-# SECRET_SALT for fast PIN hashing — required in production; dev fallback.
-import sys
-_ENV = os.environ.get("APP_ENV", "development").lower()
+# SECRET_SALT for fast PIN hashing — required always.
 _PIN_HASH_SALT = os.environ.get("PIN_HASH_SALT")
-if _PIN_HASH_SALT:
-    _SECRET_SALT = _PIN_HASH_SALT
-elif _ENV in ("production", "prod"):
-    raise RuntimeError("PIN_HASH_SALT requerido en produccion")
-else:
-    _SECRET_SALT = "TalentUP-Fichaje-PIN-Salt-2024-dev-only"
+if not _PIN_HASH_SALT:
+    raise RuntimeError("PIN_HASH_SALT requerido")
+_SECRET_SALT = _PIN_HASH_SALT
 
 
 def compute_pin_hash_fast(pin: str) -> str:
@@ -107,16 +105,26 @@ def decode_token(token: str) -> dict:
 
 # --- Dependencies ---
 async def get_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """Extract and validate the current user from the JWT token."""
-    if credentials is None:
+    """Extract and validate the current user from the JWT token.
+
+    Priority:
+      1. httpOnly cookie 'access_token'
+      2. HTTP Bearer Authorization header (fallback)
+    """
+    token = request.cookies.get("access_token")
+    if not token and credentials is not None:
+        token = credentials.credentials
+
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Autenticación requerida",
         )
-    payload = decode_token(credentials.credentials)
+    payload = decode_token(token)
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(
