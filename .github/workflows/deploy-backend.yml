@@ -7,7 +7,7 @@ on:
       - master
     paths:
       - 'backend/**'
-      - 'Dockerfile'
+      - 'backend/Dockerfile'
       - '.github/workflows/deploy-backend.yml'
   workflow_dispatch:
 
