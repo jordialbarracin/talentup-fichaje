@@ -339,9 +339,17 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <span id="login-btn-text">Iniciar sesión</span>
         <span class="spinner hidden" id="login-spinner"></span>
       </button>
-      <button type="button" class="btn btn-ghost" id="demo-btn" style="margin-top:8px">
+      <button type="button" class="btn btn-ghost hidden" id="demo-btn" style="margin-top:8px">
         Entrar modo demo
       </button>
+      <script>
+        (function() {
+          const host = window.location.hostname;
+          if (host === 'localhost' || host === '127.0.0.1') {
+            document.getElementById('demo-btn').classList.remove('hidden');
+          }
+        })();
+      </script>
       <div style="text-align:center;margin-top:12px">
         <button type="button" class="btn btn-ghost" id="register-link" style="font-size:0.8125rem;color:#FF6B35;font-weight:500">
           Crear cuenta

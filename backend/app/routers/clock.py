@@ -30,12 +30,13 @@ from app.rate_limiter import (
     _pin_limits,
     _nfc_limits,
     _qr_limits,
-    _pin_failures,
-    _pin_blocks,
     CLOCK_MAX_PER_MINUTE,
     PIN_FAIL_MAX_PER_MINUTE,
     PIN_BLOCK_MINUTES,
     WINDOW_SECONDS,
+    check_pin_block,
+    record_pin_failure,
+    is_pin_blocked,
     _rate_limit_key as _build_rate_limit_key,
 )
 
@@ -118,24 +119,13 @@ def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
 
 async def _check_method_limit(store: dict, key: str, max_count: int) -> bool:
     """Async check: Redis when available, otherwise in-memory store."""
-    # For in-memory method-specific stores we still need the cleanup check,
-    # so fall back via rate_limiter when Redis is not configured.
     allowed = await check_rate_limit(key, max_count, WINDOW_SECONDS)
     if not allowed:
         return False
-    # When Redis is disabled, check_rate_limit uses _pin_limits internally and already
-    # records via record_rate. To keep per-method memory stores accurate, only use
-    # them as additional local tracking (no-op if Redis is active).
+    # Keep per-method memory stores accurate when Redis is disabled.
     if _get_redis_client() is None:
         return _cleanup_and_check(store, key, max_count)
     return True
-
-
-def _get_redis_client():
-    """Re-export redis-aware helper from rate_limiter."""
-    from app.rate_limiter import _get_redis_client as _rl_redis
-
-    return _rl_redis()
 
 
 async def _record_method(store: dict, key: str):
@@ -145,16 +135,11 @@ async def _record_method(store: dict, key: str):
         _record(store, key)
 
 
-async def _cleanup_and_check_pin_failures(key: str, max_count: int) -> bool:
-    """Keep PIN failure block logic in-memory; Redis not needed for blocking."""
-    now = time_module.time()
-    if key in _pin_failures:
-        _pin_failures[key] = [t for t in _pin_failures[key] if now - t < WINDOW_SECONDS]
-    return len(_pin_failures.get(key, [])) < max_count
+def _get_redis_client():
+    """Re-export redis-aware helper from rate_limiter."""
+    from app.rate_limiter import _get_redis_client as _rl_redis
 
-
-async def _record_pin_failure(key: str):
-    _pin_failures.setdefault(key, []).append(time_module.time())
+    return _rl_redis()
 
 
 class ClockRequest(BaseModel):
@@ -197,16 +182,13 @@ async def clock_in(
     rate_key = _rate_limit_key(request, data.tenant_id)
 
     # Check PIN block
-    if rate_key in _pin_blocks:
-        if time_module.time() < _pin_blocks[rate_key]:
-            remaining = int(_pin_blocks[rate_key] - time_module.time())
-            raise HTTPException(
-                status_code=429,
-                detail=f"Demasiados intentos fallidos. Bloqueado {PIN_BLOCK_MINUTES} min. Reintenta en {remaining}s.",
-                headers={"Retry-After": str(remaining)},
-            )
-        else:
-            del _pin_blocks[rate_key]
+    blocked, remaining = await is_pin_blocked(rate_key)
+    if blocked:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Demasiados intentos fallidos. Bloqueado {PIN_BLOCK_MINUTES} min. Reintenta en {remaining}s.",
+            headers={"Retry-After": str(remaining)},
+        )
 
     # Check PIN clock rate limit (independent from NFC/QR)
     if not await _check_method_limit(_pin_limits, rate_key, CLOCK_MAX_PER_MINUTE):
@@ -233,13 +215,13 @@ async def clock_in(
 
     if not matched_emp:
         # Record PIN failure
-        await _record_pin_failure(rate_key)
-        if not await _cleanup_and_check_pin_failures(rate_key, PIN_FAIL_MAX_PER_MINUTE):
-            _pin_blocks[rate_key] = time_module.time() + PIN_BLOCK_MINUTES * 60
+        should_block = await record_pin_failure(rate_key)
+        if should_block:
+            _, remaining = await is_pin_blocked(rate_key)
             raise HTTPException(
                 status_code=429,
                 detail=f"Demasiados PINs erróneos. Bloqueado {PIN_BLOCK_MINUTES} minutos.",
-                headers={"Retry-After": str(PIN_BLOCK_MINUTES * 60)},
+                headers={"Retry-After": str(remaining)},
             )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

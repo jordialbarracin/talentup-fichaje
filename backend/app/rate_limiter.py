@@ -120,3 +120,68 @@ async def record_rate(key: str):
         except Exception:
             pass
     _record(_pin_limits, key)
+
+
+# --- PIN failure / block helpers (async, Redis-aware with in-memory fallback) ---
+async def is_pin_blocked(key: str) -> tuple[bool, int]:
+    """Return (blocked, remaining_seconds). Uses Redis when available."""
+    client = _get_redis_client()
+    if client is not None:
+        redis_key = f"pin:block:{key}"
+        try:
+            ttl = await client.ttl(redis_key)
+            if ttl > 0:
+                return True, ttl
+            return False, 0
+        except Exception:
+            pass
+    now = time_module.time()
+    if key in _pin_blocks and now < _pin_blocks[key]:
+        remaining = int(_pin_blocks[key] - now)
+        return True, remaining
+    if key in _pin_blocks:
+        del _pin_blocks[key]
+    return False, 0
+
+
+async def check_pin_block(key: str) -> bool:
+    """Return True if the key is currently PIN-blocked."""
+    blocked, _ = await is_pin_blocked(key)
+    return blocked
+
+
+async def record_pin_failure(key: str) -> bool:
+    """
+    Record a failed PIN attempt. Return True if the key should be blocked now.
+    Uses Redis when available; otherwise stores in memory.
+    """
+    client = _get_redis_client()
+    if client is not None:
+        now = int(time_module.time())
+        bucket = now // WINDOW_SECONDS
+        fail_key = f"pin:fail:{key}:{bucket}"
+        block_key = f"pin:block:{key}"
+        try:
+            pipe = client.pipeline()
+            pipe.incr(fail_key)
+            pipe.expire(fail_key, WINDOW_SECONDS)
+            pipe.exists(block_key)
+            results = await pipe.execute()
+            count = results[0]
+            already_blocked = bool(results[2])
+            if count >= PIN_FAIL_MAX_PER_MINUTE and not already_blocked:
+                await client.setex(block_key, PIN_BLOCK_MINUTES * 60, "1")
+                return True
+            return False
+        except Exception:
+            pass
+
+    # In-memory fallback
+    now = time_module.time()
+    if key in _pin_failures:
+        _pin_failures[key] = [t for t in _pin_failures[key] if now - t < WINDOW_SECONDS]
+    _pin_failures[key].append(now)
+    if len(_pin_failures[key]) >= PIN_FAIL_MAX_PER_MINUTE:
+        _pin_blocks[key] = now + PIN_BLOCK_MINUTES * 60
+        return True
+    return False

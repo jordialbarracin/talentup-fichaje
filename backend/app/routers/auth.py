@@ -4,7 +4,7 @@ POST /api/auth/login, POST /api/auth/register, GET /api/auth/me
 """
 import time as _time
 from datetime import datetime, time, timezone
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from sqlalchemy import select
@@ -110,8 +110,8 @@ class RefreshResponse(BaseModel):
 
 # --- Endpoints ---
 @router.post("/login", response_model=AuthResponse)
-async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Authenticate user and return JWT access + refresh tokens."""
+async def login(req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+    """Authenticate user and return JWT access + refresh tokens (also as httpOnly cookies)."""
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
 
@@ -134,6 +134,23 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
         "tenant_id": str(user.tenant_id) if user.tenant_id else None,
     })
     refresh_token = create_refresh_token(user)
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
 
     return AuthResponse(
         access_token=access_token,
@@ -193,6 +210,7 @@ async def refresh(req: RefreshRequest, db: AsyncSession = Depends(get_db)):
 async def register(
     req: RegisterRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -307,6 +325,23 @@ async def register(
         "tenant_id": str(owner.tenant_id) if owner.tenant_id else None,
     })
     refresh_token = create_refresh_token(owner)
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=28800,
+    )
 
     return AuthResponse(
         access_token=access_token,
