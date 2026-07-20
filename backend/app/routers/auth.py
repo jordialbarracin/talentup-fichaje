@@ -3,6 +3,7 @@ TalentUP Fichaje — Auth router.
 POST /api/auth/login, POST /api/auth/register, GET /api/auth/me
 """
 import html
+import os
 import time as _time
 from datetime import datetime, time, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -36,6 +37,10 @@ from app.auth import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# Cookie security: env override for local HTTP dev/tests.
+# Default True (production). Set COOKIE_SECURE=false for Playwright E2E over HTTP.
+_COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() == "true"
 
 # --- Rate limiting for registration ---
 # Redis-backed when REDIS_URL is available; in-memory fallback for dev/tests.
@@ -185,7 +190,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -193,7 +198,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -272,7 +277,7 @@ async def refresh(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -280,7 +285,7 @@ async def refresh(
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -418,7 +423,7 @@ async def register(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -426,7 +431,7 @@ async def register(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=28800,
     )
@@ -459,7 +464,7 @@ async def logout(request: Request, response: Response):
         key="access_token",
         value="",
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=0,
     )
@@ -467,7 +472,7 @@ async def logout(request: Request, response: Response):
         key="refresh_token",
         value="",
         httponly=True,
-        secure=True,
+        secure=_COOKIE_SECURE,
         samesite="lax",
         max_age=0,
     )

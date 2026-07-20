@@ -42,6 +42,7 @@ module.exports = defineConfig({
         DATABASE_URL: 'sqlite+aiosqlite:///./talentup_fichaje.db',
         PIN_HASH_SALT: 'test-salt',
         JWT_SECRET: 'test-secret',
+        COOKIE_SECURE: 'false',
       },
     },
     {
