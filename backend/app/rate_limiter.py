@@ -66,6 +66,8 @@ def _cleanup_and_check(
 
 
 def _record(store: dict[str, list[float]], key: str):
+    if key not in store:
+        store[key] = []
     store[key].append(time_module.time())
 
 

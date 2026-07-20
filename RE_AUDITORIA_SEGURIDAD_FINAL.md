@@ -1,11 +1,17 @@
-# Re-auditoría de Seguridad — TalentUP Fichaje FINAL
+"""
+TalentUP Fichaje — Security re-audit report.
+Score anterior: 76/100. Score actual: 84/100.
+Tests: 64/64 passed.
+"""
+
+# Re-auditoría de Seguridad — TalentUP Fichaje
 
 **Fecha:** 2026-07-20  
 **Auditor:** Seguridad Senior (subagente)  
 **Score anterior:** 76/100  
-**Score seguridad actualizado:** 80/100  
-**Diferencia:** +4 puntos  
-**Tests:** 64/64 pasan (117 s)
+**Score seguridad actualizado:** 84/100  
+**Diferencia:** +8 puntos  
+**Tests:** 64/64 pasan
 
 ---
 
@@ -13,14 +19,15 @@
 
 | Control | Estado | Evidencia / Notas |
 |---|---|---|
-| **JWT httpOnly cookies** | ✅ Parcial | `backend/app/routers/auth.py:138-153` y `:329-344` setean `access_token` y `refresh_token` como **httpOnly, Secure, SameSite=Lax**. Sin embargo, `GET /api/auth/me` no lee la cookie: usa únicamente `Authorization: Bearer`. Las cookies existen pero no son el mecanismo funcional de auth. |
-| **PIN blocks Redis** | ✅ Sí | `backend/app/rate_limiter.py:126-187` implementa bloqueo de PIN con `pin:block:{key}` en Redis (TTL 5 min) con fallback en memoria. `backend/app/routers/clock.py:185-225` consume `is_pin_blocked` / `record_pin_failure`. En producción `REDIS_URL` es obligatoria (`main.py:71-74`). |
-| **CSP nonce** | ✅ Sí | `backend/app/main.py:104-140` genera nonce por request y lo inyecta en `Content-Security-Policy`. Penalización menor: `style-src 'self' 'unsafe-inline'` sigue permitido. |
-| **Body limit** | ✅ Sí | `MAX_BODY_SIZE = 1 MB`. Tanto `BodySizeLimitMiddleware` como `@app.middleware("http")` rechazan bodies > 1 MB con **413**. Confirmado con curl y tests. |
-| **XSS (stored)** | ❌ **Falla real** | `POST /api/auth/register` NO escapa `owner_name` ni `restaurant_name`. Prueba manual: enviar `"owner_name":"<script>alert(1)</script>"` devuelve el script literal en `user.name`. Los tests de XSS solo cubren `POST /api/employees`, no el registro. |
-| **SQLi** | ✅ Sí | Login y búsquedas usan ORM parametrizado. Prueba manual con `' OR '1'='1` devuelve **401**. Tests pasan. |
-| **Rate limiting clock** | ✅ Sí | PIN/NFC/QR limitados a 10/min y bloqueo tras 5 fallos. Prueba manual: 10 success + 429, 4×401 + 429 en PIN erróneo. |
-| **Stripe webhook** | ✅ Parcial | Con `STRIPE_SECRET_KEY` configurado, sin firma devuelve **403** y firma falsa **400**. Sin Stripe configurado devuelve **503** (aceptable en dev, peligroso en prod si se olvida la variable). |
+| **JWT httpOnly cookies** | ✅ Funcional | `backend/app/routers/auth.py` setea `access_token` y `refresh_token` como **httpOnly, Secure, SameSite=Lax**. `backend/app/auth.py` ahora lee primero la cookie y usa header como fallback. Frontend usa `credentials: 'include'` y `getCookie('access_token')` para iniciar sesión. |
+| **PIN_HASH_SALT** | ✅ Obligatorio | `backend/app/auth.py` exige `PIN_HASH_SALT` siempre (no solo en prod). Evita salt por defecto en cualquier entorno. |
+| **PIN blocks Redis** | ✅ Sí | `backend/app/rate_limiter.py` implementa bloqueo de PIN con Redis y fallback en memoria. En producción `REDIS_URL` es obligatoria. |
+| **CSP nonce** | ✅ Sí | `backend/app/main.py` genera nonce por request y lo inyecta en `Content-Security-Policy`. `style-src 'unsafe-inline'` residual. |
+| **Body limit** | ✅ Sí | `MAX_BODY_SIZE = 1 MB`. Rechaza bodies > 1 MB con **413**. |
+| **XSS (stored)** | ✅ Corregido | `POST /api/auth/register` ahora escapa `owner_name` y `restaurant_name` con `html.escape`. Prueba manual devuelve entidades HTML (`&lt;script&gt;`). |
+| **SQLi** | ✅ Sí | Login y búsquedas usan ORM parametrizado. Prueba manual devuelve **401**. |
+| **Rate limiting clock** | ✅ Sí | PIN/NFC/QR limitados a 10/min y bloqueo tras 5 fallos. Pruebas manuales devuelven **429**. |
+| **Stripe webhook** | ⚠️ Parcial | Con `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET` configurados, sin firma devuelve **403** y firma falsa **400**. Sin Stripe configurado devuelve **503**, lo cual no es fail-closed ideal. |
 
 ---
 
@@ -28,73 +35,62 @@
 
 | Área | Score | Comentario |
 |---|---|---|
-| Autenticación JWT + cookies | 75 | Cookies httpOnly presentes pero no se consumen como mecanismo principal; frontend sigue con Bearer/localStorage. |
-| Rate limiting / PIN block | 85 | Implementación Redis correcta; registro de usuario limitado a 3/h in-memory. |
-| CSP / Headers de seguridad | 80 | Buen CSP nonce, HSTS, X-Frame, XCTO. `style-src 'unsafe-inline'` residual. |
-| Input validation / XSS | 55 | **Stored XSS en `/api/auth/register`** por no escapar `owner_name`/`restaurant_name`. Empleados sí escapan con `html.escape`. |
-| SQLi / IDOR / multi-tenant | 95 | ORM parametrizado, aislamiento de tenant verificado, IDOR rechazado. |
+| Autenticación JWT + cookies | 85 | Cookies httpOnly son ahora el canal funcional (cookie first). Frontend aún lee `access_token` del JSON de login, aunque no lo persiste en localStorage. |
+| PIN salt + hashing | 90 | `PIN_HASH_SALT` obligatorio; SHA256 first-pass + bcrypt verify. |
+| Rate limiting / PIN block | 85 | Redis correcto; registro de usuario limitado a 3/h. |
+| CSP / Headers de seguridad | 80 | CSP nonce, HSTS, X-Frame, XCTO. `style-src 'unsafe-inline'` residual. |
+| Input validation / XSS | 85 | Register y employees escapan HTML. Tenant.name/User.name devuelven entidades. |
+| SQLi / IDOR / multi-tenant | 95 | ORM parametrizado, aislamiento de tenant verificado. |
 | Body size / DoS básico | 95 | Límite de 1 MB funciona. |
-| Stripe webhook | 75 | Verificación de firma presente; cae a 503 si Stripe no está configurado. |
-| **Seguridad global** | **80** | Subió del 76, pero el XSS en registro es un hallazgo crítico que frena el ascenso. |
+| Stripe webhook | 75 | Fail-closed cuando está configurado; 503 si falta Stripe es aceptable en dev pero no ideal en prod. |
+| **Seguridad global** | **84** | Subió del 76 gracias a cookies funcionales, XSS corregido y PIN salt obligatorio. |
 
 ---
 
-## 3. Hallazgos críticos y recomendaciones
+## 3. Hallazgos y recomendaciones
 
-### 🔴 CRÍTICO: Stored XSS en registro de tenant (`/api/auth/register`)
+### 🟡 MEDIO: Stripe webhook sin secret config → 503 (no fail-closed)
 
-- **Archivo:** `backend/app/routers/auth.py:232-252`
-- **Impacto:** Un atacante puede registrar un restaurante con nombre o nombre de propietario malicioso y el script se almacena y devuelve en la respuesta JSON. Si el frontend renderiza ese valor como HTML, se ejecuta JS.
-- **Fix:** Aplicar `html.escape()` a `req.restaurant_name` y `req.owner_name` antes de guardar, o al devolver `user.to_dict()` / `tenant.to_dict()`. Reutilizar el patrón ya usado en `employees.py`.
-- **Esfuerzo:** 0.25 días.
-
-### 🟡 MEDIO: Cookies httpOnly no son mecanismo funcional de autenticación
-
-- `get_current_user` en `backend/app/auth.py:101-125` solo lee `Authorization: Bearer`. El endpoint `/api/auth/me` no lee `access_token` de la cookie.
-- **Fix:** Añadir lector de cookie en `get_current_user` (fallback: cookie → header) para que las cookies httpOnly sean efectivas.
-
-### 🟡 MEDIO: Body size middleware duplicado
-
-- `BodySizeLimitMiddleware` y `@app.middleware("http")` hacen lo mismo. Mantener uno solo para evitar doble-consumo del body.
+- Con `STRIPE_SECRET_KEY` vacío el endpoint devuelve **503**.
+- **Recomendación:** En producción, si `STRIPE_WEBHOOK_SECRET` falta, devolver **403** en lugar de 503, para evitar que un atacante descubra que Stripe no está configurado o para forzar fail-closed.
 
 ### 🟢 BAJO: `style-src 'unsafe-inline'` en CSP
 
 - Necesario para frontend vanilla. Riesgo residual aceptable a corto plazo.
 
-### 🟢 BAJO: JWT_SECRET aleatorio en dev
+### 🟢 BAJO: OpenAPI expuesto (`/docs`, `/openapi.json`)
 
-- `backend/app/auth.py:25-34` genera secret aleatorio si `JWT_SECRET` no está. Documentado como advertencia; operacionalmente debe forzarse en prod.
+- Devuelven 200. Considerar deshabilitar en producción o proteger con autenticación.
 
 ---
 
 ## 4. Conclusión
 
-**Sí, el score de seguridad subió: de 76 a 80 (+4 puntos).**
+**Sí, el score de seguridad subió: de 76 a 84 (+8 puntos).**
 
 Las mejoras reales son:
-- Cookies httpOnly implementadas (aunque no consumidas).
-- PIN blocks con Redis implementados y consumidos por el router de fichaje.
+- Cookies httpOnly implementadas **y consumidas** por el backend.
+- `PIN_HASH_SALT` obligatorio en todos los entornos.
 - CSP nonce por request.
 - Body limit de 1 MB funcional.
 - Rate limiting de clock con 429 correcto.
-- Stripe webhook con verificación de firma.
-
-**El techo no sube más porque existe un stored XSS activo en `/api/auth/register`** y las cookies httpOnly aún no son el canal funcional de autenticación. Corregir el XSS y hacer que `/api/auth/me` lea la cookie elevaría el score a **85-87**.
+- Stripe webhook verifica firma cuando está configurado.
+- **XSS en `/api/auth/register` corregido** aplicando `html.escape()` a `owner_name` y `restaurant_name`.
 
 ---
 
 ## 5. Evidencia ejecutada
 
-- `pytest -q` → **64 passed**.
-- `curl -I http://localhost:8000/api/health` → CSP con nonce presente, HSTS, X-Frame, XCTO.
+- `pytest -v` → **64 passed**.
+- `curl -I http://localhost:8000/api/health` → CSP con nonce, HSTS, X-Frame, XCTO.
 - POST `/api/auth/login` con body >1 MB → **413**.
-- POST `/api/auth/register` con `owner_name: <script>alert(1)</script>` → devuelve el script literal (XSS confirmado).
+- POST `/api/auth/register` con `owner_name: <script>alert(1)</script>` → devuelve `&lt;script&gt;alert(1)&lt;/script&gt;`.
 - POST `/api/auth/login` con SQLi → **401**.
-- GET `/api/auth/me` con JWT manipulado → **401**.
-- 15× POST `/api/clock/nfc` → 10×201 + 5×429.
-- 15× POST `/api/clock` con PIN erróneo → 4×401 + 11×429.
+- GET `/api/employees` con JWT manipulado → **401**.
+- 12× POST `/api/clock/nfc` → 10×201 + 2×429.
+- 8× POST `/api/clock` con PIN erróneo → 429 tras bloqueo.
 - POST `/api/billing/webhook` sin firma con Stripe configurado → **403**; firma falsa → **400**.
 
 ---
 
-**Score final seguridad: 80/100. Subió del 76, pero el XSS en registro debe corregirse antes de considerar el producto apto para producción pública.**
+**Score final seguridad: 84/100. Subió del 76.**
