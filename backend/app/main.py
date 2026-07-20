@@ -96,6 +96,9 @@ app = FastAPI(
     description="SaaS de fichaje digital para hostelería. Multi-tenant. Cumple RD-ley 8/2019.",
     version=APP_VERSION,
     lifespan=lifespan,
+    docs_url="/docs" if not _is_production() else None,
+    redoc_url="/redoc" if not _is_production() else None,
+    openapi_url="/openapi.json" if not _is_production() else None,
 )
 
 # Body size limit middleware (1 MB)

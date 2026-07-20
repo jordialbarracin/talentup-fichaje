@@ -109,10 +109,6 @@ class AuthResponse(BaseModel):
     is_new_tenant: bool = False
 
 
-class RefreshRequest(BaseModel):
-    refresh_token: str = ""
-
-
 class RefreshResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -176,14 +172,14 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
 async def refresh(
     request: Request,
     response: Response,
-    req: RefreshRequest = Depends(),
     db: AsyncSession = Depends(get_db),
 ):
-    """Exchange a valid refresh token for a new short-lived access token.
+    """Exchange a valid refresh token from the httpOnly cookie for a new access token.
 
-    Reads refresh_token from the httpOnly cookie first; falls back to the request body.
+    The refresh token is read ONLY from the `refresh_token` httpOnly cookie.
+    If the cookie is absent, the request is rejected with 401.
     """
-    refresh_token = request.cookies.get("refresh_token") or req.refresh_token
+    refresh_token = request.cookies.get("refresh_token")
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

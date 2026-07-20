@@ -176,14 +176,15 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """
     Handle Stripe webhook events.
     Uses STRIPE_WEBHOOK_SECRET to verify signature (fail-closed).
+    If the webhook secret is not configured, reject with 403 instead of 503.
     """
-    stripe = _get_stripe()
-    if stripe is None:
-        raise HTTPException(status_code=503, detail="Stripe no configurado")
-
     if not STRIPE_WEBHOOK_SECRET:
         logger.error("STRIPE_WEBHOOK_SECRET no configurado — rechazando webhook")
         raise HTTPException(status_code=403, detail="Webhook secret no configurado")
+
+    stripe = _get_stripe()
+    if stripe is None:
+        raise HTTPException(status_code=503, detail="Stripe no configurado")
 
     sig_header = request.headers.get("stripe-signature", "")
     if not sig_header:
