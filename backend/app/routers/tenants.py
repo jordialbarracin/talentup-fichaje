@@ -2,7 +2,7 @@
 TalentUP Fichaje — Tenants router.
 GET/POST/PUT/DELETE /api/tenants (super_admin only)
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, delete
@@ -12,6 +12,7 @@ from app.database import get_db
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.auth import require_super_admin, get_current_user
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/tenants", tags=["tenants"])
 
@@ -43,13 +44,14 @@ class TenantUpdate(BaseModel):
 
 @router.get("")
 async def list_tenants(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all tenants (super_admin only)."""
-    result = await db.execute(select(Tenant).order_by(Tenant.name))
-    tenants = result.scalars().all()
-    return [t.to_dict() for t in tenants]
+    """List all tenants (super_admin only) with pagination."""
+    query = select(Tenant).order_by(Tenant.name)
+    return await paginate(db, query, page, limit, item_transform=lambda t: t.to_dict())
 
 
 @router.get("/{tenant_id}")

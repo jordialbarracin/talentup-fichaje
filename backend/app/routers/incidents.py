@@ -18,6 +18,7 @@ from app.models.user import User
 from app.auth import require_manager, get_current_user
 from app.audit import log_action
 from app.tasks import schedule_incident_detection
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
 
@@ -36,10 +37,12 @@ async def list_incidents(
     date_to: Optional[str] = Query(None, description="Filter: end date (YYYY-MM-DD)"),
     employee_id: Optional[str] = Query(None, description="Filter by employee ID"),
     incident_type: Optional[str] = Query(None, description="Filter by incident type"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
 ):
-    """List incidents for the current tenant with optional filters."""
+    """List incidents for the current tenant with optional filters (paginated)."""
     tenant_id = current_user.tenant_id
 
     query = select(Incident)
@@ -56,20 +59,16 @@ async def list_incidents(
 
     query = query.order_by(Incident.date.desc(), Incident.created_at.desc())
 
-    result = await db.execute(query)
-    items = result.scalars().all()
+    async def _transform(inc: Incident) -> dict:
+        d = inc.to_dict()
+        # Lazy-load employee name per page item
+        emp_result = await db.execute(
+            select(Employee.name).where(Employee.id == inc.employee_id)
+        )
+        d["employee_name"] = emp_result.scalar_one_or_none() or "Desconocido"
+        return d
 
-    # Enrich with employee names
-    emp_ids = {i.employee_id for i in items}
-    emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
-    emp_map = {e.id: e.name for e in emp_result.scalars().all()}
-
-    data = []
-    for i in items:
-        d = i.to_dict()
-        d["employee_name"] = emp_map.get(i.employee_id, "Desconocido")
-        data.append(d)
-    return data
+    return await paginate(db, query, page, limit, item_transform=_transform)
 
 
 @router.post("/detect")

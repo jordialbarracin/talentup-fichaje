@@ -23,6 +23,8 @@ from app.auth import verify_password, compute_pin_hash_fast, require_manager, ge
 from app.audit import log_action
 from app.pagination import paginate
 from app.rate_limiter import (
+    check_rate_limit,
+    record_rate,
     _cleanup_and_check,
     _record,
     _pin_limits,
@@ -34,6 +36,7 @@ from app.rate_limiter import (
     PIN_FAIL_MAX_PER_MINUTE,
     PIN_BLOCK_MINUTES,
     WINDOW_SECONDS,
+    _rate_limit_key as _build_rate_limit_key,
 )
 
 router = APIRouter(prefix="/api/clock", tags=["clock"])
@@ -48,7 +51,7 @@ async def require_device_token(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Validate the Authorization: Bearer <device_token> header.
+    Validate the Authorization: Bearer *** header.
     Returns the matching Device (belongs to the request tenant_id in body).
     Raises 401 if missing/invalid and 403 if the device is disabled.
     """
@@ -56,7 +59,7 @@ async def require_device_token(
     if not auth_header.startswith(DEVICE_TOKEN_PREFIX):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Autorización requerida: Authorization: Bearer <device_token>",
+            detail="Autorización requerida: Authorization: Bearer ***",
         )
 
     token = auth_header[len(DEVICE_TOKEN_PREFIX):].strip()
@@ -107,22 +110,50 @@ async def list_tenants_public(db: AsyncSession = Depends(get_db)):
     return [{"id": str(r[0]), "name": r[1]} for r in rows]
 
 
-# --- Rate limiting (in-memory) ---
-# One independent store per clock method. Key = f"{ip}:{tenant_id}".
+# --- Rate limiting helpers (async, Redis-aware with in-memory fallback) ---
 def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
     """Build rate-limit key from IP and tenant."""
-    client_ip = request.client.host if request.client else "unknown"
-    return f"{client_ip}:{tenant_id or 'unknown'}"
+    return _build_rate_limit_key(request, tenant_id)
 
 
-def _cleanup_and_check_pin_failures(key: str, max_count: int) -> bool:
+async def _check_method_limit(store: dict, key: str, max_count: int) -> bool:
+    """Async check: Redis when available, otherwise in-memory store."""
+    # For in-memory method-specific stores we still need the cleanup check,
+    # so fall back via rate_limiter when Redis is not configured.
+    allowed = await check_rate_limit(key, max_count, WINDOW_SECONDS)
+    if not allowed:
+        return False
+    # When Redis is disabled, check_rate_limit uses _pin_limits internally and already
+    # records via record_rate. To keep per-method memory stores accurate, only use
+    # them as additional local tracking (no-op if Redis is active).
+    if _get_redis_client() is None:
+        return _cleanup_and_check(store, key, max_count)
+    return True
+
+
+def _get_redis_client():
+    """Re-export redis-aware helper from rate_limiter."""
+    from app.rate_limiter import _get_redis_client as _rl_redis
+
+    return _rl_redis()
+
+
+async def _record_method(store: dict, key: str):
+    """Async record: Redis when available, otherwise in-memory store."""
+    await record_rate(key)
+    if _get_redis_client() is None:
+        _record(store, key)
+
+
+async def _cleanup_and_check_pin_failures(key: str, max_count: int) -> bool:
+    """Keep PIN failure block logic in-memory; Redis not needed for blocking."""
     now = time_module.time()
     if key in _pin_failures:
         _pin_failures[key] = [t for t in _pin_failures[key] if now - t < WINDOW_SECONDS]
     return len(_pin_failures.get(key, [])) < max_count
 
 
-def _record_pin_failure(key: str):
+async def _record_pin_failure(key: str):
     _pin_failures.setdefault(key, []).append(time_module.time())
 
 
@@ -178,7 +209,7 @@ async def clock_in(
             del _pin_blocks[rate_key]
 
     # Check PIN clock rate limit (independent from NFC/QR)
-    if not _cleanup_and_check(_pin_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    if not await _check_method_limit(_pin_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
             detail=f"Demasiados fichajes por PIN. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
@@ -202,8 +233,8 @@ async def clock_in(
 
     if not matched_emp:
         # Record PIN failure
-        _record_pin_failure(rate_key)
-        if not _cleanup_and_check_pin_failures(rate_key, PIN_FAIL_MAX_PER_MINUTE):
+        await _record_pin_failure(rate_key)
+        if not await _cleanup_and_check_pin_failures(rate_key, PIN_FAIL_MAX_PER_MINUTE):
             _pin_blocks[rate_key] = time_module.time() + PIN_BLOCK_MINUTES * 60
             raise HTTPException(
                 status_code=429,
@@ -216,7 +247,7 @@ async def clock_in(
         )
 
     # Record the clock action for PIN rate limiting
-    _record(_pin_limits, rate_key)
+    await _record_method(_pin_limits, rate_key)
 
     # --- Transition validation ---
     # Get the last non-cancelled clock-in for this employee
@@ -317,7 +348,7 @@ async def clock_nfc(
     # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
     rate_key = _rate_limit_key(request, data.tenant_id)
 
-    if not _cleanup_and_check(_nfc_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    if not await _check_method_limit(_nfc_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
             detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
@@ -349,7 +380,7 @@ async def clock_nfc(
         )
 
     # Record the clock action for rate limiting
-    _record(_nfc_limits, rate_key)
+    await _record_method(_nfc_limits, rate_key)
 
     # --- Auto toggle (same logic as type='auto' in PIN endpoint) ---
     last_clock_result = await db.execute(
@@ -454,7 +485,7 @@ async def clock_qr(
     # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
     rate_key = _rate_limit_key(request, data.tenant_id)
 
-    if not _cleanup_and_check(_qr_limits, rate_key, CLOCK_MAX_PER_MINUTE):
+    if not await _check_method_limit(_qr_limits, rate_key, CLOCK_MAX_PER_MINUTE):
         raise HTTPException(
             status_code=429,
             detail=f"Demasiados fichajes. Máximo {CLOCK_MAX_PER_MINUTE} por minuto.",
@@ -477,7 +508,7 @@ async def clock_qr(
             detail="Código QR no válido o empleado no encontrado",
         )
 
-    _record(_qr_limits, rate_key)
+    await _record_method(_qr_limits, rate_key)
 
     # --- Auto toggle (same logic as NFC) ---
     last_clock_result = await db.execute(

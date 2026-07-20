@@ -2,7 +2,7 @@
 TalentUP Fichaje — Schedules router.
 GET/POST/PUT/DELETE /api/schedules
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
@@ -14,6 +14,7 @@ from app.models.schedule import Schedule
 from app.models.user import User
 from app.auth import require_owner, get_current_user
 from app.audit import log_action
+from app.pagination import paginate
 
 router = APIRouter(prefix="/api/schedules", tags=["schedules"])
 
@@ -46,10 +47,12 @@ async def list_schedules(
     employee_id: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
-    """List schedules with optional filters."""
+    """List schedules with optional filters (paginated)."""
     tenant_id = current_user.tenant_id
     query = select(Schedule)
 
@@ -66,9 +69,7 @@ async def list_schedules(
         query = query.where(Schedule.date <= _parse_date_safe(date_to, "date_to"))
 
     query = query.order_by(Schedule.date.desc())
-    result = await db.execute(query)
-    schedules = result.scalars().all()
-    return [s.to_dict() for s in schedules]
+    return await paginate(db, query, page, limit, item_transform=lambda s: s.to_dict())
 
 
 @router.get("/{schedule_id}")
