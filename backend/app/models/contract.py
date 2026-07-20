@@ -2,10 +2,18 @@
 TalentUP Fichaje — Contract model (histórico de contratos).
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Contract(Base):
@@ -47,26 +55,26 @@ class Contract(Base):
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_id": str(self.employee_id) if self.employee_id else None,
-            "contract_type": self.contract_type,
-            "category": self.category,
+            "contract_type": _s(self.contract_type),
+            "category": _s(self.category),
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "duration_days": self.duration_days,
             "is_indefinite": self.is_indefinite,
             "renewal_number": self.renewal_number,
             "previous_contract_id": str(self.previous_contract_id) if self.previous_contract_id else None,
-            "work_day_type": self.work_day_type,
+            "work_day_type": _s(self.work_day_type),
             "weekly_hours": float(self.weekly_hours) if self.weekly_hours else None,
             "daily_hours": float(self.daily_hours) if self.daily_hours else None,
             "salary_base": float(self.salary_base) if self.salary_base else None,
             "salary_extras": float(self.salary_extras) if self.salary_extras else None,
             "prorated_pages": float(self.prorated_pages) if self.prorated_pages else None,
-            "document_url": self.document_url,
+            "document_url": _s(self.document_url),
             "signed_date": self.signed_date.isoformat() if self.signed_date else None,
-            "notes": self.notes,
-            "status": self.status,
+            "notes": _s(self.notes),
+            "status": _s(self.status),
             "termination_date": self.termination_date.isoformat() if self.termination_date else None,
-            "termination_reason": self.termination_reason,
+            "termination_reason": _s(self.termination_reason),
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

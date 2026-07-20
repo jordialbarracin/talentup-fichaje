@@ -1,8 +1,16 @@
 """TalentUP Fichaje — Holiday model (festivos / días no laborables)."""
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Text
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Holiday(Base):
@@ -23,12 +31,12 @@ class Holiday(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "name": self.name,
+            "name": _s(self.name),
             "date": self.date.isoformat() if self.date else None,
-            "type": self.type,
-            "year": self.year,
-            "region": self.region,
-            "locality": self.locality,
+            "type": _s(self.type),
+            "year": _s(self.year),
+            "region": _s(self.region),
+            "locality": _s(self.locality),
             "is_recurring": self.is_recurring,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

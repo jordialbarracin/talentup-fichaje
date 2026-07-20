@@ -53,8 +53,8 @@ services:
       BACKEND_URL: ${BACKEND_URL:-http://localhost:8000}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
-      STRIPE_PRICE_BASIC: ${STRIPE_PRICE_BASIC:-price_basic_dev}
-      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-price_pro_dev}
+      STRIPE_PRICE_BASIC: ${STRIPE_PRICE_BASIC}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO}
       PORT: "8000"
     depends_on:
       db:

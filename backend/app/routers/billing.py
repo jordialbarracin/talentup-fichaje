@@ -26,9 +26,9 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 # Price IDs — set via env or use dev/test placeholders
-STRIPE_PRICE_BASIC = os.environ.get("STRIPE_PRICE_BASIC", "price_basic_dev")
-STRIPE_PRICE_PRO = os.environ.get("STRIPE_PRICE_PRO", "price_pro_dev")
-STRIPE_PRICE_KIT = os.environ.get("STRIPE_PRICE_KIT", "price_kit_dev")
+STRIPE_PRICE_BASIC = os.environ.get("STRIPE_PRICE_BASIC", "")
+STRIPE_PRICE_PRO = os.environ.get("STRIPE_PRICE_PRO", "")
+STRIPE_PRICE_KIT = os.environ.get("STRIPE_PRICE_KIT", "")
 DOMAIN = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
 

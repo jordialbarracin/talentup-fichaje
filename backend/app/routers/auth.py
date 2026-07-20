@@ -101,17 +101,14 @@ class RegisterRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    access_token: str
-    refresh_token: Optional[str] = None
-    token_type: str = "bearer"
+    ok: bool = True
     user: dict
     tenant_id: Optional[str] = None
     is_new_tenant: bool = False
 
 
 class RefreshResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    ok: bool = True
     user: dict
     tenant_id: Optional[str] = None
 
@@ -161,8 +158,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
     )
 
     return AuthResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        ok=True,
         user=user.to_dict(),
         tenant_id=str(user.tenant_id) if user.tenant_id else None,
     )
@@ -232,7 +228,7 @@ async def refresh(
     )
 
     return RefreshResponse(
-        access_token=access_token,
+        ok=True,
         user=user.to_dict(),
         tenant_id=str(user.tenant_id) if user.tenant_id else None,
     )
@@ -378,8 +374,7 @@ async def register(
     )
 
     return AuthResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        ok=True,
         user=owner.to_dict(),
         tenant_id=str(tenant.id),
         is_new_tenant=True,

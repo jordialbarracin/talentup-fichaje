@@ -2,10 +2,18 @@
 TalentUP Fichaje — Notification model (avisos y notificaciones).
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Notification(Base):
@@ -41,20 +49,20 @@ class Notification(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "recipient_type": self.recipient_type,
+            "recipient_type": _s(self.recipient_type),
             "employee_id": str(self.employee_id) if self.employee_id else None,
             "user_id": str(self.user_id) if self.user_id else None,
-            "type": self.type,
-            "title": self.title,
-            "message": self.message,
-            "priority": self.priority,
-            "category": self.category,
-            "action_url": self.action_url,
-            "action_label": self.action_label,
+            "type": _s(self.type),
+            "title": _s(self.title),
+            "message": _s(self.message),
+            "priority": _s(self.priority),
+            "category": _s(self.category),
+            "action_url": _s(self.action_url),
+            "action_label": _s(self.action_label),
             "is_read": self.is_read,
             "read_at": self.read_at.isoformat() if self.read_at else None,
             "is_dismissed": self.is_dismissed,
-            "sent_via": self.sent_via,
+            "sent_via": _s(self.sent_via),
             "scheduled_for": self.scheduled_for.isoformat() if self.scheduled_for else None,
             "sent_at": self.sent_at.isoformat() if self.sent_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,

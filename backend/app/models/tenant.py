@@ -2,10 +2,18 @@
 TalentUP Fichaje — Tenant model (ampliado con configuración convenio, vacaciones, billing).
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Numeric, DateTime, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Tenant(Base):
@@ -71,20 +79,20 @@ class Tenant(Base):
     def to_dict(self):
         return {
             "id": str(self.id),
-            "name": self.name,
-            "legal_name": self.legal_name,
-            "cif": self.cif,
-            "address": self.address,
-            "city": self.city,
-            "province": self.province,
-            "postal_code": self.postal_code,
-            "phone": self.phone,
-            "email": self.email,
-            "website": self.website,
-            "convenio": self.convenio,
-            "ccaa": self.ccaa,
-            "locality": self.locality,
-            "sector": self.sector,
+            "name": _s(self.name),
+            "legal_name": _s(self.legal_name),
+            "cif": _s(self.cif),
+            "address": _s(self.address),
+            "city": _s(self.city),
+            "province": _s(self.province),
+            "postal_code": _s(self.postal_code),
+            "phone": _s(self.phone),
+            "email": _s(self.email),
+            "website": _s(self.website),
+            "convenio": _s(self.convenio),
+            "ccaa": _s(self.ccaa),
+            "locality": _s(self.locality),
+            "sector": _s(self.sector),
             "tolerancia_min": self.tolerancia_min,
             "default_grace_period": self.default_grace_period,
             "auto_detect_incidents": self.auto_detect_incidents,
@@ -93,22 +101,22 @@ class Tenant(Base):
             "allow_offline_clock": self.allow_offline_clock,
             "max_offline_hours": self.max_offline_hours,
             "vacation_days_per_year": float(self.vacation_days_per_year) if self.vacation_days_per_year else None,
-            "vacation_accrual": self.vacation_accrual,
+            "vacation_accrual": _s(self.vacation_accrual),
             "vacation_requires_approval": self.vacation_requires_approval,
             "min_vacation_days_before": self.min_vacation_days_before,
             "max_consecutive_vacation_days": self.max_consecutive_vacation_days,
             "payroll_day": self.payroll_day,
-            "payroll_period": self.payroll_period,
+            "payroll_period": _s(self.payroll_period),
             "irpf_default": float(self.irpf_default) if self.irpf_default else None,
             "ss_employee_percent": float(self.ss_employee_percent) if self.ss_employee_percent else None,
             "ss_company_percent": float(self.ss_company_percent) if self.ss_company_percent else None,
-            "plan": self.plan,
-            "subscription_status": self.subscription_status,
+            "plan": _s(self.plan),
+            "subscription_status": _s(self.subscription_status),
             "current_period_end": self.current_period_end.isoformat() if self.current_period_end else None,
             "max_employees": self.max_employees,
-            "billing_email": self.billing_email,
-            "stripe_customer_id": self.stripe_customer_id,
-            "stripe_subscription_id": self.stripe_subscription_id,
+            "billing_email": _s(self.billing_email),
+            "stripe_customer_id": _s(self.stripe_customer_id),
+            "stripe_subscription_id": _s(self.stripe_subscription_id),
             "is_active": self.is_active,
             "setup_completed": self.setup_completed,
             "created_at": self.created_at.isoformat() if self.created_at else None,

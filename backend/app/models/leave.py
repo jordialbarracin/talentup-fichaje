@@ -3,9 +3,17 @@ TalentUP Fichaje — Leave model (bajas médicas / ausencias).
 Bajas IT (Incapacidad Temporal), permisos, ausencias.
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Text, Numeric, Index
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Leave(Base):
@@ -56,23 +64,23 @@ class Leave(Base):
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_id": str(self.employee_id) if self.employee_id else None,
-            "leave_type": self.leave_type,
-            "type": self.type,
+            "leave_type": _s(self.leave_type),
+            "type": _s(self.type),
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "expected_end_date": self.expected_end_date.isoformat() if self.expected_end_date else None,
             "total_days": self.total_days,
-            "diagnosis_code": self.diagnosis_code,
-            "medical_center": self.medical_center,
-            "doctor_name": self.doctor_name,
-            "part_number": self.part_number,
-            "mutua": self.mutua,
+            "diagnosis_code": _s(self.diagnosis_code),
+            "medical_center": _s(self.medical_center),
+            "doctor_name": _s(self.doctor_name),
+            "part_number": _s(self.part_number),
+            "mutua": _s(self.mutua),
             "is_work_accident": self.is_work_accident,
             "is_professional_illness": self.is_professional_illness,
             "has_leave_report": self.has_leave_report,
-            "reason": self.reason,
-            "document_url": self.document_url,
-            "status": self.status,
+            "reason": _s(self.reason),
+            "document_url": _s(self.document_url),
+            "status": _s(self.status),
             "is_active": self.is_active,
             "created_by": str(self.created_by) if self.created_by else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,

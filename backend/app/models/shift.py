@@ -2,10 +2,18 @@
 TalentUP Fichaje — Shift model (turnos ampliado con plus_nocturnidad, plus_festividad, is_rotativo).
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Numeric, DateTime, ForeignKey, Time
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Shift(Base):
@@ -46,9 +54,9 @@ class Shift(Base):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
-            "name": self.name,
-            "code": self.code,
-            "shift_type": self.shift_type,
+            "name": _s(self.name),
+            "code": _s(self.code),
+            "shift_type": _s(self.shift_type),
             "start_time": self.start_time.strftime("%H:%M") if self.start_time else None,
             "end_time": self.end_time.strftime("%H:%M") if self.end_time else None,
             "break_start": self.break_start.strftime("%H:%M") if self.break_start else None,
@@ -63,8 +71,8 @@ class Shift(Base):
             "plus_nocturnidad": float(self.plus_nocturnidad) if self.plus_nocturnidad else None,
             "plus_festividad": float(self.plus_festividad) if self.plus_festividad else None,
             "is_rotativo": self.is_rotativo,
-            "color": self.color,
-            "icon": self.icon,
+            "color": _s(self.color),
+            "icon": _s(self.icon),
             "is_active": self.is_active,
             "sort_order": self.sort_order,
             "created_at": self.created_at.isoformat() if self.created_at else None,

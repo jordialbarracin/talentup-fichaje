@@ -2,10 +2,18 @@
 TalentUP Fichaje — VacationRequest model (solicitudes de vacaciones/permisos).
 """
 import uuid
+import html
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Numeric, Date, DateTime, ForeignKey, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class VacationRequest(Base):
@@ -44,17 +52,17 @@ class VacationRequest(Base):
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
             "employee_id": str(self.employee_id) if self.employee_id else None,
-            "type": self.type,
+            "type": _s(self.type),
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "total_days": float(self.total_days) if self.total_days else None,
-            "days_count_method": self.days_count_method,
-            "reason": self.reason,
-            "supporting_doc_url": self.supporting_doc_url,
-            "status": self.status,
+            "days_count_method": _s(self.days_count_method),
+            "reason": _s(self.reason),
+            "supporting_doc_url": _s(self.supporting_doc_url),
+            "status": _s(self.status),
             "approved_by": str(self.approved_by) if self.approved_by else None,
             "approved_at": self.approved_at.isoformat() if self.approved_at else None,
-            "rejection_reason": self.rejection_reason,
+            "rejection_reason": _s(self.rejection_reason),
             "reviewed_by": str(self.reviewed_by) if self.reviewed_by else None,
             "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,

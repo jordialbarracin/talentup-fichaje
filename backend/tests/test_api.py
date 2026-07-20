@@ -53,7 +53,7 @@ class TestAuth:
         assert "Carlos López" in names
 
     async def test_refresh_with_cookie(self, client, seed_data):
-        """POST /api/auth/refresh using refresh_token cookie returns new access_token."""
+        """POST /api/auth/refresh using refresh_token cookie sets a new access_token cookie."""
         login = await client.post("/api/auth/login", json={
             "email": "owner@latagliatella.es",
             "password": "owner123",
@@ -70,20 +70,21 @@ class TestAuth:
         async with refresh_client as rc:
             resp = await rc.post("/api/auth/refresh")
         assert resp.status_code == 200
-        body = resp.json()
-        assert "access_token" in body
-        assert body["access_token"]
+        assert "access_token" in resp.cookies
+        assert resp.cookies["access_token"]
 
     async def test_login_correct(self, client, seed_data):
-        """Login with correct credentials → 200 + token"""
+        """Login with correct credentials → 200 + user info, no token in body"""
         resp = await client.post("/api/auth/login", json={
             "email": "owner@latagliatella.es",
             "password": "owner123",
         })
         assert resp.status_code == 200
         body = resp.json()
-        assert "access_token" in body
-        assert body["token_type"] == "bearer"
+        assert body["ok"] is True
+        assert "access_token" not in body
+        assert "refresh_token" not in body
+        assert "token_type" not in body
         assert body["user"]["email"] == "owner@latagliatella.es"
         assert body["user"]["role"] == "owner"
 
