@@ -2134,7 +2134,7 @@ async function changePlan() {
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.12)">
+    <div id="change-plan-content" style="background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.12)">
       <h3 style="font-size:1rem;font-weight:600;margin:0 0 4px">Seleccionar plan</h3>
       <p style="font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:0 0 16px">Elige el plan al que deseas cambiarte</p>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
@@ -2149,13 +2149,14 @@ async function changePlan() {
         `).join('')}
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="this.closest('div[style]').parentElement.remove()">Cancelar</button>
+        <button class="btn btn-ghost" id="btn-cancel-plan">Cancelar</button>
         <button class="btn btn-primary" id="btn-confirm-plan">Continuar al pago</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 
+  document.getElementById('btn-cancel-plan').addEventListener('click', () => modal.remove());
   document.getElementById('btn-confirm-plan').addEventListener('click', async () => {
     const selected = modal.querySelector('input[name="plan-select"]:checked');
     if (!selected) { showToast('Selecciona un plan', 'warning'); return; }
@@ -2216,17 +2217,39 @@ function renderPagination(containerId, currentPage, totalPages, callback) {
     container.innerHTML = '';
     return;
   }
-  let html = '';
-  html += `<button class="page-btn" onclick="callback(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>Anterior</button>`;
+  container.innerHTML = '';
+
+  function addPageButton(label, page, opts = {}) {
+    const btn = document.createElement('button');
+    btn.className = `page-btn ${opts.active ? 'active' : ''}`;
+    btn.textContent = label;
+    if (opts.disabled) btn.disabled = true;
+    if (!opts.disabled) btn.addEventListener('click', () => callback(page));
+    container.appendChild(btn);
+  }
+
+  function addEllipsis() {
+    const span = document.createElement('span');
+    span.className = 'page-info';
+    span.textContent = '…';
+    container.appendChild(span);
+  }
+
+  addPageButton('Anterior', currentPage - 1, { disabled: currentPage <= 1 });
   const start = Math.max(1, currentPage - 2);
   const end = Math.min(totalPages, currentPage + 2);
-  if (start > 1) html += `<button class="page-btn" onclick="callback(1)">1</button>${start > 2 ? '<span class="page-info">…</span>' : ''}`;
-  for (let i = start; i <= end; i++) {
-    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="callback(${i})">${i}</button>`;
+  if (start > 1) {
+    addPageButton('1', 1);
+    if (start > 2) addEllipsis();
   }
-  if (end < totalPages) html += `${end < totalPages - 1 ? '<span class="page-info">…</span>' : ''}<button class="page-btn" onclick="callback(${totalPages})">${totalPages}</button>`;
-  html += `<button class="page-btn" onclick="callback(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Siguiente</button>`;
-  container.innerHTML = html;
+  for (let i = start; i <= end; i++) {
+    addPageButton(String(i), i, { active: i === currentPage });
+  }
+  if (end < totalPages) {
+    if (end < totalPages - 1) addEllipsis();
+    addPageButton(String(totalPages), totalPages);
+  }
+  addPageButton('Siguiente', currentPage + 1, { disabled: currentPage >= totalPages });
 }
 
 // ===== CONFIRM MODAL =====
@@ -2234,11 +2257,11 @@ function openConfirmModal({ title, message, confirmText = 'Confirmar', cancelTex
   state.pendingConfirm = onConfirm;
   const container = document.getElementById('modal-container');
   container.innerHTML = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeConfirmModal()">
+    <div class="modal-overlay" id="confirm-modal-overlay">
       <div class="modal" style="max-width:420px">
         <div class="modal-header">
           <h3>${title || '¿Estás seguro?'}</h3>
-          <button class="modal-close" onclick="closeConfirmModal()">
+          <button class="modal-close" id="confirm-modal-close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -2246,12 +2269,20 @@ function openConfirmModal({ title, message, confirmText = 'Confirmar', cancelTex
           <p style="font-size:0.875rem;color:rgba(0,0,0,0.6);line-height:1.5">${message || ''}</p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" onclick="closeConfirmModal()">${cancelText}</button>
-          <button class="btn ${confirmClass}" onclick="executeConfirm()">${confirmText}</button>
+          <button class="btn btn-ghost" id="confirm-modal-cancel">${cancelText}</button>
+          <button class="btn ${confirmClass}" id="confirm-modal-ok">${confirmText}</button>
         </div>
       </div>
     </div>
   `;
+
+  const overlay = document.getElementById('confirm-modal-overlay');
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeConfirmModal();
+  });
+  document.getElementById('confirm-modal-close').addEventListener('click', closeConfirmModal);
+  document.getElementById('confirm-modal-cancel').addEventListener('click', closeConfirmModal);
+  document.getElementById('confirm-modal-ok').addEventListener('click', executeConfirm);
 }
 
 function closeConfirmModal() {
@@ -2353,7 +2384,7 @@ function openModal(type, id) {
         <label>Tarjeta NFC (UID)</label>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="text" id="modal-emp-nfc" value="${emp ? (emp.nfc_uid || '') : ''}" placeholder="Ej: 04:12:34:56:78:9A:BC" style="flex:1;font-family:ui-monospace,SF Mono,monospace;font-size:0.8125rem">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="scanNfc()" style="white-space:nowrap">Escanear NFC</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-scan-nfc" style="white-space:nowrap">Escanear NFC</button>
         </div>
         <div id="nfc-scan-result" style="margin-top:6px;font-size:0.75rem;color:rgba(0,0,0,0.45);min-height:0"></div>
       </div>
@@ -2362,8 +2393,8 @@ function openModal(type, id) {
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
           <div id="qr-code-container" style="background:#ffffff;border:1px solid rgba(0,0,0,0.08);border-radius:8px;padding:8px;display:inline-flex"></div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="downloadQR()">Descargar QR</button>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="printQR()">Imprimir QR</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-download-qr">Descargar QR</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-print-qr">Imprimir QR</button>
           </div>
         </div>
       </div>
@@ -2483,11 +2514,11 @@ function openModal(type, id) {
   }
 
   container.innerHTML = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal-overlay" id="edit-modal-overlay">
       <div class="modal ${wide ? 'modal-wide' : ''}">
         <div class="modal-header">
           <h3>${title}</h3>
-          <button class="modal-close" onclick="closeModal()">
+          <button class="modal-close" id="edit-modal-close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -2495,12 +2526,26 @@ function openModal(type, id) {
           ${fields}
         </div>
         <div class="modal-footer">
-          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-          <button class="btn btn-primary" onclick="saveModal('${type}',${id || 'null'})">Guardar</button>
+          <button class="btn btn-ghost" id="edit-modal-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="edit-modal-save">Guardar</button>
         </div>
       </div>
     </div>
   `;
+
+  const editOverlay = document.getElementById('edit-modal-overlay');
+  editOverlay.addEventListener('click', (event) => {
+    if (event.target === editOverlay) closeModal();
+  });
+  document.getElementById('edit-modal-close').addEventListener('click', closeModal);
+  document.getElementById('edit-modal-cancel').addEventListener('click', closeModal);
+  document.getElementById('edit-modal-save').addEventListener('click', () => saveModal(type, id));
+
+  if (type === 'empleado') {
+    document.getElementById('btn-scan-nfc').addEventListener('click', scanNfc);
+    document.getElementById('btn-download-qr').addEventListener('click', downloadQR);
+    document.getElementById('btn-print-qr').addEventListener('click', printQR);
+  }
 
   // Color swatch handler for shift modal
   document.querySelectorAll('#modal-shift-color .color-swatch').forEach(btn => {
