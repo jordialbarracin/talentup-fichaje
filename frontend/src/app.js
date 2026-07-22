@@ -41,7 +41,7 @@ let state = {
 };
 
 const API_BASE = window.location.hostname === 'localhost'
-  ? `http://localhost:${window.API_PORT || 8000}/api`
+  ? `http://localhost:${window.API_PORT || 8080}/api`
   : '/api';
 const PAGE_SIZE = 20;
 
@@ -833,8 +833,8 @@ function getWeekStart() {
 
 // ===== EMPLEADOS =====
 async function loadEmpleados() {
-  let employees = await api('GET', '/employees');
-  employees = Array.isArray(employees) ? employees : [];
+  const response = await api('GET', '/employees');
+  let employees = Array.isArray(response) ? response : (response && response.items) || [];
   if (employees.length === 0) {
     state.isDemo = true;
     updateDemoBanner();
@@ -845,7 +845,14 @@ async function loadEmpleados() {
   state.isDemo = false;
   updateDemoBanner();
   updateOnlineStatus();
-  state.employees = employees;
+  state.employees = employees.map(e => ({
+    ...e,
+    nss: e.nss || e.numero_ss,
+    professional_category: e.professional_category || e.categoria_profesional,
+    contract_type: e.contract_type || e.tipo_contrato,
+    default_shift_id: e.default_shift_id || e.shift_id,
+    status: e.status || e.estado || (e.is_active ? 'active' : 'inactive')
+  }));
 
   // Populate filter dropdowns
   const turnoFilter = document.getElementById('emp-filter-turno');
@@ -2855,15 +2862,15 @@ async function saveModal(type, id) {
     if (!name) { showToast('El nombre es obligatorio', 'warning'); return; }
 
     const body = {
-      first_name: name,
+      name: name,
       last_name: lastname,
       full_name: `${name} ${lastname}`.trim(),
       dni: dni || undefined,
-      nss: nss || undefined,
-      professional_category: category || undefined,
-      contract_type: contractType || undefined,
-      default_shift_id: shiftId ? parseInt(shiftId) : null,
-      status: status,
+      numero_ss: nss || undefined,
+      categoria_profesional: category || undefined,
+      tipo_contrato: contractType || undefined,
+      shift_id: shiftId ? String(shiftId) : undefined,
+      estado: status,
       is_active: status === 'active'
     };
     if (pin) body.pin = pin;
