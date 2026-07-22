@@ -22,6 +22,8 @@ module.exports = defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: true,
+    // Inject API_PORT before any page script runs
+    initScripts: ['window.API_PORT = 8080;'],
   },
 
   projects: [
@@ -34,8 +36,8 @@ module.exports = defineConfig({
   /* Arrancar backend (FastAPI) y frontend (servidor estático) antes de los tests */
   webServer: [
     {
-      command: 'cd ..\\backend && ..\\backend\\venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000',
-      url: 'http://localhost:8000/api/health',
+      command: 'cd ..\backend && ..\backend\venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8080',
+      url: 'http://localhost:8080/api/health',
       timeout: 60_000,
       reuseExistingServer: false,
       env: {

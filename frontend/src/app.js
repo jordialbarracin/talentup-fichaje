@@ -41,7 +41,7 @@ let state = {
 };
 
 const API_BASE = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000/api'
+  ? `http://localhost:${window.API_PORT || 8000}/api`
   : '/api';
 const PAGE_SIZE = 20;
 
