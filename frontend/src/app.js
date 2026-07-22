@@ -114,19 +114,42 @@ function updateDemoBanner() {
 function showToast(message, type = 'error') {
   const container = document.getElementById('toast-container');
   const icons = {
-    error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
-    success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-    warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    info: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    error: createSvgIcon('error'),
+    success: createSvgIcon('success'),
+    warning: createSvgIcon('warning'),
+    info: createSvgIcon('info')
   };
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `${icons[type] || icons.error}${message}`;
+  toast.appendChild(icons[type] || icons.error);
+  const msg = document.createElement('span');
+  msg.textContent = message;
+  toast.appendChild(msg);
   container.appendChild(toast);
   setTimeout(() => {
     toast.classList.add('toast-out');
     setTimeout(() => toast.remove(), 300);
   }, 4000);
+}
+
+function createSvgIcon(type) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'toast-icon');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  if (type === 'error') {
+    svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>';
+  } else if (type === 'success') {
+    svg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+  } else if (type === 'warning') {
+    svg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+  } else {
+    svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+  }
+  return svg;
 }
 
 // ===== JWT HELPERS =====
@@ -354,6 +377,19 @@ async function onbNext(currentStep) {
   }
 }
 
+function initOnboardingListeners() {
+  document.querySelectorAll('.onb-skip').forEach(btn => {
+    btn.addEventListener('click', closeOnboarding);
+  });
+  document.querySelectorAll('.onb-next').forEach(btn => {
+    btn.addEventListener('click', () => onbNext(parseInt(btn.dataset.step)));
+  });
+  const addEmpBtn = document.getElementById('onb-add-employee');
+  if (addEmpBtn) addEmpBtn.addEventListener('click', onbAddEmployee);
+  const finishBtn = document.getElementById('onb-finish');
+  if (finishBtn) finishBtn.addEventListener('click', finishOnboarding);
+}
+
 function onbAddEmployee() {
   const container = document.getElementById('onb-employees-list');
   const idx = onbTempEmployees.length;
@@ -375,7 +411,7 @@ function onbAddEmployee() {
   onbTempEmployees.push({ idx });
 }
 
-function initOnboardingListeners(container) {
+function initOnbShiftListeners(container) {
   container.querySelectorAll('.onb-shift-edit').forEach(btn => {
     btn.addEventListener('click', () => onbEditShift(btn.dataset.shiftId));
   });
@@ -406,7 +442,7 @@ async function loadOnbShifts() {
       </div>`;
     container.appendChild(card);
   });
-  initOnboardingListeners(container);
+  initOnbShiftListeners(container);
 }
 
 function onbRemoveEmployee(idx) {
@@ -481,6 +517,88 @@ document.querySelectorAll('.nav-item[data-page]').forEach(el => {
 document.getElementById('hamburger-btn').addEventListener('click', () => {
   document.getElementById('sidebar').classList.toggle('open');
 });
+
+function bindStaticEventListeners() {
+  // Register modal close
+  const registerModalClose = document.getElementById('register-modal-close');
+  if (registerModalClose) registerModalClose.addEventListener('click', closeRegisterModal);
+
+  // Onboarding listeners
+  initOnboardingListeners();
+
+  // Page buttons
+  const addEmployeeBtn = document.getElementById('btn-add-employee');
+  if (addEmployeeBtn) addEmployeeBtn.addEventListener('click', () => openModal('empleado'));
+
+  const empSearch = document.getElementById('emp-search');
+  const empFilterStatus = document.getElementById('emp-filter-status');
+  const empFilterTurno = document.getElementById('emp-filter-turno');
+  if (empSearch) empSearch.addEventListener('input', filterEmpleados);
+  if (empFilterStatus) empFilterStatus.addEventListener('change', filterEmpleados);
+  if (empFilterTurno) empFilterTurno.addEventListener('change', filterEmpleados);
+
+  const btnCalWeek = document.getElementById('btn-cal-week');
+  const btnCalMonth = document.getElementById('btn-cal-month');
+  const btnCalPrev = document.getElementById('btn-cal-prev');
+  const btnCalNext = document.getElementById('btn-cal-next');
+  const btnCalToday = document.getElementById('btn-cal-today');
+  if (btnCalWeek) btnCalWeek.addEventListener('click', () => calendarView('week'));
+  if (btnCalMonth) btnCalMonth.addEventListener('click', () => calendarView('month'));
+  if (btnCalPrev) btnCalPrev.addEventListener('click', () => calendarNav(-1));
+  if (btnCalNext) btnCalNext.addEventListener('click', () => calendarNav(1));
+  if (btnCalToday) btnCalToday.addEventListener('click', calendarToday);
+
+  const addShiftBtn = document.getElementById('btn-add-shift');
+  if (addShiftBtn) addShiftBtn.addEventListener('click', () => openModal('turno'));
+
+  const clockFilterEmpleado = document.getElementById('clock-filter-empleado');
+  const clockFilterTipo = document.getElementById('clock-filter-tipo');
+  const clockFilterEstado = document.getElementById('clock-filter-estado');
+  const clockFilterDate = document.getElementById('clock-filter-date');
+  if (clockFilterEmpleado) clockFilterEmpleado.addEventListener('change', filterFichajes);
+  if (clockFilterTipo) clockFilterTipo.addEventListener('change', filterFichajes);
+  if (clockFilterEstado) clockFilterEstado.addEventListener('change', filterFichajes);
+  if (clockFilterDate) clockFilterDate.addEventListener('change', filterFichajes);
+
+  const addVacationBtn = document.getElementById('btn-add-vacation');
+  if (addVacationBtn) addVacationBtn.addEventListener('click', () => openModal('vacacion'));
+  const vacSearch = document.getElementById('vac-search');
+  const vacFilterStatus = document.getElementById('vac-filter-status');
+  if (vacSearch) vacSearch.addEventListener('input', filterVacaciones);
+  if (vacFilterStatus) vacFilterStatus.addEventListener('change', filterVacaciones);
+
+  const addLeaveBtn = document.getElementById('btn-add-leave');
+  if (addLeaveBtn) addLeaveBtn.addEventListener('click', () => openModal('baja'));
+  const leaveSearch = document.getElementById('leave-search');
+  const leaveFilterStatus = document.getElementById('leave-filter-status');
+  const leaveFilterType = document.getElementById('leave-filter-type');
+  if (leaveSearch) leaveSearch.addEventListener('input', filterBajas);
+  if (leaveFilterStatus) leaveFilterStatus.addEventListener('change', filterBajas);
+  if (leaveFilterType) leaveFilterType.addEventListener('change', filterBajas);
+
+  const reportType = document.getElementById('report-type');
+  const btnLoadReports = document.getElementById('btn-load-reports');
+  const btnExportPdf = document.getElementById('btn-export-pdf');
+  const btnExportExcel = document.getElementById('btn-export-excel');
+  if (reportType) reportType.addEventListener('change', loadReports);
+  if (btnLoadReports) btnLoadReports.addEventListener('click', loadReports);
+  if (btnExportPdf) btnExportPdf.addEventListener('click', () => exportReport('pdf'));
+  if (btnExportExcel) btnExportExcel.addEventListener('click', () => exportReport('excel'));
+
+  const btnSaveRestaurant = document.getElementById('btn-save-restaurant');
+  const btnSaveConvenio = document.getElementById('btn-save-convenio');
+  const btnSaveCalendar = document.getElementById('btn-save-calendar');
+  const btnAddHoliday = document.getElementById('btn-add-holiday');
+  const btnSaveNotifications = document.getElementById('btn-save-notifications');
+  if (btnSaveRestaurant) btnSaveRestaurant.addEventListener('click', saveSettings);
+  if (btnSaveConvenio) btnSaveConvenio.addEventListener('click', saveSettings);
+  if (btnSaveCalendar) btnSaveCalendar.addEventListener('click', saveSettings);
+  if (btnAddHoliday) btnAddHoliday.addEventListener('click', addHoliday);
+  if (btnSaveNotifications) btnSaveNotifications.addEventListener('click', saveSettings);
+}
+
+// Run static event listener binding when DOM is ready
+document.addEventListener('DOMContentLoaded', bindStaticEventListeners);
 
 // ===== DASHBOARD =====
 async function loadDashboard() {
@@ -693,30 +811,80 @@ function renderEmpleadosPage(page) {
   if (pageItems.length === 0) {
     tbody.innerHTML = EMPTY_ROW(9, 'No hay empleados', 'Prueba con otros filtros de búsqueda.');
   } else {
-    tbody.innerHTML = pageItems.map(e => {
+    tbody.innerHTML = '';
+    const nfcIcon = createNfcIcon();
+    pageItems.forEach(e => {
       const status = e.status || (e.is_active ? 'active' : 'inactive');
       const statusBadge = status === 'active' ? 'badge-active' : status === 'on_vacation' ? 'badge-pending' : status === 'on_leave' ? 'badge-on-leave' : 'badge-inactive';
       const statusLabel = status === 'active' ? 'Activo' : status === 'inactive' ? 'Inactivo' : status === 'on_vacation' ? 'Vacaciones' : status === 'on_leave' ? 'De baja' : status;
       const shiftName = e.shift_name || (state.shifts.find(s => s.id === (e.shift_id || e.default_shift_id)) || {}).name || '—';
-      return `<tr>
-        <td><span class="font-medium">${e.full_name || e.name}${e.nfc_uid ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-2px" title="NFC asignada"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 8a4 4 0 0 1 0 8"/><path d="M16 8a4 4 0 0 0 0 8"/><path d="M10 10a2 2 0 0 1 0 4"/><path d="M14 10a2 2 0 0 0 0 4"/></svg>' : ''}</span></td>
-        <td>${e.dni || '—'}</td>
-        <td>${e.nss || '—'}</td>
-        <td>${e.professional_category || '—'}</td>
-        <td>${e.contract_type || '—'}</td>
-        <td>${shiftName}</td>
-        <td><span class="pin-hidden" onclick="togglePin(this,${e.id})">••••</span></td>
-        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-        <td>
-          <button class="btn btn-ghost btn-sm" onclick="openModal('empleado',${e.id})">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteEmpleado(${e.id})">Eliminar</button>
-        </td>
-      </tr>`;
-    }).join('');
+      const tr = document.createElement('tr');
+      const nameTd = document.createElement('td');
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'font-medium';
+      nameSpan.textContent = e.full_name || e.name;
+      if (e.nfc_uid) {
+        nameSpan.appendChild(nfcIcon.cloneNode(true));
+      }
+      nameTd.appendChild(nameSpan);
+      tr.appendChild(nameTd);
+
+      [e.dni || '—', e.nss || '—', e.professional_category || '—', e.contract_type || '—', shiftName].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+
+      const pinTd = document.createElement('td');
+      const pinSpan = document.createElement('span');
+      pinSpan.className = 'pin-hidden';
+      pinSpan.textContent = '••••';
+      pinSpan.addEventListener('click', () => togglePin(pinSpan, e.id));
+      pinTd.appendChild(pinSpan);
+      tr.appendChild(pinTd);
+
+      const statusTd = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `badge ${statusBadge}`;
+      badge.textContent = statusLabel;
+      statusTd.appendChild(badge);
+      tr.appendChild(statusTd);
+
+      const actionsTd = document.createElement('td');
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-ghost btn-sm';
+      editBtn.textContent = 'Editar';
+      editBtn.addEventListener('click', () => openModal('empleado', e.id));
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger btn-sm';
+      delBtn.textContent = 'Eliminar';
+      delBtn.addEventListener('click', () => deleteEmpleado(e.id));
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(delBtn);
+      tr.appendChild(actionsTd);
+
+      tbody.appendChild(tr);
+    });
   }
 
   // Pagination
   renderPagination('emp-pagination', page, totalPages, renderEmpleadosPage);
+}
+
+function createNfcIcon() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '14');
+  svg.setAttribute('height', '14');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', '#FF6B35');
+  svg.setAttribute('stroke-width', '1.5');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('style', 'margin-left:6px;vertical-align:-2px');
+  svg.setAttribute('title', 'NFC asignada');
+  svg.innerHTML = '<rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 8a4 4 0 0 1 0 8"/><path d="M16 8a4 4 0 0 0 0 8"/><path d="M10 10a2 2 0 0 1 0 4"/><path d="M14 10a2 2 0 0 0 0 4"/>';
+  return svg;
 }
 
 // ===== PIN TOGGLE (PIN from API, not in HTML) =====
@@ -815,13 +983,26 @@ function renderMonthCalendar(container, year, month, holidayDates, schedules) {
   // Adjust for Monday start
   const startOffset = firstDay === 0 ? 6 : firstDay - 1;
 
-  let html = '<div class="calendar-grid">';
-  dayNames.forEach(d => { html += `<div class="calendar-header-cell">${d}</div>`; });
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid';
+  dayNames.forEach(d => {
+    const header = document.createElement('div');
+    header.className = 'calendar-header-cell';
+    header.textContent = d;
+    grid.appendChild(header);
+  });
 
   // Previous month days
   for (let i = startOffset - 1; i >= 0; i--) {
     const d = daysInPrev - i;
-    html += `<div class="calendar-cell other-month"><div class="day-num">${d}</div></div>`;
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell other-month';
+    const num = document.createElement('div');
+    num.className = 'day-num';
+    num.textContent = d;
+    cell.appendChild(num);
+    grid.appendChild(cell);
   }
 
   // Current month days
@@ -837,31 +1018,51 @@ function renderMonthCalendar(container, year, month, holidayDates, schedules) {
     if (hasEvent) cls += ' has-event';
     if (isHoliday) cls += ' schedule-holiday';
 
-    html += `<div class="${cls}" onclick="openDayDetail('${dateStr}')">
-      <div class="day-num">${d}</div>`;
+    const cell = document.createElement('div');
+    cell.className = cls;
+    cell.addEventListener('click', () => openDayDetail(dateStr));
+    const num = document.createElement('div');
+    num.className = 'day-num';
+    num.textContent = d;
+    cell.appendChild(num);
+
     if (isHoliday) {
       const h = (state.holidays || []).find(h => h.date === dateStr);
-      html += `<div class="calendar-event holiday">${h ? h.name : 'Festivo'}</div>`;
+      const eventDiv = document.createElement('div');
+      eventDiv.className = 'calendar-event holiday';
+      eventDiv.textContent = h ? h.name : 'Festivo';
+      cell.appendChild(eventDiv);
     }
     daySchedules.slice(0, 2).forEach(s => {
       const shift = state.shifts.find(sh => sh.id === s.shift_id);
-      html += `<div class="calendar-event shift">${shift ? shift.name : 'Turno'}</div>`;
+      const eventDiv = document.createElement('div');
+      eventDiv.className = 'calendar-event shift';
+      eventDiv.textContent = shift ? shift.name : 'Turno';
+      cell.appendChild(eventDiv);
     });
     if (daySchedules.length > 2) {
-      html += `<div style="font-size:0.6rem;color:rgba(0,0,0,0.3)">+${daySchedules.length - 2} más</div>`;
+      const more = document.createElement('div');
+      more.style.cssText = 'font-size:0.6rem;color:rgba(0,0,0,0.3)';
+      more.textContent = `+${daySchedules.length - 2} más`;
+      cell.appendChild(more);
     }
-    html += '</div>';
+    grid.appendChild(cell);
   }
 
   // Fill remaining cells
   const totalCells = startOffset + daysInMonth;
   const remaining = (7 - (totalCells % 7)) % 7;
   for (let d = 1; d <= remaining; d++) {
-    html += `<div class="calendar-cell other-month"><div class="day-num">${d}</div></div>`;
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell other-month';
+    const num = document.createElement('div');
+    num.className = 'day-num';
+    num.textContent = d;
+    cell.appendChild(num);
+    grid.appendChild(cell);
   }
 
-  html += '</div>';
-  container.innerHTML = html;
+  container.appendChild(grid);
 }
 
 function renderWeekCalendar(container, year, month, holidayDates, schedules) {
@@ -886,36 +1087,74 @@ function renderWeekCalendar(container, year, month, holidayDates, schedules) {
     dates.push(d.toISOString().slice(0,10));
   }
 
-  let html = '<div class="schedule-wrapper"><table class="schedule-table">';
-  html += `<thead><tr><th>Empleado</th>${days.map((d,i) => {
-    const isHoliday = holidayDates.has(dates[i]);
-    return `<th>${d}<br><span class="text-xs text-muted">${dates[i].slice(5)}</span>${isHoliday ? ' •' : ''}</th>`;
-  }).join('')}</tr></thead><tbody>`;
+  container.innerHTML = '';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'schedule-wrapper';
+  const table = document.createElement('table');
+  table.className = 'schedule-table';
 
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  const thEmployee = document.createElement('th');
+  thEmployee.textContent = 'Empleado';
+  headerRow.appendChild(thEmployee);
+  days.forEach((d, i) => {
+    const th = document.createElement('th');
+    const isHoliday = holidayDates.has(dates[i]);
+    th.textContent = d;
+    const br = document.createElement('br');
+    th.appendChild(br);
+    const span = document.createElement('span');
+    span.className = 'text-xs text-muted';
+    span.textContent = dates[i].slice(5);
+    th.appendChild(span);
+    if (isHoliday) {
+      th.appendChild(document.createTextNode(' •'));
+    }
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
   employees.filter(e => e.is_active !== false).forEach(emp => {
-    html += `<tr><td>${emp.full_name || emp.name}</td>`;
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.textContent = emp.full_name || emp.name;
+    tr.appendChild(nameTd);
+
     dates.forEach(dateStr => {
       const sched = (schedules || []).find(s => s.employee_id === emp.id && s.date === dateStr);
       const isHoliday = holidayDates.has(dateStr);
+      const td = document.createElement('td');
+      td.addEventListener('click', () => openAssignShift(emp.id, dateStr));
       if (isHoliday) {
-        html += `<td class="schedule-holiday"><span class="schedule-empty">•</span></td>`;
+        td.className = 'schedule-holiday';
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'schedule-empty';
+        emptySpan.textContent = '•';
+        td.appendChild(emptySpan);
       } else if (sched) {
         const shift = state.shifts.find(sh => sh.id === sched.shift_id);
         const color = shift ? shift.color : '#FF6B35';
-        html += `<td onclick="openAssignShift(${emp.id},'${dateStr}')">
-          <span class="schedule-cell" style="background:${color}22;color:${color}">${shift ? shift.name : 'Turno'}</span>
-        </td>`;
+        const cellSpan = document.createElement('span');
+        cellSpan.className = 'schedule-cell';
+        cellSpan.style.cssText = `background:${color}22;color:${color}`;
+        cellSpan.textContent = shift ? shift.name : 'Turno';
+        td.appendChild(cellSpan);
       } else {
-        html += `<td onclick="openAssignShift(${emp.id},'${dateStr}')">
-          <span class="schedule-empty">—</span>
-        </td>`;
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'schedule-empty';
+        emptySpan.textContent = '—';
+        td.appendChild(emptySpan);
       }
+      tr.appendChild(td);
     });
-    html += '</tr>';
+    tbody.appendChild(tr);
   });
-
-  html += '</tbody></table></div>';
-  container.innerHTML = html;
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  container.appendChild(wrapper);
 }
 
 function openDayDetail(dateStr) {
@@ -931,34 +1170,75 @@ function openAssignShift(employeeId, date) {
   const currentShiftId = currentSched ? currentSched.shift_id : null;
 
   const container = document.getElementById('modal-container');
-  container.innerHTML = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal" style="max-width:400px">
-        <div class="modal-header">
-          <h3>Asignar turno</h3>
-          <button class="modal-close" onclick="closeModal()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p style="margin-bottom:16px;color:rgba(0,0,0,0.5);font-size:0.875rem">
-            <strong style="color:#1d1d1f">${empName}</strong> — ${date}
-          </p>
-          <div class="form-group">
-            <label>Seleccionar turno</label>
-            <select id="assign-shift-select">
-              <option value="">Sin turno (descanso)</option>
-              ${shifts.map(s => `<option value="${s.id}" ${currentShiftId === s.id ? 'selected' : ''}>${s.name} (${s.start}—${s.end})</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-          <button class="btn btn-primary" onclick="saveAssignShift(${employeeId},'${date}')">Asignar</button>
-        </div>
-      </div>
-    </div>
-  `;
+  container.innerHTML = '';
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.maxWidth = '400px';
+
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const h3 = document.createElement('h3');
+  h3.textContent = 'Asignar turno';
+  header.appendChild(h3);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  closeBtn.addEventListener('click', closeModal);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  const p = document.createElement('p');
+  p.style.cssText = 'margin-bottom:16px;color:rgba(0,0,0,0.5);font-size:0.875rem';
+  const strong = document.createElement('strong');
+  strong.style.color = '#1d1d1f';
+  strong.textContent = empName;
+  p.appendChild(strong);
+  p.appendChild(document.createTextNode(` — ${date}`));
+  body.appendChild(p);
+
+  const formGroup = document.createElement('div');
+  formGroup.className = 'form-group';
+  const label = document.createElement('label');
+  label.textContent = 'Seleccionar turno';
+  formGroup.appendChild(label);
+  const select = document.createElement('select');
+  select.id = 'assign-shift-select';
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Sin turno (descanso)';
+  select.appendChild(defaultOpt);
+  shifts.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.start}—${s.end})`;
+    if (currentShiftId === s.id) opt.selected = true;
+    select.appendChild(opt);
+  });
+  formGroup.appendChild(select);
+  body.appendChild(formGroup);
+  modal.appendChild(body);
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.addEventListener('click', closeModal);
+  const assignBtn = document.createElement('button');
+  assignBtn.className = 'btn btn-primary';
+  assignBtn.textContent = 'Asignar';
+  assignBtn.addEventListener('click', () => saveAssignShift(employeeId, date));
+  footer.appendChild(cancelBtn);
+  footer.appendChild(assignBtn);
+  modal.appendChild(footer);
+
+  overlay.appendChild(modal);
+  container.appendChild(overlay);
 }
 
 async function saveAssignShift(employeeId, date) {
@@ -992,21 +1272,50 @@ async function loadTurnos() {
     grid.innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No hay turnos configurados</div>';
     return;
   }
-  grid.innerHTML = shifts.map(s => {
-    const typeLabels = { morning:'Mañana', afternoon:'Tarde', night:'Noche', split:'Partido', rotating:'Rotativo', custom:'Personalizado' };
-    return `<div class="shift-card" style="border-left-color:${s.color}">
-      <div class="shift-card-header">
-        <span class="shift-card-name">${s.name}</span>
-        <div style="width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
-      </div>
-      <div class="shift-card-time">${s.start_time || s.start} — ${s.end_time || s.end}</div>
-      <div class="shift-card-tolerance">Tolerancia: ${s.tolerance_min || s.tolerance || 5} min · ${typeLabels[s.shift_type] || s.shift_type || '—'}</div>
-      <div class="shift-card-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openModal('turno',${s.id})">Editar</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteTurno(${s.id})">Eliminar</button>
-      </div>
-    </div>`;
-  }).join('');
+  grid.innerHTML = '';
+  const typeLabels = { morning:'Mañana', afternoon:'Tarde', night:'Noche', split:'Partido', rotating:'Rotativo', custom:'Personalizado' };
+  shifts.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'shift-card';
+    card.style.borderLeftColor = s.color;
+
+    const header = document.createElement('div');
+    header.className = 'shift-card-header';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'shift-card-name';
+    nameSpan.textContent = s.name;
+    header.appendChild(nameSpan);
+    const dot = document.createElement('div');
+    dot.style.cssText = `width:12px;height:12px;border-radius:50%;background:${s.color};flex-shrink:0`;
+    header.appendChild(dot);
+    card.appendChild(header);
+
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'shift-card-time';
+    timeDiv.textContent = `${s.start_time || s.start} — ${s.end_time || s.end}`;
+    card.appendChild(timeDiv);
+
+    const toleranceDiv = document.createElement('div');
+    toleranceDiv.className = 'shift-card-tolerance';
+    toleranceDiv.textContent = `Tolerancia: ${s.tolerance_min || s.tolerance || 5} min · ${typeLabels[s.shift_type] || s.shift_type || '—'}`;
+    card.appendChild(toleranceDiv);
+
+    const actions = document.createElement('div');
+    actions.className = 'shift-card-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-ghost btn-sm';
+    editBtn.textContent = 'Editar';
+    editBtn.addEventListener('click', () => openModal('turno', s.id));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-danger btn-sm';
+    delBtn.textContent = 'Eliminar';
+    delBtn.addEventListener('click', () => deleteTurno(s.id));
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    card.appendChild(actions);
+
+    grid.appendChild(card);
+  });
 }
 
 async function deleteTurno(id) {
@@ -1099,20 +1408,27 @@ function renderFichajesPage(page) {
   if (pageItems.length === 0) {
     tbody.innerHTML = EMPTY_ROW(5, 'No hay fichajes', 'Prueba con otros filtros de fecha, empleado o estado.');
   } else {
-    tbody.innerHTML = pageItems.map(r => {
+    tbody.innerHTML = '';
+    pageItems.forEach(r => {
       const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
       const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
       const typeLabel = r.type === 'in' ? 'Entrada' : r.type === 'out' ? 'Salida' : r.type === 'break_start' ? 'Pausa' : r.type === 'break_end' ? 'Vuelta' : r.type;
       const dateStr = r.date || (r.timestamp ? r.timestamp.slice(0,10) : '—');
       const timeStr = r.time || (r.timestamp ? r.timestamp.slice(11,16) : '—');
-      return `<tr>
-        <td>${r.employee_name || '—'}</td>
-        <td>${dateStr}</td>
-        <td>${typeLabel}</td>
-        <td>${timeStr}</td>
-        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-      </tr>`;
-    }).join('');
+      const tr = document.createElement('tr');
+      [r.employee_name || '—', dateStr, typeLabel, timeStr].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      const statusTd = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `badge ${statusBadge}`;
+      badge.textContent = statusLabel;
+      statusTd.appendChild(badge);
+      tr.appendChild(statusTd);
+      tbody.appendChild(tr);
+    });
   }
 
   renderPagination('clock-pagination', page, totalPages, renderFichajesPage);
@@ -1172,25 +1488,45 @@ function renderVacacionesPage(page) {
   if (pageItems.length === 0) {
     tbody.innerHTML = EMPTY_ROW(7, 'No hay solicitudes', 'Prueba con otros filtros de búsqueda o estado.');
   } else {
-    tbody.innerHTML = pageItems.map(v => {
+    tbody.innerHTML = '';
+    pageItems.forEach(v => {
       const statusBadge = v.status === 'pending' ? 'badge-pending' : v.status === 'approved' ? 'badge-approved' : 'badge-rejected';
       const statusLabel = v.status === 'pending' ? 'Pendiente' : v.status === 'approved' ? 'Aprobada' : 'Rechazada';
       const typeLabel = v.type === 'vacation' ? 'Vacaciones' : v.type === 'personal_leave' ? 'Permiso personal' : v.type || '—';
-      return `<tr>
-        <td>${v.employee_name || '—'}</td>
-        <td>${typeLabel}</td>
-        <td>${v.start_date || '—'}</td>
-        <td>${v.end_date || '—'}</td>
-        <td>${v.total_days || '—'}</td>
-        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-        <td>
-          ${v.status === 'pending' ? `
-            <button class="btn btn-sm btn-secondary" onclick="approveVacacion(${v.id})">Aprobar</button>
-            <button class="btn btn-sm btn-danger" onclick="rejectVacacion(${v.id})">Rechazar</button>
-          ` : '<span class="text-xs text-muted">—</span>'}
-        </td>
-      </tr>`;
-    }).join('');
+      const tr = document.createElement('tr');
+      [v.employee_name || '—', typeLabel, v.start_date || '—', v.end_date || '—', v.total_days || '—'].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      const statusTd = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `badge ${statusBadge}`;
+      badge.textContent = statusLabel;
+      statusTd.appendChild(badge);
+      tr.appendChild(statusTd);
+
+      const actionsTd = document.createElement('td');
+      if (v.status === 'pending') {
+        const approveBtn = document.createElement('button');
+        approveBtn.className = 'btn btn-sm btn-secondary';
+        approveBtn.textContent = 'Aprobar';
+        approveBtn.addEventListener('click', () => approveVacacion(v.id));
+        const rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn btn-sm btn-danger';
+        rejectBtn.textContent = 'Rechazar';
+        rejectBtn.addEventListener('click', () => rejectVacacion(v.id));
+        actionsTd.appendChild(approveBtn);
+        actionsTd.appendChild(rejectBtn);
+      } else {
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'text-xs text-muted';
+        emptySpan.textContent = '—';
+        actionsTd.appendChild(emptySpan);
+      }
+      tr.appendChild(actionsTd);
+      tbody.appendChild(tr);
+    });
   }
 
   renderPagination('vac-pagination', page, totalPages, renderVacacionesPage);
@@ -1231,31 +1567,61 @@ async function approveVacacion(id) {
   else showToast('Error al aprobar', 'error');
 }
 
-async function rejectVacacion(id) {
+function rejectVacacion(id) {
   // Use modal instead of prompt
   const container = document.getElementById('modal-container');
-  container.innerHTML = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal" style="max-width:400px">
-        <div class="modal-header">
-          <h3>Rechazar solicitud</h3>
-          <button class="modal-close" onclick="closeModal()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Motivo del rechazo</label>
-            <textarea id="reject-reason" rows="3" placeholder="Indica el motivo…" style="width:100%"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-          <button class="btn btn-danger" onclick="confirmRejectVacacion(${id})">Rechazar</button>
-        </div>
-      </div>
-    </div>
-  `;
+  container.innerHTML = '';
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.maxWidth = '400px';
+
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const h3 = document.createElement('h3');
+  h3.textContent = 'Rechazar solicitud';
+  header.appendChild(h3);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  closeBtn.addEventListener('click', closeModal);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  const formGroup = document.createElement('div');
+  formGroup.className = 'form-group';
+  const label = document.createElement('label');
+  label.textContent = 'Motivo del rechazo';
+  formGroup.appendChild(label);
+  const textarea = document.createElement('textarea');
+  textarea.id = 'reject-reason';
+  textarea.rows = 3;
+  textarea.placeholder = 'Indica el motivo…';
+  textarea.style.width = '100%';
+  formGroup.appendChild(textarea);
+  body.appendChild(formGroup);
+  modal.appendChild(body);
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.addEventListener('click', closeModal);
+  const rejectBtn = document.createElement('button');
+  rejectBtn.className = 'btn btn-danger';
+  rejectBtn.textContent = 'Rechazar';
+  rejectBtn.addEventListener('click', () => confirmRejectVacacion(id));
+  footer.appendChild(cancelBtn);
+  footer.appendChild(rejectBtn);
+  modal.appendChild(footer);
+
+  overlay.appendChild(modal);
+  container.appendChild(overlay);
 }
 
 async function confirmRejectVacacion(id) {

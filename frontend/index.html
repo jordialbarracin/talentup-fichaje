@@ -339,9 +339,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <span id="login-btn-text">Iniciar sesión</span>
         <span class="spinner hidden" id="login-spinner"></span>
       </button>
-      <button type="button" class="btn btn-ghost hidden" id="demo-btn" style="margin-top:8px">
-        Entrar modo demo
-      </button>
+      <button type="button" id="demo-btn" class="btn btn-secondary hidden" style="width:100%;margin-top:8px">Entrar en modo demo</button>
       <div style="text-align:center;margin-top:12px">
         <button type="button" class="btn btn-ghost" id="register-link" style="font-size:0.8125rem;color:#FF6B35;font-weight:500">
           Crear cuenta
@@ -361,7 +359,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
   <div style="background:#ffffff;border:none;border-radius:10px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;animation:slideUp 200ms ease;box-shadow:0 4px 16px rgba(0,0,0,0.08)">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(0,0,0,0.06)">
       <h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.022em">Crear cuenta</h3>
-      <button class="modal-close" onclick="closeRegisterModal()">
+      <button class="modal-close" id="register-modal-close">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
@@ -428,8 +426,8 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
-        <button class="btn btn-ghost" onclick="closeOnboarding()">Saltar</button>
-        <button class="btn btn-primary" onclick="onbNext(1)">Continuar</button>
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary onb-next" data-step="1">Continuar</button>
       </div>
     </div>
 
@@ -441,8 +439,8 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <div id="onb-shifts-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
       <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
-        <button class="btn btn-ghost" onclick="closeOnboarding()">Saltar</button>
-        <button class="btn btn-primary" onclick="onbNext(2)">Continuar</button>
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary onb-next" data-step="2">Continuar</button>
       </div>
     </div>
 
@@ -452,14 +450,14 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <h3 style="font-size:1.125rem;font-weight:600;color:#1d1d1f;margin-bottom:4px;letter-spacing:-0.022em">Anade tus empleados</h3>
         <p style="color:rgba(0,0,0,0.45);font-size:0.8125rem;margin-bottom:16px">Puedes anadirlos ahora o hacerlo mas tarde desde el panel.</p>
         <div id="onb-employees-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-        <button class="btn btn-secondary" onclick="onbAddEmployee()" style="width:100%;padding:10px;font-size:0.8125rem">
+        <button class="btn btn-secondary" id="onb-add-employee" style="width:100%;padding:10px;font-size:0.8125rem">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Anadir empleado
         </button>
       </div>
       <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
-        <button class="btn btn-ghost" onclick="closeOnboarding()">Saltar</button>
-        <button class="btn btn-primary" onclick="finishOnboarding()">Finalizar</button>
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary" id="onb-finish">Finalizar</button>
       </div>
     </div>
   </div>
@@ -635,7 +633,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <h2>Empleados</h2>
           <p>Gestión completa de la plantilla</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('empleado')">
+        <button class="btn btn-primary" id="btn-add-employee">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Añadir empleado
         </button>
@@ -643,18 +641,18 @@ tr:hover td{background:rgba(0,0,0,0.02)}
       <div class="table-card">
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
-            <input type="text" id="emp-search" placeholder="Buscar nombre, DNI, SS…" oninput="filterEmpleados()">
-            <select id="emp-filter-status" onchange="filterEmpleados()">
-              <option value="">Todos los estados</option>
-              <option value="active">Activos</option>
-              <option value="inactive">Inactivos</option>
-              <option value="on_vacation">De vacaciones</option>
-              <option value="on_leave">De baja</option>
-            </select>
-            <select id="emp-filter-turno" onchange="filterEmpleados()">
-              <option value="">Todos los turnos</option>
-            </select>
-          </div>
+              <input type="text" id="emp-search" placeholder="Buscar nombre, DNI, SS…">
+              <select id="emp-filter-status">
+                <option value="">Todos los estados</option>
+                <option value="active">Activos</option>
+                <option value="inactive">Inactivos</option>
+                <option value="on_vacation">De vacaciones</option>
+                <option value="on_leave">De baja</option>
+              </select>
+              <select id="emp-filter-turno">
+                <option value="">Todos los turnos</option>
+              </select>
+            </div>
         </div>
         <div class="table-card-body">
           <table>
@@ -688,19 +686,19 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <p>Vista mensual con turnos, festivos y vacaciones</p>
         </div>
         <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" onclick="calendarView('week')">Semanal</button>
-          <button class="btn btn-primary btn-sm" onclick="calendarView('month')">Mensual</button>
+          <button class="btn btn-ghost btn-sm" id="btn-cal-week">Semanal</button>
+          <button class="btn btn-primary btn-sm" id="btn-cal-month">Mensual</button>
         </div>
       </div>
       <div class="calendar-nav">
-        <button class="btn btn-ghost btn-icon" onclick="calendarNav(-1)">
+        <button class="btn btn-ghost btn-icon" id="btn-cal-prev">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <h3 id="calendar-title">Julio 2026</h3>
-        <button class="btn btn-ghost btn-icon" onclick="calendarNav(1)">
+        <button class="btn btn-ghost btn-icon" id="btn-cal-next">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button class="btn btn-ghost btn-sm" onclick="calendarToday()">Hoy</button>
+        <button class="btn btn-ghost btn-sm" id="btn-cal-today">Hoy</button>
       </div>
       <div id="calendar-container">
         <div class="loading-overlay"><span class="spinner"></span> Cargando calendario…</div>
@@ -714,7 +712,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <h2>Turnos</h2>
           <p>Configuración de turnos laborales</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('turno')">
+        <button class="btn btn-primary" id="btn-add-shift">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Crear turno
         </button>
@@ -734,17 +732,17 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
             <input type="date" id="clock-filter-date">
-            <select id="clock-filter-empleado" onchange="filterFichajes()">
+            <select id="clock-filter-empleado">
               <option value="">Todos los empleados</option>
             </select>
-            <select id="clock-filter-tipo" onchange="filterFichajes()">
+            <select id="clock-filter-tipo">
               <option value="">Todos los tipos</option>
               <option value="in">Entrada</option>
               <option value="out">Salida</option>
               <option value="break_start">Pausa</option>
               <option value="break_end">Vuelta</option>
             </select>
-            <select id="clock-filter-estado" onchange="filterFichajes()">
+            <select id="clock-filter-estado">
               <option value="">Todos los estados</option>
               <option value="ok">OK</option>
               <option value="late">Tarde</option>
@@ -779,7 +777,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <h2>Vacaciones y Permisos</h2>
           <p>Gestión de solicitudes y calendario</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('vacacion')">
+        <button class="btn btn-primary" id="btn-add-vacation">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nueva solicitud
         </button>
@@ -789,8 +787,8 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <div class="table-card-body">
           <div class="table-card-header" style="border-bottom:none;padding-bottom:0;flex-wrap:wrap">
             <div class="search-bar">
-              <input type="text" id="vac-search" placeholder="Buscar empleado o tipo…" oninput="filterVacaciones()">
-              <select id="vac-filter-status" onchange="filterVacaciones()">
+              <input type="text" id="vac-search" placeholder="Buscar empleado o tipo…">
+              <select id="vac-filter-status">
                 <option value="">Todos los estados</option>
                 <option value="pending">Pendientes</option>
                 <option value="approved">Aprobadas</option>
@@ -834,7 +832,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <h2>Bajas (IT)</h2>
           <p>Registro de incapacidad temporal y permisos</p>
         </div>
-        <button class="btn btn-primary" onclick="openModal('baja')">
+        <button class="btn btn-primary" id="btn-add-leave">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Registrar baja
         </button>
@@ -842,13 +840,13 @@ tr:hover td{background:rgba(0,0,0,0.02)}
       <div class="table-card">
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
-            <input type="text" id="leave-search" placeholder="Buscar empleado o tipo…" oninput="filterBajas()">
-            <select id="leave-filter-status" onchange="filterBajas()">
+            <input type="text" id="leave-search" placeholder="Buscar empleado o tipo…">
+            <select id="leave-filter-status">
               <option value="">Todas las bajas</option>
               <option value="active">Activas</option>
               <option value="finished">Finalizadas</option>
             </select>
-            <select id="leave-filter-type" onchange="filterBajas()">
+            <select id="leave-filter-type">
               <option value="">Todos los tipos</option>
               <option value="EC">Enfermedad Común</option>
               <option value="AL">Accidente Laboral</option>
@@ -897,7 +895,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         </div>
         <div class="filter-group">
           <label>Tipo de informe</label>
-          <select id="report-type" onchange="loadReports()">
+          <select id="report-type">
             <option value="hours">Horas trabajadas</option>
             <option value="overtime">Horas extra</option>
             <option value="absenteeism">Absentismo</option>
@@ -907,9 +905,9 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           </select>
         </div>
         <div class="reports-actions">
-          <button class="btn btn-primary btn-sm" onclick="loadReports()">Generar informe</button>
-          <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')">Exportar PDF</button>
-          <button class="btn btn-secondary btn-sm" onclick="exportReport('excel')">Exportar Excel</button>
+          <button class="btn btn-primary btn-sm" id="btn-load-reports">Generar informe</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-pdf">Exportar PDF</button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-excel">Exportar Excel</button>
         </div>
       </div>
       <div class="reports-section">
@@ -971,7 +969,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             <label>Email</label>
             <input type="email" id="cfg-email" placeholder="info@restaurante.es">
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+          <button class="btn btn-primary" id="btn-save-restaurant">Guardar configuración</button>
         </div>
       </div>
 
@@ -1012,7 +1010,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             <label>Días de vacaciones por año</label>
             <input type="number" id="cfg-vacation-days" placeholder="30" min="0" max="45">
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+          <button class="btn btn-primary" id="btn-save-convenio">Guardar configuración</button>
         </div>
       </div>
 
@@ -1034,7 +1032,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
               <option value="7">Todos los días</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+          <button class="btn btn-primary" id="btn-save-calendar">Guardar configuración</button>
         </div>
       </div>
 
@@ -1064,7 +1062,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
               <label>Nombre</label>
               <input type="text" id="cfg-holiday-name" placeholder="Nombre del festivo">
             </div>
-            <button class="btn btn-primary btn-sm" onclick="addHoliday()">Añadir</button>
+            <button class="btn btn-primary btn-sm" id="btn-add-holiday">Añadir</button>
           </div>
         </div>
       </div>
@@ -1096,7 +1094,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
               <option value="never">Nunca</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Guardar configuración</button>
+          <button class="btn btn-primary" id="btn-save-notifications">Guardar configuración</button>
         </div>
       </div>
 
