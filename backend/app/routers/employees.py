@@ -262,7 +262,7 @@ async def create_employee(
         action="create",
         entity_type="employee",
         entity_id=emp.id,
-        new_value=emp.to_dict_full(),
+        new_value=emp.to_dict(),
     )
     await db.commit()
 
@@ -339,7 +339,7 @@ async def update_employee(
     if data.is_available_for_scheduling is not None: emp.is_available_for_scheduling = data.is_available_for_scheduling
     if data.employee_code is not None: emp.employee_code = data.employee_code
 
-    old_value = emp.to_dict_full()
+    old_value = emp.to_dict()
     await db.commit()
     await db.refresh(emp)
 
@@ -351,7 +351,7 @@ async def update_employee(
         entity_type="employee",
         entity_id=emp.id,
         old_value=old_value,
-        new_value=emp.to_dict_full(),
+        new_value=emp.to_dict(),
     )
     await db.commit()
 
@@ -372,7 +372,7 @@ async def delete_employee(
     if current_user.role != "super_admin" and emp.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=403, detail="Acceso denegado")
 
-    old_value = emp.to_dict_full()
+    old_value = emp.to_dict()
     await db.execute(delete(Employee).where(Employee.id == employee_id))
     await db.commit()
 

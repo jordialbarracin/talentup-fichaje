@@ -2812,10 +2812,15 @@ function printQR() {
   if (!canvas) { showToast('Genera primero el codigo QR', 'warning'); return; }
   const win = window.open('', '_blank');
   if (!win) { showToast('Permite ventanas emergentes para imprimir', 'warning'); return; }
-  win.document.write('<!DOCTYPE html><html><head><title>Imprimir QR</title><style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff}img{max-width:90vw;max-height:90vh}</style></head><body>');
-  win.document.write('<img src="' + canvas.toDataURL('image/png') + '" onload="window.print();window.close()">');
-  win.document.write('</body></html>');
-  win.document.close();
+  const doc = win.document;
+  doc.head.appendChild(Object.assign(doc.createElement('title'), { textContent: 'Imprimir QR' }));
+  const style = doc.createElement('style');
+  style.textContent = 'body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff}img{max-width:90vw;max-height:90vh}';
+  doc.head.appendChild(style);
+  const img = doc.createElement('img');
+  img.src = canvas.toDataURL('image/png');
+  img.onload = () => { win.print(); win.close(); };
+  doc.body.appendChild(img);
 }
 
 // ===== INIT =====

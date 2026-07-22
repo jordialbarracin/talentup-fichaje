@@ -179,7 +179,7 @@ class Employee(Base):
             "nfc_card_id": _s(self.nfc_card_id),
             "nfc_uid": _s(self.nfc_uid),
             "photo_url": _s(self.photo_url),
-            "fingerprint_hash": _s(self.fingerprint_hash),
+            "fingerprint_hash": _mask(_s(self.fingerprint_hash), visible=4) if mask_pii else _s(self.fingerprint_hash),
             "shift_id": str(self.shift_id) if self.shift_id else None,
             "clock_method": _s(self.clock_method),
             "vacation_annual_days": float(self.vacation_annual_days) if self.vacation_annual_days else None,
