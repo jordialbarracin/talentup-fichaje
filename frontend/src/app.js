@@ -1689,23 +1689,41 @@ function renderBajasPage(page) {
   if (pageItems.length === 0) {
     tbody.innerHTML = EMPTY_ROW(7, 'No hay bajas', 'Prueba con otros filtros de búsqueda, estado o tipo.');
   } else {
+    tbody.innerHTML = '';
     const typeLabels = { EC:'Enf. Común', ANL:'Acc. No Laboral', AL:'Acc. Laboral', EP:'Enf. Profesional', MAT:'Maternidad', PAT:'Paternidad' };
-    tbody.innerHTML = pageItems.map(l => {
+    pageItems.forEach(l => {
       const statusBadge = l.status === 'active' ? 'badge-incident' : 'badge-ok';
       const statusLabel = l.status === 'active' ? 'Activa' : 'Finalizada';
       const days = l.total_days || (l.start_date && l.end_date ? Math.ceil((new Date(l.end_date) - new Date(l.start_date)) / (1000*60*60*24)) + 1 : '—');
-      return `<tr>
-        <td>${l.employee_name || '—'}</td>
-        <td>${typeLabels[l.leave_type] || l.leave_type || '—'}</td>
-        <td>${l.start_date || '—'}</td>
-        <td>${l.expected_end_date || l.end_date || '—'}</td>
-        <td>${days}</td>
-        <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-        <td>
-          ${l.status === 'active' ? `<button class="btn btn-sm btn-secondary" onclick="closeLeave(${l.id})">Dar alta</button>` : '<span class="text-xs text-muted">—</span>'}
-        </td>
-      </tr>`;
-    }).join('');
+      const tr = document.createElement('tr');
+      [l.employee_name || '—', typeLabels[l.leave_type] || l.leave_type || '—', l.start_date || '—', l.expected_end_date || l.end_date || '—', days].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      const statusTd = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `badge ${statusBadge}`;
+      badge.textContent = statusLabel;
+      statusTd.appendChild(badge);
+      tr.appendChild(statusTd);
+
+      const actionsTd = document.createElement('td');
+      if (l.status === 'active') {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn btn-sm btn-secondary';
+        closeBtn.textContent = 'Dar alta';
+        closeBtn.addEventListener('click', () => closeLeave(l.id));
+        actionsTd.appendChild(closeBtn);
+      } else {
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'text-xs text-muted';
+        emptySpan.textContent = '—';
+        actionsTd.appendChild(emptySpan);
+      }
+      tr.appendChild(actionsTd);
+      tbody.appendChild(tr);
+    });
   }
 
   renderPagination('leave-pagination', page, totalPages, renderBajasPage);
@@ -1752,61 +1770,138 @@ async function loadReports() {
   document.getElementById('report-title').textContent = titles[type] || 'Informe';
 
   let data = null;
-  let theadHtml = '';
-  let tbodyHtml = '';
+
+  const thead = document.getElementById('report-thead');
+  const tbody = document.getElementById('report-body');
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
 
   switch(type) {
     case 'hours':
       data = await api('GET', `/reports/hours?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>Horas ordinarias</th><th>Horas extra</th><th>Total</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'Horas ordinarias', 'Horas extra', 'Total']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.ordinarias || r.regular_hours || 0}h</td><td>${r.extra || r.overtime_hours || 0}h</td><td><strong>${r.total || (parseFloat(r.regular_hours||0) + parseFloat(r.overtime_hours||0)).toFixed(1)}h</strong></td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          const total = r.total || (parseFloat(r.regular_hours||0) + parseFloat(r.overtime_hours||0)).toFixed(1);
+          [r.employee_name, `${r.ordinarias || r.regular_hours || 0}h`, `${r.extra || r.overtime_hours || 0}h`, total + 'h'].forEach(text => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+          });
+          const lastTd = tr.lastChild;
+          const strong = document.createElement('strong');
+          strong.textContent = lastTd.textContent;
+          lastTd.textContent = '';
+          lastTd.appendChild(strong);
+          tbody.appendChild(tr);
+        });
       }
       break;
     case 'overtime':
       data = await api('GET', `/reports/overtime?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>Fecha</th><th>Tipo</th><th>Minutos</th><th>Estado</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'Fecha', 'Tipo', 'Minutos', 'Estado']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.date}</td><td>${r.overtime_type === 'structural' ? 'Estructural' : 'Fuerza Mayor'}</td><td>${r.total_minutes} min</td><td>${r.compensation_type || 'Pendiente'}</td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          const typeLabel = r.overtime_type === 'structural' ? 'Estructural' : 'Fuerza Mayor';
+          [r.employee_name, r.date, typeLabel, `${r.total_minutes} min`, r.compensation_type || 'Pendiente'].forEach(text => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
       }
       break;
     case 'absenteeism':
       data = await api('GET', `/reports/absenteeism?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>Días ausencia</th><th>Tasa</th><th>Tipo</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'Días ausencia', 'Tasa', 'Tipo']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.absent_days || 0}</td><td>${r.rate || '0%'}</td><td>${r.type || '—'}</td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          [r.employee_name, r.absent_days || 0, r.rate || '0%', r.type || '—'].forEach(text => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
       }
       break;
     case 'labor-costs':
       data = await api('GET', `/reports/labor-costs?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>Salario base</th><th>Complementos</th><th>Horas extra</th><th>Total</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'Salario base', 'Complementos', 'Horas extra', 'Total']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.base_salary || 0}€</td><td>${r.complements || 0}€</td><td>${r.overtime_amount || 0}€</td><td><strong>${r.total || 0}€</strong></td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          [r.employee_name, `${r.base_salary || 0}€`, `${r.complements || 0}€`, `${r.overtime_amount || 0}€`, `${r.total || 0}€`].forEach((text, idx) => {
+            const td = document.createElement('td');
+            if (idx === 4) {
+              const strong = document.createElement('strong');
+              strong.textContent = text;
+              td.appendChild(strong);
+            } else {
+              td.textContent = text;
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
       }
       break;
     case 'inspection':
       data = await api('GET', `/reports/daily?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>DNI</th><th>Fecha</th><th>Entrada</th><th>Salida</th><th>Total</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'DNI', 'Fecha', 'Entrada', 'Salida', 'Total']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.dni || '—'}</td><td>${r.date}</td><td>${r.clock_in || '—'}</td><td>${r.clock_out || '—'}</td><td>${r.total_hours || '—'}h</td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          [r.employee_name, r.dni || '—', r.date, r.clock_in || '—', r.clock_out || '—', `${r.total_hours || '—'}h`].forEach(text => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
       }
       break;
     case 'payroll':
       data = await api('GET', `/reports/monthly-hours?start=${start}&end=${end}`);
-      theadHtml = '<tr><th>Empleado</th><th>Programadas</th><th>Trabajadas</th><th>Extra</th><th>Festivos</th><th>Ausencias</th></tr>';
+      thead.appendChild(createReportHeader(['Empleado', 'Programadas', 'Trabajadas', 'Extra', 'Festivos', 'Ausencias']));
       if (data && data.length > 0) {
-        tbodyHtml = data.map(r => `<tr><td>${r.employee_name}</td><td>${r.scheduled_hours || 0}h</td><td>${r.worked_hours || 0}h</td><td>${r.overtime_hours || 0}h</td><td>${r.holiday_hours || 0}h</td><td>${r.absent_days || 0}d</td></tr>`).join('');
+        data.forEach(r => {
+          const tr = document.createElement('tr');
+          [r.employee_name, `${r.scheduled_hours || 0}h`, `${r.worked_hours || 0}h`, `${r.overtime_hours || 0}h`, `${r.holiday_hours || 0}h`, `${r.absent_days || 0}d`].forEach(text => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
       }
       break;
   }
 
-  document.getElementById('report-thead').innerHTML = theadHtml;
-  const body = document.getElementById('report-body');
   if (!data || data.length === 0) {
-    body.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:32px">No hay datos en el período seleccionado</td></tr>';
-  } else {
-    body.innerHTML = tbodyHtml;
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 10;
+    td.className = 'text-center text-muted';
+    td.style.padding = '32px';
+    td.textContent = 'No hay datos en el período seleccionado';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
   }
+}
+
+function createReportHeader(labels) {
+  const tr = document.createElement('tr');
+  labels.forEach(label => {
+    const th = document.createElement('th');
+    th.textContent = label;
+    tr.appendChild(th);
+  });
+  return tr;
 }
 
 async function exportReport(format) {
@@ -1877,15 +1972,20 @@ async function loadHolidays() {
     holidays.forEach(h => {
       const typeLabel = h.type === 'national' ? 'Nacional' : h.type === 'regional' ? 'Autonómico' : 'Local';
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${h.date}</td>
-        <td>${h.name}</td>
-        <td>${typeLabel}</td>
-        <td><button class="btn btn-danger btn-sm holiday-delete" data-holiday-id="${h.id}">✕</button></td>`;
+      [h.date, h.name, typeLabel].forEach(text => {
+        const td = document.createElement('td');
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      const actionTd = document.createElement('td');
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-danger btn-sm holiday-delete';
+      delBtn.textContent = '✕';
+      delBtn.dataset.holidayId = h.id;
+      delBtn.addEventListener('click', () => deleteHoliday(h.id));
+      actionTd.appendChild(delBtn);
+      tr.appendChild(actionTd);
       tbody.appendChild(tr);
-    });
-    tbody.querySelectorAll('.holiday-delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteHoliday(btn.dataset.holidayId));
     });
   }
 }
