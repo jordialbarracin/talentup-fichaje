@@ -1,9 +1,10 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
+const path = require('path');
 
-/**
- * @see https://playwright.dev/docs/test-configuration
- */
+const backendDir = path.resolve(__dirname, '..', 'backend');
+const pythonExe = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
+
 module.exports = defineConfig({
   testDir: './e2e',
   testMatch: '*.spec.cjs',
@@ -13,30 +14,19 @@ module.exports = defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'line',
   timeout: 30_000,
-  expect: {
-    timeout: 10_000,
-  },
+  expect: { timeout: 10_000 },
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     headless: true,
-    // Inject API_PORT before any page script runs
-    initScripts: ['window.API_PORT = 8080;'],
   },
-
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
-
-  /* Arrancar backend (FastAPI) y frontend (servidor estático) antes de los tests */
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
     {
-      command: 'cd ..\backend && ..\backend\venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8080',
+      command: `"${pythonExe}" -m uvicorn app.main:app --host 0.0.0.0 --port 8080`,
+      cwd: backendDir,
       url: 'http://localhost:8080/api/health',
       timeout: 60_000,
       reuseExistingServer: false,
