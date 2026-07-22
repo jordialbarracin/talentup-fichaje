@@ -180,7 +180,7 @@ class BodySizeLimitMiddleware(BaseHTTPMiddleware):
             body = await request.body()
             if len(body) > MAX_BODY_SIZE:
                 return JSONResponse(
-                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    status_code=413,
                     content={"detail": "Body too large"},
                 )
         return await call_next(request)

@@ -1,11 +1,19 @@
 """
 TalentUP Fichaje — WorkCalendar model (calendario laboral).
 """
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Time, Text
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class WorkCalendar(Base):
@@ -43,10 +51,10 @@ class WorkCalendar(Base):
             "is_holiday": self.is_holiday,
             "is_weekend": self.is_weekend,
             "holiday_id": str(self.holiday_id) if self.holiday_id else None,
-            "holiday_name": self.holiday_name,
+            "holiday_name": _s(self.holiday_name),
             "opening_time": self.opening_time.strftime("%H:%M") if self.opening_time else None,
             "closing_time": self.closing_time.strftime("%H:%M") if self.closing_time else None,
             "requires_special_schedule": self.requires_special_schedule,
-            "notes": self.notes,
+            "notes": _s(self.notes),
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

@@ -354,52 +354,59 @@ async function onbNext(currentStep) {
   }
 }
 
+function onbAddEmployee() {
+  const container = document.getElementById('onb-employees-list');
+  const idx = onbTempEmployees.length;
+  const row = document.createElement('div');
+  row.className = 'onb-emp-row';
+  row.dataset.idx = idx;
+  row.style.cssText = 'background:#f5f5f7;border-radius:8px;padding:10px 12px';
+  row.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px 24px;gap:6px;align-items:center">
+      <input type="text" class="onb-emp-name" placeholder="Nombre" style="font-size:0.8125rem;padding:6px 8px">
+      <input type="text" class="onb-emp-dni" placeholder="DNI" style="font-size:0.8125rem;padding:6px 8px">
+      <input type="text" class="onb-emp-pin" placeholder="PIN" maxlength="4" style="font-size:0.8125rem;padding:6px 8px;font-family:monospace">
+      <button class="btn btn-ghost btn-sm onb-emp-remove" data-idx="${idx}" style="color:#FF3B30;padding:4px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  container.appendChild(row);
+  row.querySelector('.onb-emp-remove').addEventListener('click', () => onbRemoveEmployee(idx));
+  onbTempEmployees.push({ idx });
+}
+
+function initOnboardingListeners(container) {
+  container.querySelectorAll('.onb-shift-edit').forEach(btn => {
+    btn.addEventListener('click', () => onbEditShift(btn.dataset.shiftId));
+  });
+}
+
 async function loadOnbShifts() {
   const container = document.getElementById('onb-shifts-list');
   let shifts = await api('GET', '/shifts');
   if (!shifts || shifts.length === 0) {
-    container.innerHTML = '<div class="text-muted text-sm" style="padding:12px;text-align:center">No hay turnos configurados</div>';
+    container.textContent = 'No hay turnos configurados';
+    container.className = 'text-muted text-sm';
+    container.style.cssText = 'padding:12px;text-align:center';
     return;
   }
-  container.innerHTML = shifts.map(s => {
+  container.innerHTML = '';
+  shifts.forEach(s => {
     const start = s.start_time || s.start || '--:--';
     const end = s.end_time || s.end || '--:--';
-    return `<div style="display:flex;align-items:center;justify-content:space-between;background:#f5f5f7;border-radius:8px;padding:10px 12px">
+    const card = document.createElement('div');
+    card.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#f5f5f7;border-radius:8px;padding:10px 12px';
+    card.innerHTML = `
       <div>
         <div style="font-weight:500;font-size:0.875rem;color:#1d1d1f">${s.name}</div>
         <div style="font-size:0.75rem;color:rgba(0,0,0,0.45)">${start} — ${end}</div>
       </div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm" onclick="onbEditShift('${s.id}')">Editar</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function onbEditShift(shiftId) {
-  // Quick edit via existing shift modal
-  closeOnboarding();
-  // We'll just let them edit from the turnos page
-  showToast('Puedes editar los turnos desde la seccion Turnos', 'info');
-  setTimeout(() => openOnboarding(), 300);
-}
-
-function onbAddEmployee() {
-  const container = document.getElementById('onb-employees-list');
-  const idx = onbTempEmployees.length;
-  const empHtml = `
-    <div class="onb-emp-row" data-idx="${idx}" style="background:#f5f5f7;border-radius:8px;padding:10px 12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 80px 24px;gap:6px;align-items:center">
-        <input type="text" class="onb-emp-name" placeholder="Nombre" style="font-size:0.8125rem;padding:6px 8px">
-        <input type="text" class="onb-emp-dni" placeholder="DNI" style="font-size:0.8125rem;padding:6px 8px">
-        <input type="text" class="onb-emp-pin" placeholder="PIN" maxlength="4" style="font-size:0.8125rem;padding:6px 8px;font-family:monospace">
-        <button class="btn btn-ghost btn-sm" onclick="onbRemoveEmployee(${idx})" style="color:#FF3B30;padding:4px">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-    </div>`;
-  container.insertAdjacentHTML('beforeend', empHtml);
-  onbTempEmployees.push({ idx });
+        <button class="btn btn-ghost btn-sm onb-shift-edit" data-shift-id="${s.id}">Editar</button>
+      </div>`;
+    container.appendChild(card);
+  });
+  initOnboardingListeners(container);
 }
 
 function onbRemoveEmployee(idx) {
@@ -540,15 +547,55 @@ async function loadDashboard() {
   document.getElementById('stat-fichajes').textContent = totalClocks;
   document.getElementById('stat-incidencias').textContent = incidents;
 
-  document.getElementById('alert-no-clock').innerHTML = noClock.length > 0
-    ? noClock.slice(0, 5).map(e => `<div style="padding:4px 0">• ${e.full_name || e.name}</div>`).join('') + (noClock.length > 5 ? `<div style="padding:4px 0;color:rgba(0,0,0,0.3)">+${noClock.length - 5} más</div>` : '')
-    : '<span style="color:#248A3D">✓ Todos han fichado</span>';
+  const alertNoClock = document.getElementById('alert-no-clock');
+  alertNoClock.innerHTML = '';
+  if (noClock.length === 0) {
+    const span = document.createElement('span');
+    span.style.color = '#248A3D';
+    span.textContent = '✓ Todos han fichado';
+    alertNoClock.appendChild(span);
+  } else {
+    const fragment = document.createDocumentFragment();
+    noClock.slice(0, 5).forEach(e => {
+      const div = document.createElement('div');
+      div.style.padding = '4px 0';
+      div.textContent = `• ${e.full_name || e.name}`;
+      fragment.appendChild(div);
+    });
+    if (noClock.length > 5) {
+      const more = document.createElement('div');
+      more.style.cssText = 'padding:4px 0;color:rgba(0,0,0,0.3)';
+      more.textContent = `+${noClock.length - 5} más`;
+      fragment.appendChild(more);
+    }
+    alertNoClock.appendChild(fragment);
+  }
 
   // Alert: pending vacations
   const pendingVac = (vacations || []).filter(v => v.status === 'pending');
-  document.getElementById('alert-vacaciones').innerHTML = pendingVac.length > 0
-    ? pendingVac.slice(0, 5).map(v => `<div style="padding:4px 0">• ${v.employee_name || '—'} (${v.start_date} — ${v.end_date})</div>`).join('') + (pendingVac.length > 5 ? `<div style="padding:4px 0;color:rgba(0,0,0,0.3)">+${pendingVac.length - 5} más</div>` : '')
-    : '<span style="color:#248A3D">✓ Sin solicitudes pendientes</span>';
+  const alertVacaciones = document.getElementById('alert-vacaciones');
+  alertVacaciones.innerHTML = '';
+  if (pendingVac.length === 0) {
+    const span = document.createElement('span');
+    span.style.color = '#248A3D';
+    span.textContent = '✓ Sin solicitudes pendientes';
+    alertVacaciones.appendChild(span);
+  } else {
+    const fragment = document.createDocumentFragment();
+    pendingVac.slice(0, 5).forEach(v => {
+      const div = document.createElement('div');
+      div.style.padding = '4px 0';
+      div.textContent = `• ${v.employee_name || '—'} (${v.start_date} — ${v.end_date})`;
+      fragment.appendChild(div);
+    });
+    if (pendingVac.length > 5) {
+      const more = document.createElement('div');
+      more.style.cssText = 'padding:4px 0;color:rgba(0,0,0,0.3)';
+      more.textContent = `+${pendingVac.length - 5} más`;
+      fragment.appendChild(more);
+    }
+    alertVacaciones.appendChild(fragment);
+  }
 
   // Table
   const tbody = document.getElementById('dashboard-table-body');
@@ -598,8 +645,17 @@ async function loadEmpleados() {
   const shiftIds = new Set(employees.map(e => e.shift_id || e.default_shift_id).filter(Boolean));
   const shifts = state.shifts.length ? state.shifts : await api('GET', '/shifts') || [];
   state.shifts = Array.isArray(shifts) ? shifts : [];
-  turnoFilter.innerHTML = '<option value="">Todos los turnos</option>' +
-    state.shifts.filter(s => shiftIds.has(s.id)).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  turnoFilter.innerHTML = '';
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Todos los turnos';
+  turnoFilter.appendChild(defaultOpt);
+  state.shifts.filter(s => shiftIds.has(s.id)).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    turnoFilter.appendChild(opt);
+  });
 
   state.empPage = 1;
   filterEmpleados();
@@ -991,8 +1047,17 @@ async function loadFichajes() {
   // Populate employee filter
   const empFilter = document.getElementById('clock-filter-empleado');
   const empIds = new Set(history.map(r => r.employee_id));
-  empFilter.innerHTML = '<option value="">Todos los empleados</option>' +
-    (employees || []).filter(e => empIds.has(e.id)).map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('');
+  empFilter.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = '';
+  allOpt.textContent = 'Todos los empleados';
+  empFilter.appendChild(allOpt);
+  (employees || []).filter(e => empIds.has(e.id)).forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.full_name || e.name;
+    empFilter.appendChild(opt);
+  });
 
   // Set default date to today
   document.getElementById('clock-filter-date').value = new Date().toISOString().slice(0,10);
@@ -1139,15 +1204,25 @@ function renderVacacionesCalendar() {
     container.innerHTML = EMPTY_ROW(1, 'No hay vacaciones aprobadas', 'Las solicitudes aprobadas aparecerán aquí.');
     return;
   }
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  container.innerHTML = '';
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px';
   approved.forEach(v => {
-    html += `<div style="background:rgba(52,199,89,0.1);border:1px solid rgba(52,199,89,0.2);border-radius:8px;padding:8px 12px;font-size:0.8rem">
-      <strong style="color:#248A3D">${v.employee_name || '—'}</strong><br>
-      <span style="color:rgba(0,0,0,0.5)">${v.start_date} → ${v.end_date}</span>
-    </div>`;
+    const card = document.createElement('div');
+    card.style.cssText = 'background:rgba(52,199,89,0.1);border:1px solid rgba(52,199,89,0.2);border-radius:8px;padding:8px 12px;font-size:0.8rem';
+    const strong = document.createElement('strong');
+    strong.style.color = '#248A3D';
+    strong.textContent = v.employee_name || '—';
+    const br = document.createElement('br');
+    const span = document.createElement('span');
+    span.style.color = 'rgba(0,0,0,0.5)';
+    span.textContent = `${v.start_date} → ${v.end_date}`;
+    card.appendChild(strong);
+    card.appendChild(br);
+    card.appendChild(span);
+    wrapper.appendChild(card);
   });
-  html += '</div>';
-  container.innerHTML = html;
+  container.appendChild(wrapper);
 }
 
 async function approveVacacion(id) {
@@ -1432,16 +1507,27 @@ async function loadHolidays() {
   if (holidays.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:16px">No hay festivos registrados</td></tr>';
   } else {
-    tbody.innerHTML = holidays.map(h => {
+    tbody.innerHTML = '';
+    holidays.forEach(h => {
       const typeLabel = h.type === 'national' ? 'Nacional' : h.type === 'regional' ? 'Autonómico' : 'Local';
-      return `<tr>
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
         <td>${h.date}</td>
         <td>${h.name}</td>
         <td>${typeLabel}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteHoliday(${h.id})">✕</button></td>
-      </tr>`;
-    }).join('');
+        <td><button class="btn btn-danger btn-sm holiday-delete" data-holiday-id="${h.id}">✕</button></td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('.holiday-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteHoliday(btn.dataset.holidayId));
+    });
   }
+}
+
+function initHolidayListeners(tbody) {
+  tbody.querySelectorAll('.holiday-delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteHoliday(btn.dataset.holidayId));
+  });
 }
 
 async function addHoliday() {
@@ -1541,10 +1627,16 @@ async function loadBilling() {
   };
   const statusColor = status.subscription_status === 'active' || status.subscription_status === 'trialing'
     ? '#34C759' : status.subscription_status === 'canceled' ? '#FF3B30' : '#FF9500';
-  statusEl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:4px">
-    <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
-    ${statusLabels[status.subscription_status] || status.subscription_status}
-  </span>`;
+  statusEl.innerHTML = '';
+  const statusSpan = document.createElement('span');
+  statusSpan.style.cssText = 'display:inline-flex;align-items:center;gap:4px';
+  const dot = document.createElement('span');
+  dot.style.cssText = `width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block`;
+  const label = document.createElement('span');
+  label.textContent = statusLabels[status.subscription_status] || status.subscription_status;
+  statusSpan.appendChild(dot);
+  statusSpan.appendChild(label);
+  statusEl.appendChild(statusSpan);
 
   // Next payment
   const nextPaymentEl = document.getElementById('billing-next-payment');
@@ -1629,6 +1721,13 @@ async function manageSubscription() {
 }
 
 // ===== SETTINGS TABS =====
+function initBillingListeners() {
+  const changePlanBtn = document.getElementById('billing-change-plan-btn');
+  const manageSubscriptionBtn = document.getElementById('billing-manage-subscription-btn');
+  if (changePlanBtn) changePlanBtn.addEventListener('click', changePlan);
+  if (manageSubscriptionBtn) manageSubscriptionBtn.addEventListener('click', manageSubscription);
+}
+
 document.querySelectorAll('.settings-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
@@ -1642,6 +1741,7 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
     }
   });
 });
+initBillingListeners();
 
 // ===== PAGINATION HELPER =====
 function renderPagination(containerId, currentPage, totalPages, callback) {
@@ -1716,6 +1816,17 @@ function openModal(type, id) {
     title = id ? 'Editar empleado' : 'Añadir empleado';
     wide = true;
     const shifts = state.shifts;
+    const buildShiftOptions = () => {
+      const opts = [];
+      opts.push({ value: '', label: 'Sin turno', selected: false });
+      shifts.forEach(s => {
+        const selected = emp && (emp.shift_id === s.id || emp.default_shift_id === s.id);
+        opts.push({ value: s.id, label: s.name, selected });
+      });
+      return opts;
+    };
+    const shiftOptions = buildShiftOptions();
+    const shiftOptionsHtml = shiftOptions.map(o => `<option value="${o.value}" ${o.selected ? 'selected' : ''}>${o.label}</option>`).join('');
     fields = `
       <div class="form-row">
         <div class="form-group">
@@ -1758,10 +1869,7 @@ function openModal(type, id) {
       <div class="form-row">
         <div class="form-group">
           <label>Turno habitual</label>
-          <select id="modal-emp-shift">
-            <option value="">Sin turno</option>
-            ${shifts.map(s => `<option value="${s.id}" ${emp && (emp.shift_id === s.id || emp.default_shift_id === s.id) ? 'selected' : ''}>${s.name}</option>`).join('')}
-          </select>
+          <select id="modal-emp-shift">${shiftOptionsHtml}</select>
         </div>
         <div class="form-group">
           <label>Estado</label>

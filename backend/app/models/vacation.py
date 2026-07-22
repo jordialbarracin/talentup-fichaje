@@ -1,8 +1,16 @@
 """TalentUP Fichaje — Vacation model (solicitudes de vacaciones)."""
+import html
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Text
 from app.database import Base
+
+
+def _s(value):
+    """Escape string/Text fields for XSS-safe JSON responses."""
+    if value is None:
+        return None
+    return html.escape(str(value))
 
 
 class Vacation(Base):
@@ -27,7 +35,7 @@ class Vacation(Base):
             "employee_id": str(self.employee_id) if self.employee_id else None,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
-            "reason": self.reason,
+            "reason": _s(self.reason),
             "status": self.status,
             "approved_by": str(self.approved_by) if self.approved_by else None,
             "approved_at": self.approved_at.isoformat() if self.approved_at else None,

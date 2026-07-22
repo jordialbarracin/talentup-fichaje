@@ -202,7 +202,7 @@ async def login(req: LoginRequest, response: Response, db: AsyncSession = Depend
         httponly=True,
         secure=_COOKIE_SECURE,
         samesite=_COOKIE_SAMESITE,
-        max_age=28800,
+        max_age=REFRESH_TOKEN_TTL_SECONDS,
     )
 
     return AuthResponse(
@@ -289,7 +289,7 @@ async def refresh(
         httponly=True,
         secure=_COOKIE_SECURE,
         samesite=_COOKIE_SAMESITE,
-        max_age=28800,
+        max_age=REFRESH_TOKEN_TTL_SECONDS,
     )
 
     return RefreshResponse(
@@ -435,7 +435,7 @@ async def register(
         httponly=True,
         secure=_COOKIE_SECURE,
         samesite=_COOKIE_SAMESITE,
-        max_age=28800,
+        max_age=REFRESH_TOKEN_TTL_SECONDS,
     )
 
     return AuthResponse(
