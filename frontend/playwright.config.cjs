@@ -37,7 +37,7 @@ module.exports = defineConfig({
       command: 'cd ..\\backend && ..\\backend\\venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000',
       url: 'http://localhost:8000/api/health',
       timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       env: {
         DATABASE_URL: 'sqlite+aiosqlite:///./talentup_fichaje.db',
         PIN_HASH_SALT: 'test-salt',
@@ -50,7 +50,7 @@ module.exports = defineConfig({
       command: 'python -m http.server 3000',
       url: 'http://localhost:3000',
       timeout: 30_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
     },
   ],
 });

@@ -45,10 +45,15 @@ const API_BASE = window.location.hostname === 'localhost'
   : '/api';
 const PAGE_SIZE = 20;
 
-// Show demo button (visible everywhere for now, will be removed later)
+// Show demo button on localhost and GitHub Pages only (not on custom production domains)
 (function showDemoButton() {
-  const demoBtn = document.getElementById('demo-btn');
-  if (demoBtn) demoBtn.classList.remove('hidden');
+  const host = window.location.hostname;
+  const isLocal = host === 'localhost' || host === '127.0.0.1';
+  const isGitHubPages = host.endsWith('.github.io');
+  if (isLocal || isGitHubPages) {
+    const demoBtn = document.getElementById('demo-btn');
+    if (demoBtn) demoBtn.classList.remove('hidden');
+  }
 })();
 
 const EMPTY_ICON = '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>';
@@ -73,6 +78,25 @@ function setHTMLStatic(el, html) {
 function emptyEl(el) {
   if (!el) return;
   el.innerHTML = '';
+}
+function createCloseIcon() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '18');
+  svg.setAttribute('height', '18');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  [['18','6','6','18'],['6','6','18','18']].forEach(([x1,y1,x2,y2]) => {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    svg.appendChild(line);
+  });
+  return svg;
 }
 
 // ===== API HELPER =====
@@ -438,7 +462,7 @@ function onbAddEmployeeRow() {
   rmBtn.className = 'btn btn-ghost btn-sm onb-emp-remove';
   rmBtn.dataset.idx = String(idx);
   rmBtn.style.cssText = 'color:#FF3B30;padding:4px';
-  rmBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  rmBtn.appendChild(createCloseIcon());
   grid.appendChild(rmBtn);
   row.appendChild(grid);
   container.appendChild(row);
@@ -763,10 +787,18 @@ async function loadDashboard() {
   // Table
   const tbody = document.getElementById('dashboard-table-body');
   if (!history || history.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">No hay fichajes hoy</td></tr>';
+    emptyEl(tbody);
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 4;
+    td.className = 'text-center text-muted';
+    td.style.padding = '32px';
+    td.textContent = 'No hay fichajes hoy';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
-  tbody.innerHTML = '';
+  emptyEl(tbody);
   history.slice(0, 20).forEach(r => {
     const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
     const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
@@ -807,7 +839,7 @@ async function loadEmpleados() {
     state.isDemo = true;
     updateDemoBanner();
     updateOnlineStatus();
-    document.getElementById('empleados-table-body').innerHTML = EMPTY_ROW(9, 'No se pudieron cargar los empleados', 'Servidor no responde. Revisa la conexión.');
+    setHTMLStatic(document.getElementById('empleados-table-body'), EMPTY_ROW(9, 'No se pudieron cargar los empleados', 'Servidor no responde. Revisa la conexión.'));
     return;
   }
   state.isDemo = false;
@@ -820,7 +852,7 @@ async function loadEmpleados() {
   const shiftIds = new Set(employees.map(e => e.shift_id || e.default_shift_id).filter(Boolean));
   const shifts = state.shifts.length ? state.shifts : await api('GET', '/shifts') || [];
   state.shifts = Array.isArray(shifts) ? shifts : [];
-  turnoFilter.innerHTML = '';
+  emptyEl(turnoFilter);
   const defaultOpt = document.createElement('option');
   defaultOpt.value = '';
   defaultOpt.textContent = 'Todos los turnos';
@@ -866,9 +898,9 @@ function renderEmpleadosPage(page) {
 
   const tbody = document.getElementById('empleados-table-body');
   if (pageItems.length === 0) {
-    tbody.innerHTML = EMPTY_ROW(9, 'No hay empleados', 'Prueba con otros filtros de búsqueda.');
+    setHTMLStatic(tbody, EMPTY_ROW(9, 'No hay empleados', 'Prueba con otros filtros de búsqueda.'));
   } else {
-    tbody.innerHTML = '';
+    emptyEl(tbody);
     const nfcIcon = createNfcIcon();
     pageItems.forEach(e => {
       const status = e.status || (e.is_active ? 'active' : 'inactive');
@@ -940,8 +972,22 @@ function createNfcIcon() {
   svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('style', 'margin-left:6px;vertical-align:-2px');
   svg.setAttribute('title', 'NFC asignada');
-  svg.innerHTML = '<rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 8a4 4 0 0 1 0 8"/><path d="M16 8a4 4 0 0 0 0 8"/><path d="M10 10a2 2 0 0 1 0 4"/><path d="M14 10a2 2 0 0 0 0 4"/>';
+  svg.appendChild(createNfcIconContent());
   return svg;
+}
+function createNfcIconContent() {
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', '2'); rect.setAttribute('y', '2');
+  rect.setAttribute('width', '20'); rect.setAttribute('height', '20');
+  rect.setAttribute('rx', '3');
+  g.appendChild(rect);
+  [['M8 8a4 4 0 0 1 0 8'], ['M16 8a4 4 0 0 0 0 8'], ['M10 10a2 2 0 0 1 0 4'], ['M14 10a2 2 0 0 0 0 4']].forEach(d => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    g.appendChild(path);
+  });
+  return g;
 }
 
 // ===== PIN TOGGLE (PIN from API, not in HTML) =====
@@ -1040,7 +1086,7 @@ function renderMonthCalendar(container, year, month, holidayDates, schedules) {
   // Adjust for Monday start
   const startOffset = firstDay === 0 ? 6 : firstDay - 1;
 
-  container.innerHTML = '';
+  emptyEl(container);
   const grid = document.createElement('div');
   grid.className = 'calendar-grid';
   dayNames.forEach(d => {
@@ -1126,7 +1172,11 @@ function renderWeekCalendar(container, year, month, holidayDates, schedules) {
   // Simple week view as table
   const employees = state.employees;
   if (!employees || employees.length === 0) {
-    container.innerHTML = '<div class="loading-overlay">Carga empleados primero</div>';
+    container.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'loading-overlay';
+    div.textContent = 'Carga empleados primero';
+    container.appendChild(div);
     return;
   }
 
@@ -1144,7 +1194,6 @@ function renderWeekCalendar(container, year, month, holidayDates, schedules) {
     dates.push(d.toISOString().slice(0,10));
   }
 
-  container.innerHTML = '';
   const wrapper = document.createElement('div');
   wrapper.className = 'schedule-wrapper';
   const table = document.createElement('table');
@@ -1227,7 +1276,7 @@ function openAssignShift(employeeId, date) {
   const currentShiftId = currentSched ? currentSched.shift_id : null;
 
   const container = document.getElementById('modal-container');
-  container.innerHTML = '';
+  emptyEl(container);
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
@@ -1242,7 +1291,7 @@ function openAssignShift(employeeId, date) {
   header.appendChild(h3);
   const closeBtn = document.createElement('button');
   closeBtn.className = 'modal-close';
-  closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  closeBtn.appendChild(createCloseIcon());
   closeBtn.addEventListener('click', closeModal);
   header.appendChild(closeBtn);
   modal.appendChild(header);
@@ -1317,7 +1366,13 @@ async function loadTurnos() {
   if (!shifts) {
     state.isDemo = true;
     updateDemoBanner();
-    document.getElementById('turnos-grid').innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No se pudieron cargar los turnos — servidor no responde</div>';
+    const grid = document.getElementById('turnos-grid');
+    emptyEl(grid);
+    const div = document.createElement('div');
+    div.className = 'text-center text-muted';
+    div.style.cssText = 'padding:32px;grid-column:1/-1';
+    div.textContent = 'No se pudieron cargar los turnos — servidor no responde';
+    grid.appendChild(div);
     return;
   }
   state.isDemo = false;
@@ -1326,10 +1381,15 @@ async function loadTurnos() {
 
   const grid = document.getElementById('turnos-grid');
   if (shifts.length === 0) {
-    grid.innerHTML = '<div class="text-center text-muted" style="padding:32px;grid-column:1/-1">No hay turnos configurados</div>';
+    emptyEl(grid);
+    const div = document.createElement('div');
+    div.className = 'text-center text-muted';
+    div.style.cssText = 'padding:32px;grid-column:1/-1';
+    div.textContent = 'No hay turnos configurados';
+    grid.appendChild(div);
     return;
   }
-  grid.innerHTML = '';
+  emptyEl(grid);
   const typeLabels = { morning:'Mañana', afternoon:'Tarde', night:'Noche', split:'Partido', rotating:'Rotativo', custom:'Personalizado' };
   shifts.forEach(s => {
     const card = document.createElement('div');
@@ -1402,7 +1462,7 @@ async function loadFichajes() {
   if (!history) {
     state.isDemo = true;
     updateDemoBanner();
-    document.getElementById('fichajes-table-body').innerHTML = EMPTY_ROW(5, 'No se pudieron cargar los fichajes', 'Servidor no responde. Revisa la conexión.');
+    setHTMLStatic(document.getElementById('fichajes-table-body'), EMPTY_ROW(5, 'No se pudieron cargar los fichajes', 'Servidor no responde. Revisa la conexión.'));
     return;
   }
   state.isDemo = false;
@@ -1413,7 +1473,7 @@ async function loadFichajes() {
   // Populate employee filter
   const empFilter = document.getElementById('clock-filter-empleado');
   const empIds = new Set(history.map(r => r.employee_id));
-  empFilter.innerHTML = '';
+  emptyEl(empFilter);
   const allOpt = document.createElement('option');
   allOpt.value = '';
   allOpt.textContent = 'Todos los empleados';
@@ -1463,9 +1523,9 @@ function renderFichajesPage(page) {
 
   const tbody = document.getElementById('fichajes-table-body');
   if (pageItems.length === 0) {
-    tbody.innerHTML = EMPTY_ROW(5, 'No hay fichajes', 'Prueba con otros filtros de fecha, empleado o estado.');
+    setHTMLStatic(tbody, EMPTY_ROW(5, 'No hay fichajes', 'Prueba con otros filtros de fecha, empleado o estado.'));
   } else {
-    tbody.innerHTML = '';
+    emptyEl(tbody);
     pageItems.forEach(r => {
       const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
       const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
@@ -1500,7 +1560,7 @@ async function loadVacaciones() {
   if (!vacations) {
     state.isDemo = true;
     updateDemoBanner();
-    document.getElementById('vacaciones-table-body').innerHTML = EMPTY_ROW(7, 'No se pudieron cargar las solicitudes', 'Servidor no responde. Revisa la conexión.');
+    setHTMLStatic(document.getElementById('vacaciones-table-body'), EMPTY_ROW(7, 'No se pudieron cargar las solicitudes', 'Servidor no responde. Revisa la conexión.'));
     return;
   }
   state.isDemo = false;
@@ -1543,9 +1603,9 @@ function renderVacacionesPage(page) {
 
   const tbody = document.getElementById('vacaciones-table-body');
   if (pageItems.length === 0) {
-    tbody.innerHTML = EMPTY_ROW(7, 'No hay solicitudes', 'Prueba con otros filtros de búsqueda o estado.');
+    setHTMLStatic(tbody, EMPTY_ROW(7, 'No hay solicitudes', 'Prueba con otros filtros de búsqueda o estado.'));
   } else {
-    tbody.innerHTML = '';
+    emptyEl(tbody);
     pageItems.forEach(v => {
       const statusBadge = v.status === 'pending' ? 'badge-pending' : v.status === 'approved' ? 'badge-approved' : 'badge-rejected';
       const statusLabel = v.status === 'pending' ? 'Pendiente' : v.status === 'approved' ? 'Aprobada' : 'Rechazada';
@@ -1594,10 +1654,10 @@ function renderVacacionesCalendar() {
   const container = document.getElementById('vacaciones-calendar');
   const approved = state.vacations.filter(v => v.status === 'approved');
   if (approved.length === 0) {
-    container.innerHTML = EMPTY_ROW(1, 'No hay vacaciones aprobadas', 'Las solicitudes aprobadas aparecerán aquí.');
+    setHTMLStatic(container, EMPTY_ROW(1, 'No hay vacaciones aprobadas', 'Las solicitudes aprobadas aparecerán aquí.'));
     return;
   }
-  container.innerHTML = '';
+  emptyEl(container);
   const wrapper = document.createElement('div');
   wrapper.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px';
   approved.forEach(v => {
@@ -1627,7 +1687,7 @@ async function approveVacacion(id) {
 function rejectVacacion(id) {
   // Use modal instead of prompt
   const container = document.getElementById('modal-container');
-  container.innerHTML = '';
+  emptyEl(container);
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
@@ -1642,7 +1702,7 @@ function rejectVacacion(id) {
   header.appendChild(h3);
   const closeBtn = document.createElement('button');
   closeBtn.className = 'modal-close';
-  closeBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  closeBtn.appendChild(createCloseIcon());
   closeBtn.addEventListener('click', closeModal);
   header.appendChild(closeBtn);
   modal.appendChild(header);
@@ -2764,7 +2824,7 @@ function scanNfc() {
     }
   } else {
     // Web NFC not available — show instructions
-    resultEl.innerHTML = 'Web NFC no esta disponible en este navegador. Introduce el UID manualmente. El UID suele estar impreso en la tarjeta o puedes leerlo con una app NFC.';
+    setText(resultEl, 'Web NFC no esta disponible en este navegador. Introduce el UID manualmente. El UID suele estar impreso en la tarjeta o puedes leerlo con una app NFC.');
     resultEl.style.color = 'rgba(0,0,0,0.45)';
     inputEl.focus();
   }
@@ -2780,7 +2840,11 @@ function generateEmployeeQR(employeeId) {
   if (typeof QRCode !== 'undefined') {
     QRCode.toCanvas(qrData, { width: 120, margin: 1, color: { dark: '#1d1d1f', light: '#ffffff' } }, (err, canvas) => {
       if (err) {
-        container.innerHTML = '<span class="text-xs text-muted">Error al generar QR</span>';
+        emptyEl(container);
+        const span = document.createElement('span');
+        span.className = 'text-xs text-muted';
+        span.textContent = 'Error al generar QR';
+        container.appendChild(span);
         return;
       }
       canvas.style.width = '120px';
@@ -2788,7 +2852,11 @@ function generateEmployeeQR(employeeId) {
       container.appendChild(canvas);
     });
   } else {
-    container.innerHTML = '<span class="text-xs text-muted">Cargando libreria QR...</span>';
+    emptyEl(container);
+    const span = document.createElement('span');
+    span.className = 'text-xs text-muted';
+    span.textContent = 'Cargando libreria QR...';
+    container.appendChild(span);
   }
 }
 
