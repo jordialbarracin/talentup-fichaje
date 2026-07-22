@@ -2250,31 +2250,72 @@ async function changePlan() {
 
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
-  modal.innerHTML = `
-    <div id="change-plan-content" style="background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.12)">
-      <h3 style="font-size:1rem;font-weight:600;margin:0 0 4px">Seleccionar plan</h3>
-      <p style="font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:0 0 16px">Elige el plan al que deseas cambiarte</p>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-        ${plans.map(p => `
-          <label style="display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:pointer;transition:border-color 200ms">
-            <input type="radio" name="plan-select" value="${p.id}" style="accent-color:#FF6B35">
-            <div>
-              <div style="font-weight:500;font-size:0.875rem">${p.name}</div>
-              <div style="font-size:0.75rem;color:rgba(0,0,0,0.45)">${p.price}</div>
-            </div>
-          </label>
-        `).join('')}
-      </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-ghost" id="btn-cancel-plan">Cancelar</button>
-        <button class="btn btn-primary" id="btn-confirm-plan">Continuar al pago</button>
-      </div>
-    </div>
-  `;
+
+  const content = document.createElement('div');
+  content.id = 'change-plan-content';
+  content.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.12)';
+
+  const heading = document.createElement('h3');
+  heading.style.cssText = 'font-size:1rem;font-weight:600;margin:0 0 4px';
+  setText(heading, 'Seleccionar plan');
+
+  const sub = document.createElement('p');
+  sub.style.cssText = 'font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:0 0 16px';
+  setText(sub, 'Elige el plan al que deseas cambiarte');
+
+  const list = document.createElement('div');
+  list.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:16px';
+
+  plans.forEach(p => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;cursor:pointer;transition:border-color 200ms';
+
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'plan-select';
+    input.value = p.id;
+    input.style.cssText = 'accent-color:#FF6B35';
+
+    const info = document.createElement('div');
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-weight:500;font-size:0.875rem';
+    setText(nameDiv, p.name);
+    const priceDiv = document.createElement('div');
+    priceDiv.style.cssText = 'font-size:0.75rem;color:rgba(0,0,0,0.45)';
+    setText(priceDiv, p.price);
+
+    info.appendChild(nameDiv);
+    info.appendChild(priceDiv);
+    label.appendChild(input);
+    label.appendChild(info);
+    list.appendChild(label);
+  });
+
+  const buttons = document.createElement('div');
+  buttons.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.id = 'btn-cancel-plan';
+  setText(cancelBtn, 'Cancelar');
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.className = 'btn btn-primary';
+  confirmBtn.id = 'btn-confirm-plan';
+  setText(confirmBtn, 'Continuar al pago');
+
+  buttons.appendChild(cancelBtn);
+  buttons.appendChild(confirmBtn);
+
+  content.appendChild(heading);
+  content.appendChild(sub);
+  content.appendChild(list);
+  content.appendChild(buttons);
+  modal.appendChild(content);
   document.body.appendChild(modal);
 
-  document.getElementById('btn-cancel-plan').addEventListener('click', () => modal.remove());
-  document.getElementById('btn-confirm-plan').addEventListener('click', async () => {
+  cancelBtn.addEventListener('click', () => modal.remove());
+  confirmBtn.addEventListener('click', async () => {
     const selected = modal.querySelector('input[name="plan-select"]:checked');
     if (!selected) { showToast('Selecciona un plan', 'warning'); return; }
     modal.remove();
@@ -2373,38 +2414,64 @@ function renderPagination(containerId, currentPage, totalPages, callback) {
 function openConfirmModal({ title, message, confirmText = 'Confirmar', cancelText = 'Cancelar', confirmClass = 'btn-primary', onConfirm }) {
   state.pendingConfirm = onConfirm;
   const container = document.getElementById('modal-container');
-  container.innerHTML = `
-    <div class="modal-overlay" id="confirm-modal-overlay">
-      <div class="modal" style="max-width:420px">
-        <div class="modal-header">
-          <h3>${title || '¿Estás seguro?'}</h3>
-          <button class="modal-close" id="confirm-modal-close">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:0.875rem;color:rgba(0,0,0,0.6);line-height:1.5">${message || ''}</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" id="confirm-modal-cancel">${cancelText}</button>
-          <button class="btn ${confirmClass}" id="confirm-modal-ok">${confirmText}</button>
-        </div>
-      </div>
-    </div>
-  `;
+  emptyEl(container);
 
-  const overlay = document.getElementById('confirm-modal-overlay');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'confirm-modal-overlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.maxWidth = '420px';
+
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const heading = document.createElement('h3');
+  setText(heading, title || '¿Estás seguro?');
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.id = 'confirm-modal-close';
+  closeBtn.appendChild(createCloseIcon());
+  header.appendChild(heading);
+  header.appendChild(closeBtn);
+
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  const p = document.createElement('p');
+  p.style.cssText = 'font-size:0.875rem;color:rgba(0,0,0,0.6);line-height:1.5';
+  setText(p, message || '');
+  body.appendChild(p);
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.id = 'confirm-modal-cancel';
+  setText(cancelBtn, cancelText);
+  const okBtn = document.createElement('button');
+  okBtn.className = `btn ${confirmClass}`;
+  okBtn.id = 'confirm-modal-ok';
+  setText(okBtn, confirmText);
+  footer.appendChild(cancelBtn);
+  footer.appendChild(okBtn);
+
+  modal.appendChild(header);
+  modal.appendChild(body);
+  modal.appendChild(footer);
+  overlay.appendChild(modal);
+  container.appendChild(overlay);
+
   overlay.addEventListener('click', (event) => {
     if (event.target === overlay) closeConfirmModal();
   });
-  document.getElementById('confirm-modal-close').addEventListener('click', closeConfirmModal);
-  document.getElementById('confirm-modal-cancel').addEventListener('click', closeConfirmModal);
-  document.getElementById('confirm-modal-ok').addEventListener('click', executeConfirm);
+  closeBtn.addEventListener('click', closeConfirmModal);
+  cancelBtn.addEventListener('click', closeConfirmModal);
+  okBtn.addEventListener('click', executeConfirm);
 }
 
 function closeConfirmModal() {
   state.pendingConfirm = null;
-  document.getElementById('modal-container').innerHTML = '';
+  emptyEl(document.getElementById('modal-container'));
 }
 
 async function executeConfirm() {
@@ -2423,7 +2490,48 @@ async function executeConfirm() {
 // ===== MODAL =====
 function openModal(type, id) {
   const container = document.getElementById('modal-container');
-  let title = '', fields = '', wide = false;
+  let title = '', wide = false;
+
+  function addFormRow(children) {
+    const row = document.createElement('div');
+    row.className = 'form-row';
+    children.forEach(c => row.appendChild(c));
+    return row;
+  }
+  function createGroup(labelText, inputEl) {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    const label = document.createElement('label');
+    setText(label, labelText);
+    group.appendChild(label);
+    group.appendChild(inputEl);
+    return group;
+  }
+  function createTextInput(inputId, value, placeholder, opts = {}) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = inputId;
+    input.value = value;
+    if (placeholder) input.placeholder = placeholder;
+    if (opts.maxlength) input.maxLength = opts.maxlength;
+    if (opts.pattern) input.pattern = opts.pattern;
+    if (opts.style) input.style.cssText = opts.style;
+    return input;
+  }
+  function createSelect(selectId, options) {
+    const select = document.createElement('select');
+    select.id = selectId;
+    options.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      setText(opt, o.label);
+      if (o.selected) opt.selected = true;
+      select.appendChild(opt);
+    });
+    return select;
+  }
+
+  let fields;
 
   if (type === 'empleado') {
     const emp = id ? state.employees.find(e => e.id === id) : null;
@@ -2440,223 +2548,272 @@ function openModal(type, id) {
       return opts;
     };
     const shiftOptions = buildShiftOptions();
-    const shiftOptionsHtml = shiftOptions.map(o => `<option value="${o.value}" ${o.selected ? 'selected' : ''}>${o.label}</option>`).join('');
-    fields = `
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" id="modal-emp-name" value="${emp ? (emp.full_name || emp.name) : ''}" placeholder="Nombre">
-        </div>
-        <div class="form-group">
-          <label>Apellidos</label>
-          <input type="text" id="modal-emp-lastname" value="${emp ? (emp.last_name || '') : ''}" placeholder="Apellidos">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>DNI / NIE</label>
-          <input type="text" id="modal-emp-dni" value="${emp ? (emp.dni || '') : ''}" placeholder="12345678A">
-        </div>
-        <div class="form-group">
-          <label>N.º Seguridad Social</label>
-          <input type="text" id="modal-emp-nss" value="${emp ? (emp.nss || '') : ''}" placeholder="N.º SS">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Categoría profesional</label>
-          <input type="text" id="modal-emp-category" value="${emp ? (emp.professional_category || '') : ''}" placeholder="Ej: Camarero/a">
-        </div>
-        <div class="form-group">
-          <label>Tipo de contrato</label>
-          <select id="modal-emp-contract">
-            <option value="">Seleccionar…</option>
-            <option value="IND" ${emp && emp.contract_type === 'IND' ? 'selected' : ''}>Indefinido</option>
-            <option value="TEM-OC" ${emp && emp.contract_type === 'TEM-OC' ? 'selected' : ''}>Temporal obra</option>
-            <option value="TEM-CIR" ${emp && emp.contract_type === 'TEM-CIR' ? 'selected' : ''}>Temporal circunstancias</option>
-            <option value="TEM-INT" ${emp && emp.contract_type === 'TEM-INT' ? 'selected' : ''}>Interinidad</option>
-            <option value="PAR-IND" ${emp && emp.contract_type === 'PAR-IND' ? 'selected' : ''}>Tiempo parcial indefinido</option>
-            <option value="PAR-TEMP" ${emp && emp.contract_type === 'PAR-TEMP' ? 'selected' : ''}>Tiempo parcial temporal</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Turno habitual</label>
-          <select id="modal-emp-shift">${shiftOptionsHtml}</select>
-        </div>
-        <div class="form-group">
-          <label>Estado</label>
-          <select id="modal-emp-status">
-            <option value="active" ${emp && (emp.status === 'active' || emp.is_active !== false) ? 'selected' : ''}>Activo</option>
-            <option value="inactive" ${emp && (emp.status === 'inactive' || emp.is_active === false) ? 'selected' : ''}>Inactivo</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>PIN (4 dígitos) — solo si se cambia</label>
-        <input type="text" id="modal-emp-pin" placeholder="Dejar vacío para mantener el actual" maxlength="4" pattern="[0-9]{4}">
-      </div>
-      <div class="form-group">
-        <label>Tarjeta NFC (UID)</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="modal-emp-nfc" value="${emp ? (emp.nfc_uid || '') : ''}" placeholder="Ej: 04:12:34:56:78:9A:BC" style="flex:1;font-family:ui-monospace,SF Mono,monospace;font-size:0.8125rem">
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-scan-nfc" style="white-space:nowrap">Escanear NFC</button>
-        </div>
-        <div id="nfc-scan-result" style="margin-top:6px;font-size:0.75rem;color:rgba(0,0,0,0.45);min-height:0"></div>
-      </div>
-      <div class="form-group" id="qr-section" style="${id ? '' : 'display:none'}">
-        <label>Codigo QR del empleado</label>
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div id="qr-code-container" style="background:#ffffff;border:1px solid rgba(0,0,0,0.08);border-radius:8px;padding:8px;display:inline-flex"></div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-download-qr">Descargar QR</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="btn-print-qr">Imprimir QR</button>
-          </div>
-        </div>
-      </div>
-    `;
+    fields = document.createElement('div');
+
+    fields.appendChild(addFormRow([
+      createGroup('Nombre', createTextInput('modal-emp-name', emp ? (emp.full_name || emp.name) : '', 'Nombre')),
+      createGroup('Apellidos', createTextInput('modal-emp-lastname', emp ? (emp.last_name || '') : '', 'Apellidos'))
+    ]));
+    fields.appendChild(addFormRow([
+      createGroup('DNI / NIE', createTextInput('modal-emp-dni', emp ? (emp.dni || '') : '', '12345678A')),
+      createGroup('N.º Seguridad Social', createTextInput('modal-emp-nss', emp ? (emp.nss || '') : '', 'N.º SS'))
+    ]));
+    fields.appendChild(addFormRow([
+      createGroup('Categoría profesional', createTextInput('modal-emp-category', emp ? (emp.professional_category || '') : '', 'Ej: Camarero/a')),
+      createGroup('Tipo de contrato', createSelect('modal-emp-contract', [
+        { value: '', label: 'Seleccionar…' },
+        { value: 'IND', label: 'Indefinido', selected: emp && emp.contract_type === 'IND' },
+        { value: 'TEM-OC', label: 'Temporal obra', selected: emp && emp.contract_type === 'TEM-OC' },
+        { value: 'TEM-CIR', label: 'Temporal circunstancias', selected: emp && emp.contract_type === 'TEM-CIR' },
+        { value: 'TEM-INT', label: 'Interinidad', selected: emp && emp.contract_type === 'TEM-INT' },
+        { value: 'PAR-IND', label: 'Tiempo parcial indefinido', selected: emp && emp.contract_type === 'PAR-IND' },
+        { value: 'PAR-TEMP', label: 'Tiempo parcial temporal', selected: emp && emp.contract_type === 'PAR-TEMP' }
+      ]))
+    ]));
+    fields.appendChild(addFormRow([
+      createGroup('Turno habitual', createSelect('modal-emp-shift', shiftOptions)),
+      createGroup('Estado', createSelect('modal-emp-status', [
+        { value: 'active', label: 'Activo', selected: emp && (emp.status === 'active' || emp.is_active !== false) },
+        { value: 'inactive', label: 'Inactivo', selected: emp && (emp.status === 'inactive' || emp.is_active === false) }
+      ]))
+    ]));
+
+    const pinGroup = document.createElement('div');
+    pinGroup.className = 'form-group';
+    const pinLabel = document.createElement('label');
+    setText(pinLabel, 'PIN (4 dígitos) — solo si se cambia');
+    const pinInput = document.createElement('input');
+    pinInput.type = 'text';
+    pinInput.id = 'modal-emp-pin';
+    pinInput.placeholder = 'Dejar vacío para mantener el actual';
+    pinInput.maxLength = 4;
+    pinInput.pattern = '[0-9]{4}';
+    pinGroup.appendChild(pinLabel);
+    pinGroup.appendChild(pinInput);
+    fields.appendChild(pinGroup);
+
+    const nfcGroup = document.createElement('div');
+    nfcGroup.className = 'form-group';
+    const nfcLabel = document.createElement('label');
+    setText(nfcLabel, 'Tarjeta NFC (UID)');
+    const nfcWrap = document.createElement('div');
+    nfcWrap.style.cssText = 'display:flex;gap:8px;align-items:center';
+    const nfcInput = createTextInput('modal-emp-nfc', emp ? (emp.nfc_uid || '') : '', 'Ej: 04:12:34:56:78:9A:BC', {
+      style: 'flex:1;font-family:ui-monospace,SF Mono,monospace;font-size:0.8125rem'
+    });
+    const scanBtn = document.createElement('button');
+    scanBtn.type = 'button';
+    scanBtn.className = 'btn btn-secondary btn-sm';
+    scanBtn.id = 'btn-scan-nfc';
+    scanBtn.style.whiteSpace = 'nowrap';
+    setText(scanBtn, 'Escanear NFC');
+    nfcWrap.appendChild(nfcInput);
+    nfcWrap.appendChild(scanBtn);
+    const nfcResult = document.createElement('div');
+    nfcResult.id = 'nfc-scan-result';
+    nfcResult.style.cssText = 'margin-top:6px;font-size:0.75rem;color:rgba(0,0,0,0.45);min-height:0';
+    nfcGroup.appendChild(nfcLabel);
+    nfcGroup.appendChild(nfcWrap);
+    nfcGroup.appendChild(nfcResult);
+    fields.appendChild(nfcGroup);
+
+    const qrGroup = document.createElement('div');
+    qrGroup.className = 'form-group';
+    qrGroup.id = 'qr-section';
+    if (!id) qrGroup.style.display = 'none';
+    const qrLabel = document.createElement('label');
+    setText(qrLabel, 'Codigo QR del empleado');
+    const qrWrap = document.createElement('div');
+    qrWrap.style.cssText = 'display:flex;gap:12px;align-items:center;flex-wrap:wrap';
+    const qrContainer = document.createElement('div');
+    qrContainer.id = 'qr-code-container';
+    qrContainer.style.cssText = 'background:#ffffff;border:1px solid rgba(0,0,0,0.08);border-radius:8px;padding:8px;display:inline-flex';
+    const qrActions = document.createElement('div');
+    qrActions.style.cssText = 'display:flex;flex-direction:column;gap:6px';
+    const downloadBtn = document.createElement('button');
+    downloadBtn.type = 'button';
+    downloadBtn.className = 'btn btn-secondary btn-sm';
+    downloadBtn.id = 'btn-download-qr';
+    setText(downloadBtn, 'Descargar QR');
+    const printBtn = document.createElement('button');
+    printBtn.type = 'button';
+    printBtn.className = 'btn btn-secondary btn-sm';
+    printBtn.id = 'btn-print-qr';
+    setText(printBtn, 'Imprimir QR');
+    qrActions.appendChild(downloadBtn);
+    qrActions.appendChild(printBtn);
+    qrWrap.appendChild(qrContainer);
+    qrWrap.appendChild(qrActions);
+    qrGroup.appendChild(qrLabel);
+    qrGroup.appendChild(qrWrap);
+    fields.appendChild(qrGroup);
   } else if (type === 'turno') {
     const shift = id ? state.shifts.find(s => s.id === id) : null;
     title = id ? 'Editar turno' : 'Crear turno';
-    fields = `
-      <div class="form-group">
-        <label>Nombre del turno</label>
-        <input type="text" id="modal-shift-name" value="${shift ? shift.name : ''}" placeholder="Ej: Mañana">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Hora de inicio</label>
-          <input type="time" id="modal-shift-start" value="${shift ? (shift.start_time || shift.start) : '07:00'}">
-        </div>
-        <div class="form-group">
-          <label>Hora de fin</label>
-          <input type="time" id="modal-shift-end" value="${shift ? (shift.end_time || shift.end) : '15:00'}">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tipo de turno</label>
-          <select id="modal-shift-type">
-            <option value="morning" ${shift && shift.shift_type === 'morning' ? 'selected' : ''}>Mañana</option>
-            <option value="afternoon" ${shift && shift.shift_type === 'afternoon' ? 'selected' : ''}>Tarde</option>
-            <option value="night" ${shift && shift.shift_type === 'night' ? 'selected' : ''}>Noche</option>
-            <option value="split" ${shift && (shift.shift_type === 'split' || shift.is_split) ? 'selected' : ''}>Partido</option>
-            <option value="rotating" ${shift && shift.shift_type === 'rotating' ? 'selected' : ''}>Rotativo</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tolerancia (minutos)</label>
-          <input type="number" id="modal-shift-tolerance" value="${shift ? (shift.tolerance_min || shift.tolerance || 5) : 5}" min="0" max="60">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Color del turno</label>
-        <div id="modal-shift-color" style="display:flex;gap:8px;flex-wrap:wrap">
-          ${['#FF6B35','#FF9500','#FFCC00','#34C759','#007AFF','#5856D6','#AF52DE','#FF2D55','#A2845E','#8E8E93'].map(c => `<button type="button" data-color="${c}" class="color-swatch" style="width:32px;height:32px;border-radius:50%;background:${c};border:2px solid ${shift && shift.color === c ? '#1d1d1f' : 'transparent'};cursor:pointer;transition:all 200ms ease"></button>`).join('')}
-        </div>
-      </div>
-    `;
+    fields = document.createElement('div');
+
+    const nameGroup = createGroup('Nombre del turno', createTextInput('modal-shift-name', shift ? shift.name : '', 'Ej: Mañana'));
+    fields.appendChild(nameGroup);
+
+    fields.appendChild(addFormRow([
+      createGroup('Hora de inicio', (() => {
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.id = 'modal-shift-start';
+        input.value = shift ? (shift.start_time || shift.start) : '07:00';
+        return input;
+      })()),
+      createGroup('Hora de fin', (() => {
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.id = 'modal-shift-end';
+        input.value = shift ? (shift.end_time || shift.end) : '15:00';
+        return input;
+      })())
+    ]));
+
+    const typeOptions = [
+      { value: 'morning', label: 'Mañana', selected: shift && shift.shift_type === 'morning' },
+      { value: 'afternoon', label: 'Tarde', selected: shift && shift.shift_type === 'afternoon' },
+      { value: 'night', label: 'Noche', selected: shift && shift.shift_type === 'night' },
+      { value: 'split', label: 'Partido', selected: shift && (shift.shift_type === 'split' || shift.is_split) },
+      { value: 'rotating', label: 'Rotativo', selected: shift && shift.shift_type === 'rotating' }
+    ];
+
+    fields.appendChild(addFormRow([
+      createGroup('Tipo de turno', createSelect('modal-shift-type', typeOptions)),
+      createGroup('Tolerancia (minutos)', (() => {
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = 'modal-shift-tolerance';
+        input.value = shift ? (shift.tolerance_min || shift.tolerance || 5) : 5;
+        input.min = 0;
+        input.max = 60;
+        return input;
+      })())
+    ]));
+
+    const colorGroup = document.createElement('div');
+    colorGroup.className = 'form-group';
+    const colorLabel = document.createElement('label');
+    setText(colorLabel, 'Color del turno');
+    const colorWrap = document.createElement('div');
+    colorWrap.id = 'modal-shift-color';
+    colorWrap.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+    const colors = ['#FF6B35','#FF9500','#FFCC00','#34C759','#007AFF','#5856D6','#AF52DE','#FF2D55','#A2845E','#8E8E93'];
+    colors.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.color = c;
+      btn.className = 'color-swatch';
+      btn.style.cssText = `width:32px;height:32px;border-radius:50%;background:${c};border:2px solid ${shift && shift.color === c ? '#1d1d1f' : 'transparent'};cursor:pointer;transition:all 200ms ease`;
+      colorWrap.appendChild(btn);
+    });
+    colorGroup.appendChild(colorLabel);
+    colorGroup.appendChild(colorWrap);
+    fields.appendChild(colorGroup);
   } else if (type === 'vacacion') {
     title = 'Nueva solicitud de vacaciones';
     const employees = state.employees;
-    fields = `
-      <div class="form-group">
-        <label>Empleado</label>
-        <select id="modal-vac-employee">
-          <option value="">Seleccionar…</option>
-          ${employees.map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Fecha inicio</label>
-          <input type="date" id="modal-vac-start">
-        </div>
-        <div class="form-group">
-          <label>Fecha fin</label>
-          <input type="date" id="modal-vac-end">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Tipo</label>
-        <select id="modal-vac-type">
-          <option value="vacation">Vacaciones</option>
-          <option value="personal_leave">Permiso personal</option>
-          <option value="unpaid_leave">Permiso no retribuido</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Motivo (opcional)</label>
-        <textarea id="modal-vac-reason" rows="2" placeholder="Motivo de la solicitud…"></textarea>
-      </div>
-    `;
+    fields = document.createElement('div');
+
+    const empOptions = [{ value: '', label: 'Seleccionar…' }];
+    employees.forEach(e => empOptions.push({ value: String(e.id), label: e.full_name || e.name }));
+    fields.appendChild(createGroup('Empleado', createSelect('modal-vac-employee', empOptions)));
+
+    fields.appendChild(addFormRow([
+      createGroup('Fecha inicio', (() => { const i = document.createElement('input'); i.type = 'date'; i.id = 'modal-vac-start'; return i; })()),
+      createGroup('Fecha fin', (() => { const i = document.createElement('input'); i.type = 'date'; i.id = 'modal-vac-end'; return i; })())
+    ]));
+    fields.appendChild(createGroup('Tipo', createSelect('modal-vac-type', [
+      { value: 'vacation', label: 'Vacaciones' },
+      { value: 'personal_leave', label: 'Permiso personal' },
+      { value: 'unpaid_leave', label: 'Permiso no retribuido' }
+    ])));
+    const reasonGroup = document.createElement('div');
+    reasonGroup.className = 'form-group';
+    const reasonLabel = document.createElement('label');
+    setText(reasonLabel, 'Motivo (opcional)');
+    const reasonArea = document.createElement('textarea');
+    reasonArea.id = 'modal-vac-reason';
+    reasonArea.rows = 2;
+    reasonArea.placeholder = 'Motivo de la solicitud…';
+    reasonGroup.appendChild(reasonLabel);
+    reasonGroup.appendChild(reasonArea);
+    fields.appendChild(reasonGroup);
   } else if (type === 'baja') {
     title = 'Registrar baja médica';
     const employees = state.employees;
-    fields = `
-      <div class="form-group">
-        <label>Empleado</label>
-        <select id="modal-leave-employee">
-          <option value="">Seleccionar…</option>
-          ${employees.map(e => `<option value="${e.id}">${e.full_name || e.name}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tipo de baja</label>
-        <select id="modal-leave-type">
-          <option value="EC">Enfermedad Común</option>
-          <option value="ANL">Accidente No Laboral</option>
-          <option value="AL">Accidente Laboral</option>
-          <option value="EP">Enfermedad Profesional</option>
-          <option value="MAT">Maternidad</option>
-          <option value="PAT">Paternidad</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Fecha inicio</label>
-          <input type="date" id="modal-leave-start">
-        </div>
-        <div class="form-group">
-          <label>Fin previsto</label>
-          <input type="date" id="modal-leave-end">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Diagnóstico (opcional)</label>
-        <input type="text" id="modal-leave-diagnosis" placeholder="Código / descripción">
-      </div>
-    `;
+    fields = document.createElement('div');
+
+    const empOptions = [{ value: '', label: 'Seleccionar…' }];
+    employees.forEach(e => empOptions.push({ value: String(e.id), label: e.full_name || e.name }));
+    fields.appendChild(createGroup('Empleado', createSelect('modal-leave-employee', empOptions)));
+
+    fields.appendChild(createGroup('Tipo de baja', createSelect('modal-leave-type', [
+      { value: 'EC', label: 'Enfermedad Común' },
+      { value: 'ANL', label: 'Accidente No Laboral' },
+      { value: 'AL', label: 'Accidente Laboral' },
+      { value: 'EP', label: 'Enfermedad Profesional' },
+      { value: 'MAT', label: 'Maternidad' },
+      { value: 'PAT', label: 'Paternidad' }
+    ])));
+
+    fields.appendChild(addFormRow([
+      createGroup('Fecha inicio', (() => { const i = document.createElement('input'); i.type = 'date'; i.id = 'modal-leave-start'; return i; })()),
+      createGroup('Fin previsto', (() => { const i = document.createElement('input'); i.type = 'date'; i.id = 'modal-leave-end'; return i; })())
+    ]));
+    fields.appendChild(createGroup('Diagnóstico (opcional)', createTextInput('modal-leave-diagnosis', '', 'Código / descripción')));
   }
 
-  container.innerHTML = `
-    <div class="modal-overlay" id="edit-modal-overlay">
-      <div class="modal ${wide ? 'modal-wide' : ''}">
-        <div class="modal-header">
-          <h3>${title}</h3>
-          <button class="modal-close" id="edit-modal-close">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          ${fields}
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" id="edit-modal-cancel">Cancelar</button>
-          <button class="btn btn-primary" id="edit-modal-save">Guardar</button>
-        </div>
-      </div>
-    </div>
-  `;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'edit-modal-overlay';
 
-  const editOverlay = document.getElementById('edit-modal-overlay');
-  editOverlay.addEventListener('click', (event) => {
-    if (event.target === editOverlay) closeModal();
+  const modal = document.createElement('div');
+  modal.className = `modal ${wide ? 'modal-wide' : ''}`;
+
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  const heading = document.createElement('h3');
+  setText(heading, title);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'modal-close';
+  closeBtn.id = 'edit-modal-close';
+  closeBtn.appendChild(createCloseIcon());
+  header.appendChild(heading);
+  header.appendChild(closeBtn);
+
+  const body = document.createElement('div');
+  body.className = 'modal-body';
+  body.appendChild(fields);
+
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost';
+  cancelBtn.id = 'edit-modal-cancel';
+  setText(cancelBtn, 'Cancelar');
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn btn-primary';
+  saveBtn.id = 'edit-modal-save';
+  setText(saveBtn, 'Guardar');
+  footer.appendChild(cancelBtn);
+  footer.appendChild(saveBtn);
+
+  modal.appendChild(header);
+  modal.appendChild(body);
+  modal.appendChild(footer);
+  overlay.appendChild(modal);
+  emptyEl(container);
+  container.appendChild(overlay);
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeModal();
   });
-  document.getElementById('edit-modal-close').addEventListener('click', closeModal);
-  document.getElementById('edit-modal-cancel').addEventListener('click', closeModal);
-  document.getElementById('edit-modal-save').addEventListener('click', () => saveModal(type, id));
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  saveBtn.addEventListener('click', () => saveModal(type, id));
 
   if (type === 'empleado') {
     document.getElementById('btn-scan-nfc').addEventListener('click', scanNfc);
@@ -2679,7 +2836,7 @@ function openModal(type, id) {
 }
 
 function closeModal() {
-  document.getElementById('modal-container').innerHTML = '';
+  emptyEl(document.getElementById('modal-container'));
 }
 
 async function saveModal(type, id) {
