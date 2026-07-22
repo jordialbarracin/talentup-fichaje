@@ -38,3 +38,5 @@ yarn-error.log*
 
 # Logs
 *.log
+test-results/
+*.db-journal
