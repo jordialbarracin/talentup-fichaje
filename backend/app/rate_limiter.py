@@ -77,7 +77,7 @@ def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
     return f"{client_ip}:{tenant_id or 'unknown'}"
 
 
-async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECONDS) -> bool:
+async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECONDS, method: str = "global") -> bool:
     """
     Async rate-limit check. Returns True if the request is allowed, False otherwise.
 
@@ -88,7 +88,7 @@ async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECOND
     if client is not None:
         now = int(time_module.time())
         bucket = now // window
-        redis_key = f"rate:{key}:{bucket}"
+        redis_key = f"rate:{method}:{key}:{bucket}"
         try:
             pipe = client.pipeline()
             pipe.incr(redis_key)
@@ -102,7 +102,7 @@ async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECOND
     return _cleanup_and_check(_pin_limits, key, max_count, window)
 
 
-async def record_rate(key: str):
+async def record_rate(key: str, method: str = "global"):
     """
     Record a request hit for the current window.
 
@@ -112,7 +112,7 @@ async def record_rate(key: str):
     if client is not None:
         now = int(time_module.time())
         bucket = now // WINDOW_SECONDS
-        redis_key = f"rate:{key}:{bucket}"
+        redis_key = f"rate:{method}:{key}:{bucket}"
         try:
             pipe = client.pipeline()
             pipe.incr(redis_key)

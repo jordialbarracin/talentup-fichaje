@@ -43,7 +43,7 @@ module.exports = defineConfig({
         PIN_HASH_SALT: 'test-salt',
         JWT_SECRET: 'test-secret',
         COOKIE_SECURE: 'false',
-        COOKIE_SAMESITE: 'none',
+        COOKIE_SAMESITE: 'lax',
       },
     },
     {

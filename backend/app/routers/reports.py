@@ -363,27 +363,19 @@ async def export_report(
             "entries": entries_by_emp.get(emp_id, []),
         })
 
+    schedule_report_export(
+        background_tasks,
+        format=format,
+        tenant_id=tid,
+        date_from=date_from,
+        date_to=date_to,
+        employee_id=employee_id,
+        user_id=str(current_user.id),
+    )
+
     if format == "pdf":
-        schedule_report_export(
-            background_tasks,
-            format="pdf",
-            tenant_id=tid,
-            date_from=date_from,
-            date_to=date_to,
-            employee_id=employee_id,
-            user_id=str(current_user.id),
-        )
         return _generate_pdf(report_data, date_from, date_to)
     else:
-        schedule_report_export(
-            background_tasks,
-            format="excel",
-            tenant_id=tid,
-            date_from=date_from,
-            date_to=date_to,
-            employee_id=employee_id,
-            user_id=str(current_user.id),
-        )
         return _generate_excel(report_data, date_from, date_to)
 
 
@@ -566,6 +558,8 @@ async def report_inspection(
     date_from: str = Query(...),
     date_to: str = Query(...),
     employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -585,8 +579,13 @@ async def report_inspection(
         emp_query = select(Employee)
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
-    result = await db.execute(emp_query)
-    employees = result.scalars().all()
+    emp_query = emp_query.order_by(Employee.name)
+    page_result = await paginate(db, emp_query, page, limit, item_transform=lambda e: e)
+    employees = page_result["items"]
+    total_employees = page_result["total"]
+
+    # Get employee IDs for targeted dependent queries.
+    emp_ids = [emp.id for emp in employees]
 
     # Get tenant info
     tenant_info = {}
@@ -606,7 +605,9 @@ async def report_inspection(
     )
     if tid:
         clock_query = clock_query.where(ClockIn.tenant_id == tid)
-    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp)
+    if emp_ids:
+        clock_query = clock_query.where(ClockIn.employee_id.in_(emp_ids))
+    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp).limit(1000)
     result = await db.execute(clock_query)
     all_clock_ins = result.scalars().all()
 
@@ -617,8 +618,21 @@ async def report_inspection(
     )
     if tid:
         inc_query = inc_query.where(Incident.tenant_id == tid)
+    if emp_ids:
+        inc_query = inc_query.where(Incident.employee_id.in_(emp_ids))
+    inc_query = inc_query.order_by(Incident.employee_id, Incident.date).limit(1000)
     result = await db.execute(inc_query)
     all_incidents = result.scalars().all()
+
+    # Count total incidents across the full period (not just this page) for summary.
+    total_incidents_count_query = select(func.count()).select_from(Incident).where(
+        Incident.date >= start_date,
+        Incident.date <= end_date,
+    )
+    if tid:
+        total_incidents_count_query = total_incidents_count_query.where(Incident.tenant_id == tid)
+    total_incidents_result = await db.execute(total_incidents_count_query)
+    total_incidents = total_incidents_result.scalar() or 0
 
     from collections import defaultdict
     clock_by_emp = defaultdict(list)
@@ -687,9 +701,12 @@ async def report_inspection(
                         "Registro de jornada laboral conforme al RD-ley 8/2019 art. 34.9 ET. "
                         "Conservación mínima: 4 años.",
         "employees": report_employees,
+        "page": page,
+        "limit": limit,
+        "total_employees": total_employees,
         "summary": {
-            "total_employees": len(employees),
-            "total_incidents": len(all_incidents),
+            "total_employees": total_employees,
+            "total_incidents": total_incidents,
         }
     }
 
@@ -698,6 +715,8 @@ async def report_inspection(
 async def report_absenteeism(
     date_from: str = Query(...),
     date_to: str = Query(...),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -713,8 +732,11 @@ async def report_absenteeism(
         emp_query = select(Employee).where(Employee.tenant_id == tid)
     else:
         emp_query = select(Employee)
-    result = await db.execute(emp_query)
-    employees = result.scalars().all()
+    emp_query = emp_query.order_by(Employee.name)
+    page_result = await paginate(db, emp_query, page, limit, item_transform=lambda e: e)
+    employees = page_result["items"]
+    total_employees = page_result["total"]
+    emp_ids = [emp.id for emp in employees]
 
     # Get vacation requests in range
     from app.models.vacation_request import VacationRequest
@@ -725,6 +747,9 @@ async def report_absenteeism(
     )
     if tid:
         vac_query = vac_query.where(VacationRequest.tenant_id == tid)
+    if emp_ids:
+        vac_query = vac_query.where(VacationRequest.employee_id.in_(emp_ids))
+    vac_query = vac_query.order_by(VacationRequest.employee_id).limit(1000)
     result = await db.execute(vac_query)
     vacations = result.scalars().all()
 
@@ -736,6 +761,9 @@ async def report_absenteeism(
     )
     if tid:
         leave_query = leave_query.where(Leave.tenant_id == tid)
+    if emp_ids:
+        leave_query = leave_query.where(Leave.employee_id.in_(emp_ids))
+    leave_query = leave_query.order_by(Leave.employee_id).limit(1000)
     result = await db.execute(leave_query)
     leaves = result.scalars().all()
 
@@ -747,21 +775,17 @@ async def report_absenteeism(
     )
     if tid:
         inc_query = inc_query.where(Incident.tenant_id == tid)
+    if emp_ids:
+        inc_query = inc_query.where(Incident.employee_id.in_(emp_ids))
+    inc_query = inc_query.order_by(Incident.employee_id).limit(1000)
     result = await db.execute(inc_query)
     no_shows = result.scalars().all()
 
+    # Global totals must still reflect all employees, not just this page.
     total_days = (end_date - start_date).days + 1
-    total_possible_days = len(employees) * total_days
+    total_possible_days = total_employees * total_days
 
-    total_absence_days = (
-        sum(int(v.total_days or 0) for v in vacations)
-        + sum(l.total_days or 0 for l in leaves)
-        + len(no_shows)
-    )
-
-    absenteeism_rate = round((total_absence_days / total_possible_days * 100), 2) if total_possible_days > 0 else 0
-
-    # Per employee breakdown
+    # Paginate employee breakdown after computing rates/sorting.
     from collections import defaultdict
     emp_vac = defaultdict(list)
     for v in vacations:
@@ -794,18 +818,50 @@ async def report_absenteeism(
     # Sort by rate desc
     employee_breakdown.sort(key=lambda x: x["absenteeism_rate"], reverse=True)
 
+    # Global aggregates: derive from full-tenant data so pagination doesn't distort rates.
+    global_vac_query = select(func.sum(VacationRequest.total_days)).where(
+        VacationRequest.start_date >= start_date,
+        VacationRequest.end_date <= end_date,
+        VacationRequest.status == "approved",
+    )
+    global_leave_query = select(func.sum(Leave.total_days)).where(
+        Leave.start_date >= start_date,
+        Leave.end_date <= end_date,
+    )
+    global_noshow_query = select(func.count()).select_from(Incident).where(
+        Incident.date >= start_date,
+        Incident.date <= end_date,
+        Incident.incident_type.in_(["no_clock_in", "no_show", "ausencia_no_justificada"]),
+    )
+    if tid:
+        global_vac_query = global_vac_query.where(VacationRequest.tenant_id == tid)
+        global_leave_query = global_leave_query.where(Leave.tenant_id == tid)
+        global_noshow_query = global_noshow_query.where(Incident.tenant_id == tid)
+    global_vac_sum = (await db.execute(global_vac_query)).scalar() or 0
+    global_leave_sum = (await db.execute(global_leave_query)).scalar() or 0
+    global_noshow_count = (await db.execute(global_noshow_query)).scalar() or 0
+
+    total_absence_days = int(global_vac_sum) + global_leave_sum + global_noshow_count
+    absenteeism_rate = round((total_absence_days / total_possible_days * 100), 2) if total_possible_days > 0 else 0
+
+    # Slice top 5 from paginated breakdown.
+    top_5_absentees = employee_breakdown[:5]
+
     return {
         "period": {"from": date_from, "to": date_to},
         "global_absenteeism_rate": absenteeism_rate,
         "total_absence_days": total_absence_days,
         "total_possible_days": total_possible_days,
         "breakdown": {
-            "vacations": sum(int(v.total_days or 0) for v in vacations),
-            "leave": sum(l.total_days or 0 for l in leaves),
-            "no_show": len(no_shows),
+            "vacations": int(global_vac_sum),
+            "leave": global_leave_sum,
+            "no_show": global_noshow_count,
         },
         "employees": employee_breakdown,
-        "top_5_absentees": employee_breakdown[:5],
+        "top_5_absentees": top_5_absentees,
+        "page": page,
+        "limit": limit,
+        "total_employees": total_employees,
     }
 
 
@@ -813,6 +869,8 @@ async def report_absenteeism(
 async def report_labor_costs(
     month: int = Query(...),
     year: int = Query(...),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=500),
     tenant_id: Optional[str] = Query(None, description="Solo para super_admin"),
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
@@ -829,8 +887,10 @@ async def report_labor_costs(
     )
     if tid:
         query = query.where(Payroll.tenant_id == tid)
-    result = await db.execute(query)
-    payrolls = result.scalars().all()
+    query = query.order_by(Payroll.employee_id)
+    page_result = await paginate(db, query, page, limit, item_transform=lambda p: p)
+    payrolls = page_result["items"]
+    total_payrolls = page_result["total"]
 
     # Get employees for names
     emp_ids = {p.employee_id for p in payrolls}
@@ -887,7 +947,10 @@ async def report_labor_costs(
             "total_ss_deduction": round(total_ss, 2),
             "total_irpf_deduction": round(total_irpf, 2),
             "total_net": round(total_net, 2),
-            "total_employees": len(payrolls),
+            "total_employees": total_payrolls,
         },
         "employees": employee_costs,
+        "page": page,
+        "limit": limit,
+        "total_employees": total_payrolls,
     }
