@@ -77,6 +77,15 @@ def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
     return f"{client_ip}:{tenant_id or 'unknown'}"
 
 
+def _method_store(method: str) -> dict[str, list[float]]:
+    """Return the in-memory fallback store matching the rate-limit method."""
+    if method == "nfc":
+        return _nfc_limits
+    if method == "qr":
+        return _qr_limits
+    return _pin_limits
+
+
 async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECONDS, method: str = "global") -> bool:
     """
     Async rate-limit check. Returns True if the request is allowed, False otherwise.
@@ -98,8 +107,8 @@ async def check_rate_limit(key: str, max_count: int, window: int = WINDOW_SECOND
             return count <= max_count
         except Exception:
             # Redis failure must not block clock endpoints; fall back to memory.
-            return _cleanup_and_check(_pin_limits, key, max_count, window)
-    return _cleanup_and_check(_pin_limits, key, max_count, window)
+            return _cleanup_and_check(_method_store(method), key, max_count, window)
+    return _cleanup_and_check(_method_store(method), key, max_count, window)
 
 
 async def record_rate(key: str, method: str = "global"):
@@ -121,7 +130,33 @@ async def record_rate(key: str, method: str = "global"):
             return
         except Exception:
             pass
-    _record(_pin_limits, key)
+    _record(_method_store(method), key)
+
+
+def _check_and_record(store: dict[str, list[float]], key: str, max_count: int, window: int) -> bool:
+    """In-memory rate limit check that also records the current hit atomically."""
+    allowed = _cleanup_and_check(store, key, max_count, window)
+    _record(store, key)
+    return allowed
+
+
+async def check_and_record_rate(key: str, max_count: int, window: int = WINDOW_SECONDS, method: str = "global") -> bool:
+    """Unified rate-limit check + record. Always records the request when in-memory."""
+    client = _get_redis_client()
+    if client is not None:
+        now = int(time_module.time())
+        bucket = now // window
+        redis_key = f"rate:{method}:{key}:{bucket}"
+        try:
+            pipe = client.pipeline()
+            pipe.incr(redis_key)
+            pipe.expire(redis_key, window)
+            results = await pipe.execute()
+            count = results[0]
+            return count <= max_count
+        except Exception:
+            return _check_and_record(_method_store(method), key, max_count, window)
+    return _check_and_record(_method_store(method), key, max_count, window)
 
 
 # --- PIN failure / block helpers (async, Redis-aware with in-memory fallback) ---

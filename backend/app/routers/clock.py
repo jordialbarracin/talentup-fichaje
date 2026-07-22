@@ -25,7 +25,7 @@ from app.audit import log_action
 from app.pagination import paginate
 from app.rate_limiter import (
     check_rate_limit,
-    record_rate,
+    check_and_record_rate,
     _cleanup_and_check,
     _record,
     _pin_limits,
@@ -122,27 +122,7 @@ def _rate_limit_key(request: Request, tenant_id: Optional[str]) -> str:
 
 async def _check_method_limit(store: dict, key: str, max_count: int, method: str) -> bool:
     """Async check: Redis when available, otherwise in-memory store."""
-    allowed = await check_rate_limit(key, max_count, WINDOW_SECONDS, method=method)
-    if not allowed:
-        return False
-    # Keep per-method memory stores accurate when Redis is disabled.
-    if _get_redis_client() is None:
-        return _cleanup_and_check(store, key, max_count)
-    return True
-
-
-async def _record_method(store: dict, key: str, method: str):
-    """Async record: Redis when available, otherwise in-memory store."""
-    await record_rate(key, method=method)
-    if _get_redis_client() is None:
-        _record(store, key)
-
-
-def _get_redis_client():
-    """Re-export redis-aware helper from rate_limiter."""
-    from app.rate_limiter import _get_redis_client as _rl_redis
-
-    return _rl_redis()
+    return await check_and_record_rate(key, max_count, WINDOW_SECONDS, method=method)
 
 
 class ClockRequest(BaseModel):
@@ -231,8 +211,7 @@ async def clock_in(
             detail="PIN incorrecto",
         )
 
-    # Record the clock action for PIN rate limiting
-    await _record_method(_pin_limits, rate_key, "pin")
+    # check_and_record_rate already recorded the hit — no second call needed
 
     # --- Transition validation ---
     # Get the last non-cancelled clock-in for this employee
@@ -340,6 +319,8 @@ async def clock_nfc(
             headers={"Retry-After": "60"},
         )
 
+    # check_and_record_rate already recorded the hit — no second call needed
+
     # Find employee by nfc_uid within the tenant (normalize UID: accept with or without colons)
     normalized_uid = data.nfc_uid.replace(":", "").upper()
     # Build colon format from normalized: "A1B2C3D4" → "A1:B2:C3:D4"
@@ -363,9 +344,6 @@ async def clock_nfc(
             status_code=404,
             detail="Tarjeta NFC no registrada",
         )
-
-    # Record the clock action for rate limiting
-    await _record_method(_nfc_limits, rate_key, "nfc")
 
     # --- Auto toggle (same logic as type='auto' in PIN endpoint) ---
     last_clock_result = await db.execute(
@@ -499,7 +477,7 @@ async def clock_qr(
             detail="Código QR no válido o empleado no encontrado",
         )
 
-    await _record_method(_qr_limits, rate_key, "qr")
+    await _check_method_limit(_qr_limits, rate_key, CLOCK_MAX_PER_MINUTE, "qr")
 
     # --- Auto toggle (same logic as NFC) ---
     last_clock_result = await db.execute(

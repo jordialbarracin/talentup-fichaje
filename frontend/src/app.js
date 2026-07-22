@@ -59,6 +59,25 @@ const EMPTY_ICON = '<svg class="empty-state-icon" viewBox="0 0 24 24" fill="none
 const LOADING_ROW = (cols, text) => `<tr><td colspan="${cols}" class="empty-state"><span class="spinner spinner-lg"></span><div class="empty-state-title" style="margin-top:8px">${text}</div></td></tr>`;
 const EMPTY_ROW = (cols, title, desc) => `<tr><td colspan="${cols}" class="empty-state">${EMPTY_ICON}<div class="empty-state-title">${title}</div><div class="empty-state-desc">${desc}</div></td></tr>`;
 
+// ===== DOM SAFETY HELPERS =====
+function safeText(text) {
+  const el = document.createElement('span');
+  el.textContent = text == null ? '' : String(text);
+  return el.innerHTML;
+}
+function setText(el, text) {
+  if (!el) return;
+  el.textContent = text == null ? '' : String(text);
+}
+function setHTMLStatic(el, html) {
+  if (!el) return;
+  el.innerHTML = html;
+}
+function emptyEl(el) {
+  if (!el) return;
+  el.innerHTML = '';
+}
+
 // ===== API HELPER =====
 async function api(method, path, body) {
   const url = `${API_BASE}${path}`;
@@ -141,13 +160,13 @@ function createSvgIcon(type) {
   svg.setAttribute('stroke-width', '2');
   svg.setAttribute('stroke-linecap', 'round');
   if (type === 'error') {
-    svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>';
+    setHTMLStatic(svg, '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>');
   } else if (type === 'success') {
-    svg.innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+    setHTMLStatic(svg, '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>');
   } else if (type === 'warning') {
-    svg.innerHTML = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+    setHTMLStatic(svg, '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>');
   } else {
-    svg.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+    setHTMLStatic(svg, '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>');
   }
   return svg;
 }
@@ -385,29 +404,48 @@ function initOnboardingListeners() {
     btn.addEventListener('click', () => onbNext(parseInt(btn.dataset.step)));
   });
   const addEmpBtn = document.getElementById('onb-add-employee');
-  if (addEmpBtn) addEmpBtn.addEventListener('click', onbAddEmployee);
+  if (addEmpBtn) addEmpBtn.addEventListener('click', onbAddEmployeeRow);
   const finishBtn = document.getElementById('onb-finish');
   if (finishBtn) finishBtn.addEventListener('click', finishOnboarding);
 }
 
-function onbAddEmployee() {
+function onbAddEmployeeRow() {
   const container = document.getElementById('onb-employees-list');
   const idx = onbTempEmployees.length;
   const row = document.createElement('div');
   row.className = 'onb-emp-row';
   row.dataset.idx = idx;
   row.style.cssText = 'background:#f5f5f7;border-radius:8px;padding:10px 12px';
-  row.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 80px 24px;gap:6px;align-items:center">
-      <input type="text" class="onb-emp-name" placeholder="Nombre" style="font-size:0.8125rem;padding:6px 8px">
-      <input type="text" class="onb-emp-dni" placeholder="DNI" style="font-size:0.8125rem;padding:6px 8px">
-      <input type="text" class="onb-emp-pin" placeholder="PIN" maxlength="4" style="font-size:0.8125rem;padding:6px 8px;font-family:monospace">
-      <button class="btn btn-ghost btn-sm onb-emp-remove" data-idx="${idx}" style="color:#FF3B30;padding:4px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>`;
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 80px 24px;gap:6px;align-items:center';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'onb-emp-name';
+  nameInput.placeholder = 'Nombre';
+  nameInput.style.cssText = 'font-size:0.8125rem;padding:6px 8px';
+  grid.appendChild(nameInput);
+  const dniInput = document.createElement('input');
+  dniInput.type = 'text';
+  dniInput.className = 'onb-emp-dni';
+  dniInput.placeholder = 'DNI';
+  dniInput.style.cssText = 'font-size:0.8125rem;padding:6px 8px';
+  grid.appendChild(dniInput);
+  const pinInput = document.createElement('input');
+  pinInput.type = 'text';
+  pinInput.className = 'onb-emp-pin';
+  pinInput.placeholder = 'PIN';
+  pinInput.maxLength = 4;
+  pinInput.style.cssText = 'font-size:0.8125rem;padding:6px 8px;font-family:monospace';
+  grid.appendChild(pinInput);
+  const rmBtn = document.createElement('button');
+  rmBtn.className = 'btn btn-ghost btn-sm onb-emp-remove';
+  rmBtn.dataset.idx = String(idx);
+  rmBtn.style.cssText = 'color:#FF3B30;padding:4px';
+  rmBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  grid.appendChild(rmBtn);
+  row.appendChild(grid);
   container.appendChild(row);
-  row.querySelector('.onb-emp-remove').addEventListener('click', () => onbRemoveEmployee(idx));
+  rmBtn.addEventListener('click', () => onbRemoveEmployee(idx));
   onbTempEmployees.push({ idx });
 }
 
@@ -432,14 +470,24 @@ async function loadOnbShifts() {
     const end = s.end_time || s.end || '--:--';
     const card = document.createElement('div');
     card.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#f5f5f7;border-radius:8px;padding:10px 12px';
-    card.innerHTML = `
-      <div>
-        <div style="font-weight:500;font-size:0.875rem;color:#1d1d1f">${s.name}</div>
-        <div style="font-size:0.75rem;color:rgba(0,0,0,0.45)">${start} — ${end}</div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost btn-sm onb-shift-edit" data-shift-id="${s.id}">Editar</button>
-      </div>`;
+    const left = document.createElement('div');
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-weight:500;font-size:0.875rem;color:#1d1d1f';
+    nameDiv.textContent = s.name;
+    left.appendChild(nameDiv);
+    const timeDiv = document.createElement('div');
+    timeDiv.style.cssText = 'font-size:0.75rem;color:rgba(0,0,0,0.45)';
+    timeDiv.textContent = `${start} — ${end}`;
+    left.appendChild(timeDiv);
+    card.appendChild(left);
+    const right = document.createElement('div');
+    right.style.cssText = 'display:flex;gap:6px';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-ghost btn-sm onb-shift-edit';
+    editBtn.dataset.shiftId = s.id;
+    editBtn.textContent = 'Editar';
+    right.appendChild(editBtn);
+    card.appendChild(right);
     container.appendChild(card);
   });
   initOnbShiftListeners(container);
@@ -666,7 +714,7 @@ async function loadDashboard() {
   document.getElementById('stat-incidencias').textContent = incidents;
 
   const alertNoClock = document.getElementById('alert-no-clock');
-  alertNoClock.innerHTML = '';
+  emptyEl(alertNoClock);
   if (noClock.length === 0) {
     const span = document.createElement('span');
     span.style.color = '#248A3D';
@@ -692,7 +740,7 @@ async function loadDashboard() {
   // Alert: pending vacations
   const pendingVac = (vacations || []).filter(v => v.status === 'pending');
   const alertVacaciones = document.getElementById('alert-vacaciones');
-  alertVacaciones.innerHTML = '';
+  emptyEl(alertVacaciones);
   if (pendingVac.length === 0) {
     const span = document.createElement('span');
     span.style.color = '#248A3D';
@@ -721,17 +769,29 @@ async function loadDashboard() {
     tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding:32px">No hay fichajes hoy</td></tr>';
     return;
   }
-  tbody.innerHTML = history.slice(0, 20).map(r => {
+  tbody.innerHTML = '';
+  history.slice(0, 20).forEach(r => {
     const statusBadge = r.status === 'ok' ? 'badge-ok' : r.status === 'late' ? 'badge-late' : 'badge-incident';
     const statusLabel = r.status === 'ok' ? 'OK' : r.status === 'late' ? 'Tarde' : 'Incidencia';
     const typeLabel = r.type === 'in' ? 'Entrada' : r.type === 'out' ? 'Salida' : r.type === 'break_start' ? 'Pausa' : 'Vuelta';
-    return `<tr>
-      <td>${r.employee_name || '—'}</td>
-      <td>${typeLabel}</td>
-      <td>${r.time || r.timestamp ? (r.time || r.timestamp.slice(11,16)) : '—'}</td>
-      <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
-    </tr>`;
-  }).join('');
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.textContent = r.employee_name || '—';
+    tr.appendChild(nameTd);
+    const typeTd = document.createElement('td');
+    typeTd.textContent = typeLabel;
+    tr.appendChild(typeTd);
+    const timeTd = document.createElement('td');
+    timeTd.textContent = r.time || r.timestamp ? (r.time || r.timestamp.slice(11,16)) : '—';
+    tr.appendChild(timeTd);
+    const statusTd = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = `badge ${statusBadge}`;
+    badge.textContent = statusLabel;
+    statusTd.appendChild(badge);
+    tr.appendChild(statusTd);
+    tbody.appendChild(tr);
+  });
 }
 
 function getWeekStart() {

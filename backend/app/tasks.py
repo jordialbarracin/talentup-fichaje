@@ -5,6 +5,8 @@ These functions are designed to run outside the request cycle. They create their
 own DB session, perform the heavy work, and close the session when done.
 """
 import logging
+import os
+import io
 from datetime import date
 from typing import Optional
 
@@ -237,16 +239,222 @@ async def run_report_export(
     date_to: str,
     employee_id: Optional[str],
     user_id: str,
+    report_data: list[dict],
+    job_id: str,
 ):
     """
-    Background task placeholder for report export generation.
-    The actual file bytes are returned by the request handler; this task can be
-    used for audit/logging, cache warming, or post-processing.
+    Background task: generate the PDF/Excel report and write it to a file so it
+    can later be downloaded using the job_id.
     """
-    logger.info(
-        "report_export format=%s tenant=%s date_from=%s date_to=%s user=%s",
-        format, tenant_id, date_from, date_to, user_id
+    from pathlib import Path
+
+    exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
+    exports_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        if format == "pdf":
+            filename = f"fichajes_{date_from}_{date_to}_{job_id}.pdf"
+            response = _generate_pdf_sync(report_data, date_from, date_to)
+        else:
+            filename = f"fichajes_{date_from}_{date_to}_{job_id}.xlsx"
+            response = _generate_excel_sync(report_data, date_from, date_to)
+
+        body = b"".join([chunk async for chunk in response.body_iterator])
+        file_path = exports_dir / filename
+        file_path.write_bytes(body)
+
+        logger.info(
+            "report_export_done job_id=%s format=%s path=%s tenant=%s user=%s",
+            job_id, format, file_path, tenant_id, user_id,
+        )
+    except Exception as exc:
+        logger.exception("report_export_failed job_id=%s: %s", job_id, exc)
+        raise
+
+
+def _generate_pdf_sync(data, date_from, date_to):
+    """Generate PDF report using reportlab."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
     )
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        title=f"Informe de Fichajes {date_from} a {date_to}",
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "ReportTitle",
+        parent=styles["Title"],
+        fontSize=18,
+        textColor=colors.HexColor("#FF6B35"),
+        spaceAfter=20,
+    )
+    subtitle_style = ParagraphStyle(
+        "ReportSubtitle",
+        parent=styles["Normal"],
+        fontSize=10,
+        textColor=colors.gray,
+        spaceAfter=20,
+    )
+
+    elements = []
+    elements.append(Paragraph("TalentUP Fichaje — Informe de Registro", title_style))
+    elements.append(Paragraph(f"Período: {date_from} a {date_to}", subtitle_style))
+    elements.append(Spacer(1, 10))
+
+    for emp in data:
+        elements.append(Paragraph(
+            f"<b>{emp['name']}</b>  |  DNI: {emp['dni']}  |  Total: {emp['total_hours']}h",
+            styles["Heading2"],
+        ))
+        elements.append(Spacer(1, 5))
+
+        if not emp["entries"]:
+            elements.append(Paragraph("Sin fichajes en este período", styles["Normal"]))
+        else:
+            table_data = [["Fecha", "Entrada", "Salida", "Horas"]]
+            for entry in emp["entries"]:
+                table_data.append([
+                    entry["date"],
+                    entry["in"],
+                    entry["out"],
+                    f"{entry['hours']}h",
+                ])
+            # Total row
+            table_data.append(["", "", "TOTAL:", f"{emp['total_hours']}h"])
+
+            col_widths = [100, 80, 80, 80]
+            table = Table(table_data, colWidths=col_widths)
+            table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#FF6B35")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -2), 0.5, colors.grey),
+                ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#FFF3EB")),
+                ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#F8F9FA")]),
+            ]))
+            elements.append(table)
+
+        elements.append(Spacer(1, 15))
+
+    # Footer with legal notice
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph(
+        "Documento generado por TalentUP Fichaje. "
+        "Registro de jornada laboral conforme al RD-ley 8/2019 art. 34.9 ET. "
+        "Conservación mínima: 4 años.",
+        ParagraphStyle("Footer", parent=styles["Normal"], fontSize=7, textColor=colors.grey),
+    ))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=fichajes_{date_from}_{date_to}.pdf",
+        },
+    )
+
+
+def _generate_excel_sync(data, date_from, date_to):
+    """Generate Excel report using openpyxl."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Fichajes"
+
+    # Header
+    ws.merge_cells("A1:D1")
+    ws["A1"] = f"TalentUP Fichaje — Informe {date_from} a {date_to}"
+    ws["A1"].font = Font(size=14, bold=True, color="FF6B35")
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    header_fill = PatternFill(start_color="FF6B35", end_color="FF6B35", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=10)
+    thin_border = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+
+    row = 3
+    for emp in data:
+        # Employee header
+        ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=4)
+        ws.cell(row=row, column=1, value=f"{emp['name']} — Total: {emp['total_hours']}h")
+        ws.cell(row=row, column=1).font = Font(bold=True, size=11)
+        row += 1
+
+        # Table header
+        for col, h in enumerate(["Fecha", "Entrada", "Salida", "Horas"], 1):
+            cell = ws.cell(row=row, column=col, value=h)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = thin_border
+        row += 1
+
+        # Data rows
+        for entry in emp["entries"]:
+            ws.cell(row=row, column=1, value=entry["date"]).border = thin_border
+            ws.cell(row=row, column=2, value=entry["in"]).border = thin_border
+            ws.cell(row=row, column=3, value=entry["out"]).border = thin_border
+            ws.cell(row=row, column=4, value=entry["hours"]).border = thin_border
+            ws.cell(row=row, column=4).alignment = Alignment(horizontal="right")
+            row += 1
+
+        # Total row
+        ws.cell(row=row, column=3, value="TOTAL:").font = Font(bold=True)
+        ws.cell(row=row, column=3).border = thin_border
+        ws.cell(row=row, column=4, value=emp["total_hours"]).font = Font(bold=True)
+        ws.cell(row=row, column=4).border = thin_border
+        ws.cell(row=row, column=4).alignment = Alignment(horizontal="right")
+        row += 2  # blank row between employees
+
+    # Column widths
+    ws.column_dimensions["A"].width = 15
+    ws.column_dimensions["B"].width = 12
+    ws.column_dimensions["C"].width = 12
+    ws.column_dimensions["D"].width = 10
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename=fichajes_{date_from}_{date_to}.xlsx",
+        },
+    )
+
+
+# Keep the synchronous generators available for in-process / backwards-compatible use.
+
+
+def _generate_pdf(data, date_from, date_to):
+    return _generate_pdf_sync(data, date_from, date_to)
+
+
+def _generate_excel(data, date_from, date_to):
+    return _generate_excel_sync(data, date_from, date_to)
 
 
 async def run_incident_detection(
@@ -289,9 +497,19 @@ def schedule_report_export(
     date_to: str,
     employee_id: Optional[str],
     user_id: str,
+    report_data: list[dict],
+    job_id: str,
 ):
     background_tasks.add_task(
-        run_report_export, format, tenant_id, date_from, date_to, employee_id, user_id
+        run_report_export,
+        format,
+        tenant_id,
+        date_from,
+        date_to,
+        employee_id,
+        user_id,
+        report_data,
+        job_id,
     )
 
 

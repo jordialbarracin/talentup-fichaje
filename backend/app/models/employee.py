@@ -19,6 +19,36 @@ def _s(value):
     return html.escape(str(value))
 
 
+def _mask(value, visible=4):
+    """
+    Mask a sensitive string, keeping only the last `visible` characters.
+    Padded with asterisks on the left so the original length is preserved.
+    Examples with visible=4:
+        dni='12345678A' -> '***5678A'
+        ss='1234567'    -> '***4567'
+        iban='ES12345678901234567890' -> '****5678901234567890'
+        phone='+34 612 345 678' -> '*** 345 678'
+    """
+    if value is None:
+        return None
+    s = str(value)
+    if len(s) <= visible:
+        return "*" * len(s)
+    return "*" * (len(s) - visible) + s[-visible:]
+
+
+def _mask_email(value):
+    """Mask e-mail local part, keeping domain intact."""
+    if value is None:
+        return None
+    s = str(value)
+    if "@" not in s:
+        return _mask(s, visible=3)
+    local, domain = s.rsplit("@", 1)
+    masked_local = _mask(local, visible=1) if len(local) > 1 else "*"
+    return f"{masked_local}@{domain}"
+
+
 class Employee(Base):
     __tablename__ = "employees"
 
@@ -106,6 +136,12 @@ class Employee(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
+        return self._serialize(mask_pii=True)
+
+    def to_dict_full(self):
+        return self._serialize(mask_pii=False)
+
+    def _serialize(self, mask_pii=True):
         return {
             "id": str(self.id),
             "tenant_id": str(self.tenant_id) if self.tenant_id else None,
@@ -113,9 +149,9 @@ class Employee(Base):
             "name": _s(self.name),
             "last_name": _s(self.last_name),
             "full_name": _s(self.full_name),
-            "dni": _s(self.dni),
-            "nie": _s(self.nie),
-            "numero_ss": _s(self.numero_ss),
+            "dni": _mask(_s(self.dni)) if mask_pii else _s(self.dni),
+            "nie": _mask(_s(self.nie)) if mask_pii else _s(self.nie),
+            "numero_ss": _mask(_s(self.numero_ss)) if mask_pii else _s(self.numero_ss),
             "nationality": _s(self.nationality),
             "birth_date": self.birth_date.isoformat() if self.birth_date else None,
             "gender": _s(self.gender),
@@ -123,10 +159,10 @@ class Employee(Base):
             "city": _s(self.city),
             "province": _s(self.province),
             "postal_code": _s(self.postal_code),
-            "phone": _s(self.phone),
-            "email": _s(self.email),
+            "phone": _mask(_s(self.phone), visible=6) if mask_pii else _s(self.phone),
+            "email": _mask_email(_s(self.email)) if mask_pii else _s(self.email),
             "emergency_contact_name": _s(self.emergency_contact_name),
-            "emergency_contact_phone": _s(self.emergency_contact_phone),
+            "emergency_contact_phone": _mask(_s(self.emergency_contact_phone), visible=6) if mask_pii else _s(self.emergency_contact_phone),
             "categoria_profesional": _s(self.categoria_profesional),
             "tipo_contrato": _s(self.tipo_contrato),
             "fecha_alta": self.fecha_alta.isoformat() if self.fecha_alta else None,
@@ -154,7 +190,7 @@ class Employee(Base):
             "saldo_banco_horas": float(self.saldo_banco_horas) if self.saldo_banco_horas else None,
             "horas_extra_pendientes": float(self.horas_extra_pendientes) if self.horas_extra_pendientes else None,
             "coste_hora": float(self.coste_hora) if self.coste_hora else None,
-            "iban": _s(self.iban),
+            "iban": _mask(_s(self.iban)) if mask_pii else _s(self.iban),
             "bank_name": _s(self.bank_name),
             "bank_account_holder": _s(self.bank_account_holder),
             "education_level": _s(self.education_level),

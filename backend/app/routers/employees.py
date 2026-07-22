@@ -2,7 +2,7 @@
 TalentUP Fichaje — Employees router (ampliado con todos los campos nuevos).
 GET/POST/PUT/DELETE /api/employees
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import Optional
 from sqlalchemy import select, delete
@@ -153,6 +153,7 @@ async def list_employees(
 @router.get("/{employee_id}")
 async def get_employee(
     employee_id: str,
+    full: bool = Query(False, description="Incluye PII completa (solo owner/super_admin con permiso explicito)"),
     current_user: User = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
@@ -163,6 +164,8 @@ async def get_employee(
         raise HTTPException(status_code=404, detail="Empleado no encontrado")
     if current_user.role != "super_admin" and emp.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=403, detail="Acceso denegado")
+    if full:
+        return emp.to_dict_full()
     return emp.to_dict()
 
 
@@ -259,11 +262,11 @@ async def create_employee(
         action="create",
         entity_type="employee",
         entity_id=emp.id,
-        new_value=emp.to_dict(),
+        new_value=emp.to_dict_full(),
     )
     await db.commit()
 
-    return emp.to_dict()
+    return emp.to_dict_full()
 
 
 @router.put("/{employee_id}")
@@ -336,7 +339,7 @@ async def update_employee(
     if data.is_available_for_scheduling is not None: emp.is_available_for_scheduling = data.is_available_for_scheduling
     if data.employee_code is not None: emp.employee_code = data.employee_code
 
-    old_value = emp.to_dict()
+    old_value = emp.to_dict_full()
     await db.commit()
     await db.refresh(emp)
 
@@ -348,11 +351,11 @@ async def update_employee(
         entity_type="employee",
         entity_id=emp.id,
         old_value=old_value,
-        new_value=emp.to_dict(),
+        new_value=emp.to_dict_full(),
     )
     await db.commit()
 
-    return emp.to_dict()
+    return emp.to_dict_full()
 
 
 @router.delete("/{employee_id}", status_code=204)
@@ -369,7 +372,7 @@ async def delete_employee(
     if current_user.role != "super_admin" and emp.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=403, detail="Acceso denegado")
 
-    old_value = emp.to_dict()
+    old_value = emp.to_dict_full()
     await db.execute(delete(Employee).where(Employee.id == employee_id))
     await db.commit()
 

@@ -4,12 +4,14 @@ GET /api/reports/hours, GET /api/reports/incidents, GET /api/reports/export
 GET /api/reports/inspection, GET /api/reports/absenteeism, GET /api/reports/labor-costs
 """
 import io
+import os
+import uuid
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from math import ceil
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +24,6 @@ from app.models.schedule import Schedule
 from app.models.shift import Shift
 from app.models.user import User
 from app.auth import require_manager, get_current_user
-from app.tasks import schedule_report_export
 from app.pagination import paginate
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
@@ -237,21 +238,17 @@ async def report_incidents(
     return page_result
 
 
-@router.get("/export")
-async def export_report(
-    background_tasks: BackgroundTasks,
-    format: str = Query("pdf", pattern="^(pdf|excel)$"),
-    date_from: str = Query(...),
-    date_to: str = Query(...),
+async def _build_export_data(
+    db: AsyncSession,
+    *,
+    tid: Optional[str],
+    date_from: str,
+    date_to: str,
     employee_id: Optional[str] = None,
-    page: int = Query(1, ge=1),
-    limit: int = Query(100, ge=1, le=500),
-    tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
-    current_user: User = Depends(require_manager),
-    db: AsyncSession = Depends(get_db),
+    page: int = 1,
+    limit: int = 100,
 ):
-    """Export report as PDF or Excel."""
-    tid = _resolve_tenant_id(current_user, tenant_id)
+    """Gather paginated employee data for report export."""
     start_date = _parse_date(date_from, "date_from")
     end_date = _parse_date(date_to, "date_to")
 
@@ -263,9 +260,6 @@ async def export_report(
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
     emp_query = emp_query.order_by(Employee.name)
-    # Manual pagination for multi-column select (same as report_hours)
-    export_count_q = select(func.count()).select_from(emp_query.subquery())
-    export_total = (await db.execute(export_count_q)).scalar() or 0
     export_offset = (page - 1) * limit
     emp_rows = (await db.execute(emp_query.offset(export_offset).limit(limit))).all()
     emp_ids = [row[0] for row in emp_rows]
@@ -326,13 +320,11 @@ async def export_report(
     result = await db.execute(entries_query)
     rows = result.all()
 
-    from collections import defaultdict
     entries_by_emp = defaultdict(list)
     totals_by_emp = defaultdict(int)
     for emp_id, clock_date, first_in_epoch, last_out_epoch, total_seconds in rows:
         if not first_in_epoch or not last_out_epoch:
             continue
-        # SQLite returns epoch strings; PostgreSQL returns ints. Normalize.
         try:
             first_in_epoch_int = int(first_in_epoch)
         except (TypeError, ValueError):
@@ -351,7 +343,6 @@ async def export_report(
         })
         totals_by_emp[emp_id] += total_seconds or 0
 
-    # Build report data only for the requested page of employees.
     report_data = []
     for emp_id in emp_ids:
         name, dni = emp_info.get(emp_id, ("Desconocido", ""))
@@ -363,21 +354,38 @@ async def export_report(
             "entries": entries_by_emp.get(emp_id, []),
         })
 
-    schedule_report_export(
-        background_tasks,
-        format=format,
-        tenant_id=tid,
+    return report_data, tid
+
+
+@router.get("/export")
+async def export_report(
+    format: str = Query("pdf", pattern="^(pdf|excel)$"),
+    date_from: str = Query(...),
+    date_to: str = Query(...),
+    employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(100, ge=1, le=500),
+    tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
+    current_user: User = Depends(require_manager),
+    db: AsyncSession = Depends(get_db),
+):
+    """Export hours report as PDF or Excel binary file."""
+    report_data, tid = await _build_export_data(
+        db,
+        tid=_resolve_tenant_id(current_user, tenant_id),
         date_from=date_from,
         date_to=date_to,
         employee_id=employee_id,
-        user_id=str(current_user.id),
+        page=page,
+        limit=limit,
     )
 
     if format == "pdf":
         return _generate_pdf(report_data, date_from, date_to)
-    else:
-        return _generate_excel(report_data, date_from, date_to)
+    return _generate_excel(report_data, date_from, date_to)
 
+
+# Keep the synchronous generators available for in-process / backwards-compatible use.
 
 def _generate_pdf(data, date_from, date_to):
     """Generate PDF report using reportlab."""
