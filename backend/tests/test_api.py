@@ -152,7 +152,7 @@ class TestEmployees:
         assert resp.status_code == 201
         body = resp.json()
         assert body["name"] == "Nuevo Empleado"
-        assert body["dni"] == "11111111H"
+        assert body["dni"] == "*****111H"  # PII masked by default
         assert body["is_active"] is True
         assert "id" in body
         assert body["tenant_id"] == seed_data["tenant_a_id"]
@@ -169,7 +169,7 @@ class TestEmployees:
         assert resp.status_code == 200
         body = resp.json()
         assert body["name"] == "Carlos Actualizado"
-        assert body["dni"] == "87654321Z"
+        assert body["dni"] == "*****321Z"  # PII masked by default
 
     async def test_delete_employee(self, client, seed_data):
         """DELETE /api/employees/{id} → eliminar"""

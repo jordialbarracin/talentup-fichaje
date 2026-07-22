@@ -266,7 +266,7 @@ async def create_employee(
     )
     await db.commit()
 
-    return emp.to_dict_full()
+    return emp.to_dict()
 
 
 @router.put("/{employee_id}")
@@ -355,7 +355,7 @@ async def update_employee(
     )
     await db.commit()
 
-    return emp.to_dict_full()
+    return emp.to_dict()
 
 
 @router.delete("/{employee_id}", status_code=204)
