@@ -166,6 +166,40 @@ talentup-fichaje/
 
 ---
 
+## Tests
+
+### Backend (pytest)
+```bash
+cd backend
+DATABASE_URL=sqlite+aiosqlite:// PIN_HASH_SALT=test-salt JWT_SECRET=test-secret python -m pytest --tb=no -q
+```
+**67 tests** — cubren auth, empleados, fichajes, vacaciones, bajas, reportes, seguridad (XSS, SQLi, JWT, CORS, rate limiting, WebSocket, Stripe webhook).
+
+### Frontend (vitest)
+```bash
+cd frontend
+npx vitest run
+```
+**28 tests** — JWT helpers, cookie helper, api helper, navegación, empleados, turnos, dashboard, modal, auth flow.
+
+### E2E (Playwright)
+```bash
+# 1. Sembrar la BD de prueba (crea owner@latagliatella.es / owner123)
+cd backend
+DATABASE_URL=sqlite+aiosqlite:///./talentup_fichaje.db PIN_HASH_SALT=test-salt JWT_SECRET=test-secret venv/Scripts/python -m app.seed
+
+# 2. Correr E2E (Playwright arranca backend en :8080 y frontend en :3000)
+cd ../frontend
+npx playwright test --reporter=line
+```
+**5 tests** — landing, login, dashboard, crear empleado, logout.
+
+### Login de prueba
+- Email: `owner@latagliatella.es`
+- Contraseña: `owner123`
+
+---
+
 ## Licencia
 
 Uso interno. Todos los derechos reservados.
