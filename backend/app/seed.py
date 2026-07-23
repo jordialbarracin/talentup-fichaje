@@ -91,6 +91,17 @@ async def seed():
         db.add(owner)
         print("  ✓ Owner created: owner@latagliatella.es / owner123")
 
+        # 3b. Demo user (for demo login button)
+        demo_user = User(
+            tenant_id=tenant.id,
+            email="demo@talentup.es",
+            password_hash=hash_password("demo1234"),
+            name="Usuario Demo",
+            role="owner",
+        )
+        db.add(demo_user)
+        print("  ✓ Demo user created: demo@talentup.es / demo1234")
+
         # 4. Shifts (ampliados)
         shifts_data = [
             Shift(

@@ -165,6 +165,8 @@ async def get_employee(
     if current_user.role != "super_admin" and emp.tenant_id != current_user.tenant_id:
         raise HTTPException(status_code=403, detail="Acceso denegado")
     if full:
+        if current_user.role != "super_admin":
+            raise HTTPException(status_code=403, detail="PII completa solo disponible para super_admin")
         return emp.to_dict_full()
     return emp.to_dict()
 

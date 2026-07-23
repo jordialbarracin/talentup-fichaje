@@ -195,8 +195,8 @@ npx playwright test --reporter=line
 **5 tests** — landing, login, dashboard, crear empleado, logout.
 
 ### Login de prueba
-- Email: `owner@latagliatella.es`
-- Contraseña: `owner123`
+- **Owner**: `owner@latagliatella.es` / `owner123`
+- **Demo**: `demo@talentup.es` / `demo1234` (botón "Entrar en modo demo")
 
 ---
 
