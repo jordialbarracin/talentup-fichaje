@@ -281,10 +281,26 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 });
 
 // ===== DEMO LOGIN (temporal — quitar después) =====
-document.getElementById('demo-btn').addEventListener('click', () => {
-  state.user = { name: 'Demo', email: 'demo@talentup.es', role: 'owner', tenant_id: 'demo' };
-  state.isDemo = true;
-  enterApp();
+document.getElementById('demo-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('demo-btn');
+  btn.disabled = true;
+  btn.textContent = 'Conectando...';
+  // Real login with demo credentials — no fake user bypass
+  const result = await api('POST', '/auth/login', { email: 'owner@latagliatella.es', password: 'owner123' });
+  btn.disabled = false;
+  btn.textContent = 'Entrar en modo demo';
+  if (result && result.ok && result.user) {
+    state.user = result.user;
+    state.isDemo = false;
+    enterApp();
+  } else {
+    // Backend not available — show offline demo with warning
+    state.user = { name: 'Demo offline', email: 'demo@talentup.es', role: 'owner', tenant_id: 'demo' };
+    state.isDemo = true;
+    state.isOnline = false;
+    updateOnlineStatus();
+    enterApp();
+  }
 });
 
 // ===== REGISTER MODAL =====
