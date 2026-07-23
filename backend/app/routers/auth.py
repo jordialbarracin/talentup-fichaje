@@ -50,6 +50,11 @@ _register_attempts: dict[str, list[float]] = {}
 REGISTER_RATE_LIMIT = 3  # max 3 per hour
 REGISTER_RATE_WINDOW = 3600  # 1 hour in seconds
 
+# --- Login rate limiting ---
+_login_attempts: dict[str, list[float]] = {}
+LOGIN_RATE_LIMIT = 10  # max 10 login attempts per 5 minutes
+LOGIN_RATE_WINDOW = 300  # 5 minutes in seconds
+
 # --- Refresh token revocation store ---
 # Redis-backed when REDIS_URL is available; in-memory fallback for dev/tests.
 # Stores revoked token JTI (or token signature) with TTL matching the refresh
@@ -163,8 +168,19 @@ class RefreshResponse(BaseModel):
 
 # --- Endpoints ---
 @router.post("/login", response_model=AuthResponse)
-async def login(req: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(req: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT access + refresh tokens (also as httpOnly cookies)."""
+    # Rate limit login attempts
+    client_ip = request.client.host if request.client else "unknown"
+    allowed = await check_rate_limit(f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW)
+    if not allowed and not _cleanup_and_check(_login_attempts, f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Demasiados intentos de login. Máximo {LOGIN_RATE_LIMIT} por {LOGIN_RATE_WINDOW // 60} minutos.",
+            headers={"Retry-After": str(LOGIN_RATE_WINDOW)},
+        )
+    _record(_login_attempts, f"login:{client_ip}")
+
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
 

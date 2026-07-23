@@ -8,7 +8,7 @@ const pythonExe = path.join(backendDir, 'venv', 'Scripts', 'python.exe');
 module.exports = defineConfig({
   testDir: './e2e',
   testMatch: '*.spec.cjs',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
   workers: process.env.CI ? 1 : undefined,
@@ -25,7 +25,8 @@ module.exports = defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: [
     {
-      command: `"${pythonExe}" -m uvicorn app.main:app --host 0.0.0.0 --port 8080`,
+      // Delete old DB, seed, then start backend
+      command: `"${pythonExe}" -c "import os; os.chdir(r'${backendDir}'); os.environ['DATABASE_URL']='sqlite+aiosqlite:///./talentup_fichaje.db'; os.environ['PIN_HASH_SALT']='test-salt'; os.environ['JWT_SECRET']='test-secret'; import asyncio; from app.seed import seed; asyncio.run(seed())" && "${pythonExe}" -m uvicorn app.main:app --host 0.0.0.0 --port 8080`,
       cwd: backendDir,
       url: 'http://localhost:8080/api/health',
       timeout: 60_000,
