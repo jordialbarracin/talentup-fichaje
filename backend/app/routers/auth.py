@@ -170,21 +170,23 @@ class RefreshResponse(BaseModel):
 @router.post("/login", response_model=AuthResponse)
 async def login(req: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT access + refresh tokens (also as httpOnly cookies)."""
-    # Rate limit login attempts
-    client_ip = request.client.host if request.client else "unknown"
-    allowed = await check_rate_limit(f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW)
-    if not allowed and not _cleanup_and_check(_login_attempts, f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW):
-        raise HTTPException(
-            status_code=429,
-            detail=f"Demasiados intentos de login. Máximo {LOGIN_RATE_LIMIT} por {LOGIN_RATE_WINDOW // 60} minutos.",
-            headers={"Retry-After": str(LOGIN_RATE_WINDOW)},
-        )
-    _record(_login_attempts, f"login:{client_ip}")
+    # Rate limit login attempts — only count failed attempts, read real IP behind proxy
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
 
     result = await db.execute(select(User).where(User.email == req.email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.password_hash):
+        # Only record FAILED attempts
+        allowed = await check_rate_limit(f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW)
+        if not allowed and not _cleanup_and_check(_login_attempts, f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW):
+            raise HTTPException(
+                status_code=429,
+                detail=f"Demasiados intentos de login. Máximo {LOGIN_RATE_LIMIT} por {LOGIN_RATE_WINDOW // 60} minutos.",
+                headers={"Retry-After": str(LOGIN_RATE_WINDOW)},
+            )
+        _record(_login_attempts, f"login:{client_ip}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email o contraseña incorrectos",
