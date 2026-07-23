@@ -45,12 +45,10 @@ const API_BASE = window.location.hostname === 'localhost'
   : '/api';
 const PAGE_SIZE = 20;
 
-// Show demo button on localhost and GitHub Pages only (not on custom production domains)
+// Show demo button only on localhost (never on production or GitHub Pages)
 (function showDemoButton() {
   const host = window.location.hostname;
-  const isLocal = host === 'localhost' || host === '127.0.0.1';
-  const isGitHubPages = host.endsWith('.github.io');
-  if (isLocal || isGitHubPages) {
+  if (host === 'localhost' || host === '127.0.0.1') {
     const demoBtn = document.getElementById('demo-btn');
     if (demoBtn) demoBtn.classList.remove('hidden');
   }
