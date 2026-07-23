@@ -369,7 +369,8 @@ async def export_report(
     current_user: User = Depends(require_manager),
     db: AsyncSession = Depends(get_db),
 ):
-    """Export hours report as PDF or Excel binary file."""
+    """Export hours report as PDF or Excel binary file (generated in thread pool to avoid blocking event loop)."""
+    import asyncio
     report_data, tid = await _build_export_data(
         db,
         tid=_resolve_tenant_id(current_user, tenant_id),
@@ -381,8 +382,8 @@ async def export_report(
     )
 
     if format == "pdf":
-        return _generate_pdf(report_data, date_from, date_to)
-    return _generate_excel(report_data, date_from, date_to)
+        return await asyncio.to_thread(_generate_pdf, report_data, date_from, date_to)
+    return await asyncio.to_thread(_generate_excel, report_data, date_from, date_to)
 
 
 # Keep the synchronous generators available for in-process / backwards-compatible use.
