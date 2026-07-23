@@ -41,6 +41,7 @@ def _get_redis_client():
 _pin_limits: dict[str, list[float]] = defaultdict(list)
 _nfc_limits: dict[str, list[float]] = defaultdict(list)
 _qr_limits: dict[str, list[float]] = defaultdict(list)
+_login_limits: dict[str, list[float]] = defaultdict(list)
 # PIN failure tracking remains per IP+tenant (failed attempts are not tied to employee_id)
 _pin_failures: dict[str, list[float]] = defaultdict(list)
 # PIN blocks: key = f"{ip}:{tenant_id}" -> unblock timestamp
@@ -83,6 +84,8 @@ def _method_store(method: str) -> dict[str, list[float]]:
         return _nfc_limits
     if method == "qr":
         return _qr_limits
+    if method == "login":
+        return _login_limits
     return _pin_limits
 
 

@@ -48,7 +48,13 @@ def event_loop():
 # ── Database ───────────────────────────────────────────────────────────────
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
-    """Create tables before each test, drop after."""
+    """Create tables before each test, drop after. Also reset rate limiter stores."""
+    # Reset in-memory rate limiter stores between tests
+    from app.rate_limiter import _pin_limits, _nfc_limits, _qr_limits, _login_limits
+    _pin_limits.clear()
+    _nfc_limits.clear()
+    _qr_limits.clear()
+    _login_limits.clear()
     await init_db()
     yield
     async with engine.begin() as conn:

@@ -615,7 +615,7 @@ async def report_inspection(
         clock_query = clock_query.where(ClockIn.tenant_id == tid)
     if emp_ids:
         clock_query = clock_query.where(ClockIn.employee_id.in_(emp_ids))
-    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp).limit(1000)
+    clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp).limit(500)
     result = await db.execute(clock_query)
     all_clock_ins = result.scalars().all()
 
@@ -628,7 +628,7 @@ async def report_inspection(
         inc_query = inc_query.where(Incident.tenant_id == tid)
     if emp_ids:
         inc_query = inc_query.where(Incident.employee_id.in_(emp_ids))
-    inc_query = inc_query.order_by(Incident.employee_id, Incident.date).limit(1000)
+    inc_query = inc_query.order_by(Incident.employee_id, Incident.date).limit(500)
     result = await db.execute(inc_query)
     all_incidents = result.scalars().all()
 
@@ -757,7 +757,7 @@ async def report_absenteeism(
         vac_query = vac_query.where(VacationRequest.tenant_id == tid)
     if emp_ids:
         vac_query = vac_query.where(VacationRequest.employee_id.in_(emp_ids))
-    vac_query = vac_query.order_by(VacationRequest.employee_id).limit(1000)
+    vac_query = vac_query.order_by(VacationRequest.employee_id).limit(500)
     result = await db.execute(vac_query)
     vacations = result.scalars().all()
 
@@ -771,7 +771,7 @@ async def report_absenteeism(
         leave_query = leave_query.where(Leave.tenant_id == tid)
     if emp_ids:
         leave_query = leave_query.where(Leave.employee_id.in_(emp_ids))
-    leave_query = leave_query.order_by(Leave.employee_id).limit(1000)
+    leave_query = leave_query.order_by(Leave.employee_id).limit(500)
     result = await db.execute(leave_query)
     leaves = result.scalars().all()
 
@@ -785,7 +785,7 @@ async def report_absenteeism(
         inc_query = inc_query.where(Incident.tenant_id == tid)
     if emp_ids:
         inc_query = inc_query.where(Incident.employee_id.in_(emp_ids))
-    inc_query = inc_query.order_by(Incident.employee_id).limit(1000)
+    inc_query = inc_query.order_by(Incident.employee_id).limit(500)
     result = await db.execute(inc_query)
     no_shows = result.scalars().all()
 

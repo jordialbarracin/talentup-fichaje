@@ -203,6 +203,20 @@ class TestRateLimiting:
         assert statuses.count(401) >= 4, statuses
         assert any(s == 429 for s in statuses), statuses
 
+    async def test_rate_limit_login_failed(self, client, seed_data):
+        """12 POST /api/auth/login con credenciales incorrectas → 429 tras 10 fallidos"""
+        statuses = []
+        for i in range(12):
+            resp = await client.post("/api/auth/login", json={
+                "email": "wrong@test.com",
+                "password": "wrongpass",
+            })
+            statuses.append(resp.status_code)
+
+        # First 10 should be 401, then 429
+        assert statuses[:10].count(401) == 10, statuses
+        assert any(s == 429 for s in statuses[10:]), statuses
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 7. STRIPE WEBHOOK
