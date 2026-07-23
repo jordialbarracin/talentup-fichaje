@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["SQLITE_FALLBACK"] = "true"
 
 from app.database import async_session_factory, init_db, engine
+from sqlalchemy import select
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.models.shift import Shift
@@ -34,6 +35,12 @@ async def seed():
     await init_db()
 
     async with async_session_factory() as db:
+        # Check if already seeded (idempotency)
+        existing = await db.execute(select(User).where(User.email == "admin@talentup.es"))
+        if existing.scalar_one_or_none():
+            print("  ⚠️  Database already seeded — skipping (idempotent)")
+            return
+
         # 1. Super Admin
         admin = User(
             email="admin@talentup.es",

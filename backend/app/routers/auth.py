@@ -19,6 +19,7 @@ from app.models.shift import Shift
 from app.rate_limiter import (
     check_rate_limit,
     record_rate,
+    check_and_record_rate,
     _cleanup_and_check,
     _record,
     WINDOW_SECONDS,
@@ -178,15 +179,14 @@ async def login(req: LoginRequest, response: Response, request: Request, db: Asy
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.password_hash):
-        # Only record FAILED attempts
-        allowed = await check_rate_limit(f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW)
-        if not allowed and not _cleanup_and_check(_login_attempts, f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW):
+        # Only record FAILED attempts — atomic check+record
+        allowed = await check_and_record_rate(f"login:{client_ip}", LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW, method="login")
+        if not allowed:
             raise HTTPException(
                 status_code=429,
                 detail=f"Demasiados intentos de login. Máximo {LOGIN_RATE_LIMIT} por {LOGIN_RATE_WINDOW // 60} minutos.",
                 headers={"Retry-After": str(LOGIN_RATE_WINDOW)},
             )
-        _record(_login_attempts, f"login:{client_ip}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email o contraseña incorrectos",
