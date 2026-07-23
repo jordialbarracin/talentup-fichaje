@@ -874,6 +874,11 @@ async def report_absenteeism(
         "page": page,
         "limit": limit,
         "total_employees": total_employees,
+        "warnings": {
+            "vacations_truncated": len(vacations) >= 500,
+            "leaves_truncated": len(leaves) >= 500,
+            "incidents_truncated": len(no_shows) >= 500,
+        } if (len(vacations) >= 500 or len(leaves) >= 500 or len(no_shows) >= 500) else None,
     }
 
 
