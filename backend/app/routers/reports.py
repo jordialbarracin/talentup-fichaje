@@ -12,8 +12,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from math import ceil
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse, FileResponse
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -384,6 +384,65 @@ async def export_report(
     if format == "pdf":
         return await asyncio.to_thread(_generate_pdf, report_data, date_from, date_to)
     return await asyncio.to_thread(_generate_excel, report_data, date_from, date_to)
+
+
+@router.get("/export/async")
+async def export_report_async(
+    format: str = Query("pdf", pattern="^(pdf|excel)$"),
+    date_from: str = Query(...),
+    date_to: str = Query(...),
+    employee_id: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(100, ge=1, le=500),
+    tenant_id: Optional[str] = Query(None, description="Solo para super_admin: filtrar por tenant"),
+    current_user: User = Depends(require_manager),
+    db: AsyncSession = Depends(get_db),
+    background_tasks: BackgroundTasks = None,
+):
+    """Export report asynchronously — returns 202 with job_id, then poll /export/status/{job_id}."""
+    from app.tasks import schedule_report_export
+
+    report_data, tid = await _build_export_data(
+        db,
+        tid=_resolve_tenant_id(current_user, tenant_id),
+        date_from=date_from,
+        date_to=date_to,
+        employee_id=employee_id,
+        page=page,
+        limit=limit,
+    )
+
+    job_id = str(uuid.uuid4())
+    schedule_report_export(
+        background_tasks,
+        format=format,
+        tenant_id=tid,
+        date_from=date_from,
+        date_to=date_to,
+        employee_id=employee_id,
+        user_id=str(current_user.id),
+        report_data=report_data,
+        job_id=job_id,
+    )
+
+    return {"job_id": job_id, "status": "accepted", "message": "Reporte en generacion. Use GET /api/reports/export/download/{job_id} para descargar."}
+
+
+@router.get("/export/download/{job_id}")
+async def download_export(
+    job_id: str,
+    current_user: User = Depends(require_manager),
+):
+    """Download a previously generated export file by job_id."""
+    from pathlib import Path
+    exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
+    # Find file matching job_id
+    matches = list(exports_dir.glob(f"*_{job_id}.*"))
+    if not matches:
+        raise HTTPException(status_code=404, detail="Reporte no encontrado o aun generandose")
+    file_path = matches[0]
+    media_type = "application/pdf" if file_path.suffix == ".pdf" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return FileResponse(path=str(file_path), media_type=media_type, filename=file_path.name)
 
 
 # Keep the synchronous generators available for in-process / backwards-compatible use.
