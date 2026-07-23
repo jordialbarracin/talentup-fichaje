@@ -13,7 +13,7 @@ from math import ceil
 from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -425,7 +425,10 @@ async def export_report_async(
         job_id=job_id,
     )
 
-    return {"job_id": job_id, "status": "accepted", "message": "Reporte en generacion. Use GET /api/reports/export/download/{job_id} para descargar."}
+    return JSONResponse(
+        status_code=status.HTTP_202_ACCEPTED,
+        content={"job_id": job_id, "status": "accepted", "message": "Reporte en generacion. Use GET /api/reports/export/download/{job_id} para descargar."},
+    )
 
 
 @router.get("/export/download/{job_id}")
