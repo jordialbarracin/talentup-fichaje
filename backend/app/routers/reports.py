@@ -399,7 +399,7 @@ async def export_report_async(
     db: AsyncSession = Depends(get_db),
     background_tasks: BackgroundTasks = None,
 ):
-    """Export report asynchronously — returns 202 with job_id, then poll /export/status/{job_id}."""
+    """Export report asynchronously — returns 202 with job_id, then poll GET /api/reports/export/status/{job_id}."""
     from app.tasks import schedule_report_export
 
     report_data, tid = await _build_export_data(
@@ -429,6 +429,20 @@ async def export_report_async(
         status_code=status.HTTP_202_ACCEPTED,
         content={"job_id": job_id, "status": "accepted", "message": "Reporte en generacion. Use GET /api/reports/export/download/{job_id} para descargar."},
     )
+
+
+@router.get("/export/status/{job_id}")
+async def export_status(
+    job_id: str,
+    current_user: User = Depends(require_manager),
+):
+    """Check status of an async export job."""
+    from pathlib import Path
+    exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
+    matches = list(exports_dir.glob(f"*_{job_id}.*"))
+    if matches:
+        return {"job_id": job_id, "status": "completed", "download_url": f"/api/reports/export/download/{job_id}"}
+    return {"job_id": job_id, "status": "pending"}
 
 
 @router.get("/export/download/{job_id}")
