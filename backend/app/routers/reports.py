@@ -715,7 +715,11 @@ async def report_inspection(
         "summary": {
             "total_employees": total_employees,
             "total_incidents": total_incidents,
-        }
+        },
+        "warnings": {
+            "clock_ins_truncated": len(all_clock_ins) >= 500,
+            "incidents_truncated": len(all_incidents) >= 500,
+        } if (len(all_clock_ins) >= 500 or len(all_incidents) >= 500) else None,
     }
 
 

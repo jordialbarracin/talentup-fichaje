@@ -125,7 +125,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = csp
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        # HSTS only when HTTPS (X-Forwarded-Proto) or APP_ENV=production
+        proto = request.headers.get("X-Forwarded-Proto", "")
+        if proto == "https" or os.environ.get("APP_ENV") == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
         return response
 
 
