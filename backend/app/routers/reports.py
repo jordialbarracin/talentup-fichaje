@@ -3,6 +3,7 @@ TalentUP Fichaje — Reports router.
 GET /api/reports/hours, GET /api/reports/incidents, GET /api/reports/export
 GET /api/reports/inspection, GET /api/reports/absenteeism, GET /api/reports/labor-costs
 """
+import asyncio
 import io
 import os
 import uuid
@@ -370,7 +371,6 @@ async def export_report(
     db: AsyncSession = Depends(get_db),
 ):
     """Export hours report as PDF or Excel binary file (generated in thread pool to avoid blocking event loop)."""
-    import asyncio
     report_data, tid = await _build_export_data(
         db,
         tid=_resolve_tenant_id(current_user, tenant_id),
