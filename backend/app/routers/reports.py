@@ -445,7 +445,7 @@ async def export_status(
     if not re.match(r'^[a-f0-9-]{36}$', job_id):
         raise HTTPException(status_code=422, detail="job_id invalido")
     exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
-    matches = list(exports_dir.glob(f"*_{job_id}.*"))
+    matches = [f for f in exports_dir.iterdir() if job_id in f.name] if exports_dir.exists() else []
     if matches:
         return {"job_id": job_id, "status": "completed", "download_url": f"/api/reports/export/download/{job_id}"}
     return {"job_id": job_id, "status": "pending"}
@@ -463,8 +463,7 @@ async def download_export(
     if not re.match(r'^[a-f0-9-]{36}$', job_id):
         raise HTTPException(status_code=422, detail="job_id invalido")
     exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
-    # Find file matching job_id
-    matches = list(exports_dir.glob(f"*_{job_id}.*"))
+    matches = [f for f in exports_dir.iterdir() if job_id in f.name] if exports_dir.exists() else []
     if not matches:
         raise HTTPException(status_code=404, detail="Reporte no encontrado o aun generandose")
     file_path = matches[0]
