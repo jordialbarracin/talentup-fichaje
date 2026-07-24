@@ -402,6 +402,8 @@ async def export_report_async(
     background_tasks: BackgroundTasks = None,
 ):
     """Export report asynchronously — returns 202 with job_id, then poll GET /api/reports/export/status/{job_id}."""
+    if background_tasks is None:
+        raise HTTPException(status_code=500, detail="BackgroundTasks no disponible")
     from app.tasks import schedule_report_export
 
     report_data, tid = await _build_export_data(
