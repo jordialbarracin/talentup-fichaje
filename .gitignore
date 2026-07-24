@@ -40,3 +40,4 @@ yarn-error.log*
 *.log
 test-results/
 *.db-journal
+reaudit_tmp/

@@ -437,7 +437,11 @@ async def export_status(
     current_user: User = Depends(require_manager),
 ):
     """Check status of an async export job."""
+    import re
     from pathlib import Path
+    # Validate job_id is a safe UUID (prevent glob injection)
+    if not re.match(r'^[a-f0-9-]{36}$', job_id):
+        raise HTTPException(status_code=422, detail="job_id invalido")
     exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
     matches = list(exports_dir.glob(f"*_{job_id}.*"))
     if matches:
@@ -451,7 +455,11 @@ async def download_export(
     current_user: User = Depends(require_manager),
 ):
     """Download a previously generated export file by job_id."""
+    import re
     from pathlib import Path
+    # Validate job_id is a safe UUID (prevent glob injection)
+    if not re.match(r'^[a-f0-9-]{36}$', job_id):
+        raise HTTPException(status_code=422, detail="job_id invalido")
     exports_dir = Path(os.environ.get("EXPORTS_DIR", "exports"))
     # Find file matching job_id
     matches = list(exports_dir.glob(f"*_{job_id}.*"))
