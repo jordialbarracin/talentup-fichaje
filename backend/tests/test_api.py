@@ -945,3 +945,39 @@ class TestIncidents:
         # Check that an 'early_leave' incident was created
         early = [i for i in new_incidents if i.incident_type == "early_leave"]
         assert len(early) >= 1, f"No early_leave incident detected. New incidents: {[i.incident_type for i in new_incidents]}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EXPORT ASYNC — job_id validation
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestExportAsync:
+    """GET /api/reports/export/status and /download — job_id validation"""
+
+    async def test_export_status_invalid_job_id(self, client, seed_data):
+        """Invalid job_id (glob chars) → 422"""
+        login = await client.post("/api/auth/login", json={
+            "email": "owner@latagliatella.es",
+            "password": "owner123",
+        })
+        assert login.status_code == 200
+        token = login.cookies["access_token"]
+
+        cookie_client = AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+            cookies={"access_token": token},
+        )
+        async with cookie_client as cc:
+            # Glob injection attempt
+            resp = await cc.get("/api/reports/export/status/*")
+            assert resp.status_code == 422
+
+            # Path traversal attempt (URL-decoded by FastAPI)
+            resp = await cc.get("/api/reports/export/status/not-a-valid-uuid")
+            assert resp.status_code == 422
+
+            # Valid UUID but not found
+            resp = await cc.get("/api/reports/export/status/550e8400-e29b-41d4-a716-446655440000")
+            assert resp.status_code == 200
+            assert resp.json()["status"] == "pending"

@@ -6,7 +6,9 @@ GET /api/reports/inspection, GET /api/reports/absenteeism, GET /api/reports/labo
 import asyncio
 import io
 import os
+import re
 import uuid
+from pathlib import Path
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from math import ceil
@@ -437,8 +439,8 @@ async def export_status(
     current_user: User = Depends(require_manager),
 ):
     """Check status of an async export job."""
-    import re
-    from pathlib import Path
+
+
     # Validate job_id is a safe UUID (prevent glob injection)
     if not re.match(r'^[a-f0-9-]{36}$', job_id):
         raise HTTPException(status_code=422, detail="job_id invalido")
@@ -455,8 +457,8 @@ async def download_export(
     current_user: User = Depends(require_manager),
 ):
     """Download a previously generated export file by job_id."""
-    import re
-    from pathlib import Path
+
+
     # Validate job_id is a safe UUID (prevent glob injection)
     if not re.match(r'^[a-f0-9-]{36}$', job_id):
         raise HTTPException(status_code=422, detail="job_id invalido")
