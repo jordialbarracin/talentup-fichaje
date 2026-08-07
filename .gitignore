@@ -38,6 +38,15 @@ yarn-error.log*
 
 # Logs
 *.log
-test-results/
-*.db-journal
-reaudit_tmp/
+
+# PlatformIO
+.pio/
+.pio/libdeps/
+.pio/build/
+.pio/tmp_hermes_verify/
+
+# Sensitive
+backend/token.txt
+backend/login_resp.json
+backend/xss_resp.json
+backend/1

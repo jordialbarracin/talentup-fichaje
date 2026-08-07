@@ -1,21 +1,46 @@
-# TalentUP Fichaje 🕐
+# TalentUP Fichaje
 
-**SaaS de fichaje digital para hostelería.**  
+**SaaS de fichaje digital para hostelería.**
 Multi-tenant. Cumple el Real Decreto-ley 8/2019 de registro de jornada en España.
+
+[![CI](https://github.com/jordialbarracin/talentup-fichaje/actions/workflows/ci.yml/badge.svg)](https://github.com/jordialbarracin/talentup-fichaje/actions)
 
 ---
 
 ## Stack
 
-| Capa | Tecnología |
+| Capa | Tecnologia |
 |------|-----------|
-| **Frontend** | HTML + CSS + JavaScript vanilla (SPA) |
+| **Frontend** | HTML + CSS + JavaScript vanilla (SPA), i18n ES/CA/EN |
 | **Backend** | Python 3.11 / FastAPI (async) |
-| **Base de datos** | PostgreSQL 16 (Neon en producción, SQLite en local) |
-| **Auth** | JWT con bcrypt |
-| **Hosting frontend** | Vercel |
-| **Hosting backend** | Railway |
-| **Hosting DB** | Neon (PostgreSQL serverless) |
+| **Base de datos** | PostgreSQL 16 (produccion), SQLite (local dev) |
+| **Auth** | JWT con access + refresh tokens, bcrypt |
+| **Seguridad** | Rate limiting, CORS, multi-tenant isolation, audit log |
+| **Hardware** | ESP32 CYD 2432S028 + PN532 NFC (I2C) + TFT_eSPI |
+| **Monitoring** | Grafana + PostgreSQL datasource |
+| **CI/CD** | GitHub Actions (test + build) |
+| **Hosting** | Vercel (frontend), Railway/Supabase (backend) |
+
+---
+
+## Caracteristicas
+
+- **Fichaje NFC**: empleados fichan con tarjeta/llavero NFC
+- **Fichaje PIN**: alternativa con PIN numerico
+- **Multi-tenant**: cada empresa ve solo sus datos
+- **Turnos y horarios**: gestion completa de turnos, tolerancia, descansos
+- **Incidencias**: deteccion automatica de retrasos, ausencias, salidas anticipadas
+- **Vacaciones y permisos**: solicitud, aprobacion, rechazo
+- **Horas extra**: calculo automatico, compensacion, pago
+- **Nomminas**: cierre mensual, calculo de horas trabajadas
+- **Contratos**: gestion de tipos de contrato, renovaciones, duracion
+- **Calendario laboral**: generacion automatica de calendario anual con festivos
+- **Notificaciones**: sistema in-app con prioridades y categorias
+- **Reportes**: exportacion PDF y Excel, horas trabajadas, incidencias
+- **i18n**: Espanol, Catalan, Ingles
+- **RGPD**: politica de privacidad y DPA incluidos
+- **OTA**: actualizacion del firmware remoto
+- **Offline queue**: fichajes guardados sin WiFi, enviados al recuperar conexion
 
 ---
 
@@ -25,11 +50,12 @@ Multi-tenant. Cumple el Real Decreto-ley 8/2019 de registro de jornada en Españ
 
 - Python 3.11+
 - Node.js (opcional, para servir el frontend)
+- PlatformIO (para compilar firmware)
 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/talentup-fichaje.git
+git clone https://github.com/jordialbarracin/talentup-fichaje.git
 cd talentup-fichaje
 ```
 
@@ -45,17 +71,16 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-La API estará en `http://localhost:8000`.  
-Documentación interactiva: `http://localhost:8000/docs`
+La API estara en `http://localhost:8000`.
+Documentacion interactiva: `http://localhost:8000/docs`
 
 ### 3. Frontend
 
-Abre `frontend/index.html` en tu navegador o sirve con cualquier servidor estático:
+Abre `frontend/index.html` en tu navegador o sirve con un servidor estatico:
 
 ```bash
 cd frontend
 python -m http.server 3000
-# o con npx: npx serve .
 ```
 
 ### 4. Variables de Entorno
@@ -66,11 +91,11 @@ Copia `.env.example` a `.env` y ajusta los valores:
 cp .env.example .env
 ```
 
-| Variable | Descripción | Ejemplo |
+| Variable | Descripcion | Ejemplo |
 |----------|-------------|---------|
 | `JWT_SECRET` | Secreto para firmar tokens JWT | `openssl rand -hex 32` |
-| `DATABASE_URL` | URL de conexión a PostgreSQL | `postgresql://user:pass@host:5432/talentup_fichaje` |
-| `CORS_ORIGINS` | Orígenes permitidos (separados por coma) | `http://localhost:3000,http://localhost:3001` |
+| `DATABASE_URL` | URL de conexion a PostgreSQL | `postgresql://user:***@host:5432/talentup_fichaje` |
+| `CORS_ORIGINS` | Origienes permitidos | `http://localhost:3000,http://localhost:3001` |
 | `PORT` | Puerto del servidor | `8000` |
 
 ### 5. Docker (opcional)
@@ -79,58 +104,26 @@ cp .env.example .env
 docker compose up --build
 ```
 
----
+Esto levanta:
+- PostgreSQL en puerto 5432
+- Backend en puerto 8000
+- Grafana en puerto 3001 (admin/talentup)
 
-## Deploy
-
-### Frontend → Vercel
-
-1. Conecta tu repositorio de GitHub a Vercel.
-2. Configura:
-   - **Root Directory:** `frontend`
-   - **Build Command:** (ninguno, es estático)
-   - **Output Directory:** `.`
-3. Vercel detectará automáticamente `vercel.json` y configurará las rutas SPA.
-4. El `vercel.json` incluye un proxy para `/api/*` → Railway.
-
-### Backend → Railway
-
-1. Conecta tu repositorio a Railway.
-2. Railway detectará el `Dockerfile` en `backend/` automáticamente.
-3. Configura las variables de entorno en Railway:
-   - `JWT_SECRET` — genera uno con `openssl rand -hex 32`
-   - `DATABASE_URL` — la URL de tu base de datos en Neon
-   - `CORS_ORIGINS` — la URL de tu frontend en Vercel
-   - `PORT` — `8000`
-4. Railway expondrá el servicio en `https://talentup-fichaje-backend.railway.app`.
-
-### Base de Datos → Neon
-
-1. Crea una cuenta en [neon.tech](https://neon.tech).
-2. Crea un proyecto (región EU).
-3. Copia la `DATABASE_URL` de conexión (formato `postgresql://user:pass@ep-xxx.us-east-2.aws.neon.tech/neondb`).
-4. Pégala en las variables de entorno de Railway.
-
----
-
-## Comandos Útiles
+### 6. Firmware (ESP32 CYD)
 
 ```bash
-# Backend
-uvicorn app.main:app --reload          # Desarrollo con recarga automática
-uvicorn app.main:app --host 0.0.0.0    # Producción local
+cd hardware/esp32_fichaje_cyd
+pio run -t upload --upload-port COM4
+pio device monitor
+```
 
-# Tests
-cd backend && python -m pytest tests/ -v
+---
 
-# Docker
-docker compose up --build              # Levantar todo
-docker compose down                    # Parar todo
-docker compose down -v                 # Parar y borrar volúmenes
+## Tests
 
-# Git
-git add . && git commit -m "mensaje"   # Commit
-git push origin main                   # Subir cambios
+```bash
+cd backend
+python -m pytest -v
 ```
 
 ---
@@ -141,62 +134,56 @@ git push origin main                   # Subir cambios
 talentup-fichaje/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # Punto de entrada FastAPI
-│   │   ├── database.py       # Conexión a BD (async SQLAlchemy)
-│   │   ├── auth.py           # Autenticación JWT
-│   │   ├── audit.py          # Registro de auditoría
-│   │   ├── seed.py           # Datos de prueba
-│   │   ├── incidents.py      # Gestión de incidencias
-│   │   ├── models/           # Modelos SQLAlchemy
-│   │   ├── routers/          # Endpoints de la API
-│   │   └── schema.sql        # Esquema SQL de referencia
-│   ├── tests/                # Tests con pytest
+│   │   ├── main.py              # FastAPI entry point
+│   │   ├── database.py          # Async SQLAlchemy
+│   │   ├── auth.py              # JWT + refresh tokens
+│   │   ├── audit.py             # Audit logging
+│   │   ├── rate_limit.py        # Rate limiting middleware
+│   │   ├── incidents.py         # Incident detection
+│   │   ├── seed.py              # Seed data
+│   │   ├── models/              # SQLAlchemy models
+│   │   └── routers/             # API endpoints (16 routers)
+│   ├── tests/                   # pytest tests
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
-│   ├── index.html            # SPA completa
-│   └── vercel.json           # Configuración Vercel
-├── terminal/
-│   └── index.html            # Terminal web (admin)
-├── docker-compose.yml        # Entorno local con PostgreSQL
-├── .env.example              # Plantilla de variables de entorno
-├── PRIVACY.md                # Política de privacidad RGPD
+│   ├── index.html               # SPA + i18n
+│   ├── i18n.js                  # Translation system ES/CA/EN
+│   ├── landing.html             # Landing page
+│   └── vercel.json
+├── hardware/
+│   ├── esp32_fichaje_cyd/       # CYD 2432S028 firmware (TFT_eSPI + PN532 I2C)
+│   └── esp32_fichaje/           # ESP32 standalone firmware (SPI)
+├── grafana/                     # Grafana dashboards + provisioning
+├── .github/workflows/ci.yml     # GitHub Actions CI
+├── docker-compose.yml           # PostgreSQL + Backend + Grafana
+├── PRIVACY.md                   # RGPD privacy policy
+├── DPA.md                       # Data Processing Agreement
 └── README.md
 ```
 
 ---
 
-## Tests
+## API Endpoints
 
-### Backend (pytest)
-```bash
-cd backend
-DATABASE_URL=sqlite+aiosqlite:// PIN_HASH_SALT=test-salt JWT_SECRET=test-secret python -m pytest --tb=no -q
-```
-**67 tests** — cubren auth, empleados, fichajes, vacaciones, bajas, reportes, seguridad (XSS, SQLi, JWT, CORS, rate limiting, WebSocket, Stripe webhook).
-
-### Frontend (vitest)
-```bash
-cd frontend
-npx vitest run
-```
-**28 tests** — JWT helpers, cookie helper, api helper, navegación, empleados, turnos, dashboard, modal, auth flow.
-
-### E2E (Playwright)
-```bash
-# 1. Sembrar la BD de prueba (crea owner@latagliatella.es / owner123)
-cd backend
-DATABASE_URL=sqlite+aiosqlite:///./talentup_fichaje.db PIN_HASH_SALT=test-salt JWT_SECRET=test-secret venv/Scripts/python -m app.seed
-
-# 2. Correr E2E (Playwright arranca backend en :8080 y frontend en :3000)
-cd ../frontend
-npx playwright test --reporter=line
-```
-**5 tests** — landing, login, dashboard, crear empleado, logout.
-
-### Login de prueba
-- **Owner**: `owner@latagliatella.es` / `owner123`
-- **Demo**: `demo@talentup.es` / `demo1234` (botón "Entrar en modo demo")
+| Router | Endpoints | Auth |
+|--------|-----------|------|
+| auth | login, register, me, refresh | - / super_admin |
+| employees | CRUD + NFC assign | owner+ |
+| clock | PIN, NFC, toggle in/out | - / owner+ |
+| shifts | CRUD | owner+ |
+| schedules | CRUD + date filtering | owner+ |
+| tenants | CRUD | super_admin |
+| contracts | CRUD | owner+ |
+| holidays | CRUD | owner+ |
+| vacations | list, create, approve, reject | owner+ |
+| leave | CRUD | owner+ |
+| overtime | list, create, calculate | owner+ |
+| payroll | list, get, close | owner+ |
+| notifications | list, create, unread, read | owner+ |
+| calendar | get, generate | owner+ |
+| reports | hours, incidents, PDF, Excel | owner+ |
+| incidents | detect | owner+ |
 
 ---
 

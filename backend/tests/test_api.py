@@ -947,6 +947,1084 @@ class TestIncidents:
         assert len(early) >= 1, f"No early_leave incident detected. New incidents: {[i.incident_type for i in new_incidents]}"
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 11. TENANTS (super_admin only)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestTenants:
+    """CRUD /api/tenants — super_admin only"""
+
+    async def test_list_tenants_as_admin(self, client, seed_data):
+        """GET /api/tenants as super_admin → 200 with all tenants"""
+        resp = await client.get(
+            "/api/tenants",
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] >= 2
+        names = [t["name"] for t in body["items"]]
+        assert "Restaurante La Tagliatella" in names
+        assert "Bar El Puerto" in names
+
+    async def test_list_tenants_owner_forbidden(self, client, seed_data):
+        """GET /api/tenants as owner → 403"""
+        resp = await client.get(
+            "/api/tenants",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_list_tenants_no_token(self, client, seed_data):
+        """GET /api/tenants without token → 401"""
+        resp = await client.get("/api/tenants")
+        assert resp.status_code == 401
+
+    async def test_create_tenant_as_admin(self, client, seed_data):
+        """POST /api/tenants as super_admin → 201"""
+        resp = await client.post(
+            "/api/tenants",
+            json={
+                "name": "New Restaurant",
+                "legal_name": "New Restaurant SL",
+                "cif": "B99999999",
+                "plan": "premium",
+                "tolerancia_min": 10,
+            },
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["name"] == "New Restaurant"
+        assert body["cif"] == "B99999999"
+        assert body["plan"] == "premium"
+        assert body["tolerancia_min"] == 10
+        assert "id" in body
+
+    async def test_create_tenant_owner_forbidden(self, client, seed_data):
+        """POST /api/tenants as owner → 403"""
+        resp = await client.post(
+            "/api/tenants",
+            json={"name": "Forbidden Tenant"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 403
+
+    async def test_create_tenant_validation_error(self, client, seed_data):
+        """POST /api/tenants with missing required name → 422"""
+        resp = await client.post(
+            "/api/tenants",
+            json={"cif": "B11111111"},
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 422
+
+    async def test_update_tenant_as_admin(self, client, seed_data):
+        """PUT /api/tenants/{id} as super_admin → 200"""
+        resp = await client.put(
+            f"/api/tenants/{seed_data['tenant_a_id']}",
+            json={"name": "Updated Tagliatella", "plan": "enterprise"},
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["name"] == "Updated Tagliatella"
+        assert body["plan"] == "enterprise"
+
+    async def test_update_tenant_not_found(self, client, seed_data):
+        """PUT /api/tenants/{nonexistent} → 404"""
+        resp = await client.put(
+            "/api/tenants/nonexistent-tenant-id",
+            json={"name": "Nope"},
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 404
+
+    async def test_delete_tenant_as_admin(self, client, seed_data):
+        """DELETE /api/tenants/{id} as super_admin → 204"""
+        # Create a tenant to delete
+        resp_create = await client.post(
+            "/api/tenants",
+            json={"name": "To Delete"},
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        tenant_id = resp_create.json()["id"]
+
+        resp = await client.delete(
+            f"/api/tenants/{tenant_id}",
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 204
+
+    async def test_get_tenant_as_admin(self, client, seed_data):
+        """GET /api/tenants/{id} as super_admin → 200"""
+        resp = await client.get(
+            f"/api/tenants/{seed_data['tenant_a_id']}",
+            headers={"Authorization": f"Bearer {seed_data['admin_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["id"] == seed_data["tenant_a_id"]
+        assert body["name"] == "Restaurante La Tagliatella"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 12. CONTRACTS (owner role)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestContracts:
+    """CRUD /api/contracts — owner role"""
+
+    async def test_list_contracts_empty(self, client, seed_data):
+        """GET /api/contracts → 200 (empty list initially)"""
+        resp = await client.get(
+            "/api/contracts",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+        assert len(body["items"]) == 0
+
+    async def test_list_contracts_no_token(self, client, seed_data):
+        """GET /api/contracts without token → 401"""
+        resp = await client.get("/api/contracts")
+        assert resp.status_code == 401
+
+    async def test_create_contract(self, client, seed_data):
+        """POST /api/contracts → 201"""
+        resp = await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "contract_type": "indefinido",
+                "start_date": "2025-01-01",
+                "is_indefinite": True,
+                "weekly_hours": 40,
+                "salary_base": 1500.00,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["employee_id"] == seed_data["emp1_id"]
+        assert body["contract_type"] == "indefinido"
+        assert body["start_date"] == "2025-01-01"
+        assert body["is_indefinite"] is True
+        assert body["tenant_id"] == seed_data["tenant_a_id"]
+        assert "id" in body
+
+    async def test_create_contract_validation_error(self, client, seed_data):
+        """POST /api/contracts with missing required fields → 422"""
+        resp = await client.post(
+            "/api/contracts",
+            json={"category": "cook"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 422
+
+    async def test_list_contracts_with_filter(self, client, seed_data):
+        """GET /api/contracts?employee_id= → filtered list"""
+        # Create two contracts for different employees
+        await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "contract_type": "indefinido",
+                "start_date": "2025-01-01",
+                "is_indefinite": True,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp2_id"],
+                "contract_type": "temporal",
+                "start_date": "2025-02-01",
+                "end_date": "2025-06-30",
+                "duration_days": 180,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        # Filter by emp1
+        resp = await client.get(
+            f"/api/contracts?employee_id={seed_data['emp1_id']}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 1
+        assert body["items"][0]["employee_id"] == seed_data["emp1_id"]
+
+    async def test_update_contract(self, client, seed_data):
+        """PUT /api/contracts/{id} → 200"""
+        # Create a contract first
+        resp_create = await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "contract_type": "temporal",
+                "start_date": "2025-01-01",
+                "end_date": "2025-06-30",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        contract_id = resp_create.json()["id"]
+
+        resp = await client.put(
+            f"/api/contracts/{contract_id}",
+            json={"contract_type": "indefinido", "is_indefinite": True, "status": "active"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["contract_type"] == "indefinido"
+        assert body["is_indefinite"] is True
+
+    async def test_delete_contract(self, client, seed_data):
+        """DELETE /api/contracts/{id} → 204"""
+        resp_create = await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "contract_type": "temporal",
+                "start_date": "2025-01-01",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        contract_id = resp_create.json()["id"]
+
+        resp = await client.delete(
+            f"/api/contracts/{contract_id}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 204
+
+    async def test_get_contract_not_found(self, client, seed_data):
+        """GET /api/contracts/{nonexistent} → 404"""
+        resp = await client.get(
+            "/api/contracts/nonexistent-contract-id",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 404
+
+    async def test_cross_tenant_contract_isolation(self, client, seed_data):
+        """Owner B cannot see contracts from tenant A"""
+        # Owner A creates a contract
+        await client.post(
+            "/api/contracts",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "contract_type": "indefinido",
+                "start_date": "2025-01-01",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        # Owner B sees empty list
+        resp = await client.get(
+            "/api/contracts",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 13. SCHEDULES (owner role, date filtering)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestSchedules:
+    """CRUD /api/schedules — owner role, date filtering"""
+
+    async def test_list_schedules_empty(self, client, seed_data):
+        """GET /api/schedules → 200 (empty initially)"""
+        resp = await client.get(
+            "/api/schedules",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+
+    async def test_list_schedules_no_token(self, client, seed_data):
+        """GET /api/schedules without token → 401"""
+        resp = await client.get("/api/schedules")
+        assert resp.status_code == 401
+
+    async def test_create_schedule(self, client, seed_data):
+        """POST /api/schedules → 201"""
+        resp = await client.post(
+            "/api/schedules",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "shift_id": seed_data["shift_morning_id"],
+                "date": "2025-06-15",
+                "notes": "Morning shift assignment",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["employee_id"] == seed_data["emp1_id"]
+        assert body["shift_id"] == seed_data["shift_morning_id"]
+        assert body["date"] == "2025-06-15"
+        assert body["notes"] == "Morning shift assignment"
+        assert body["tenant_id"] == seed_data["tenant_a_id"]
+
+    async def test_create_schedule_duplicate(self, client, seed_data):
+        """POST /api/schedules duplicate employee+date → 409"""
+        payload = {
+            "employee_id": seed_data["emp1_id"],
+            "shift_id": seed_data["shift_morning_id"],
+            "date": "2025-06-16",
+        }
+        resp1 = await client.post(
+            "/api/schedules",
+            json=payload,
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp1.status_code == 201
+
+        resp2 = await client.post(
+            "/api/schedules",
+            json=payload,
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp2.status_code == 409
+        assert "Ya existe" in resp2.json()["detail"]
+
+    async def test_create_schedule_invalid_date(self, client, seed_data):
+        """POST /api/schedules with invalid date format → 400"""
+        resp = await client.post(
+            "/api/schedules",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "shift_id": seed_data["shift_morning_id"],
+                "date": "not-a-date",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 400
+        assert "Formato de fecha inválido" in resp.json()["detail"]
+
+    async def test_list_schedules_date_filter(self, client, seed_data):
+        """GET /api/schedules?date_from=&date_to= → filtered by date range"""
+        # Create schedules on different dates
+        for d in ["2025-06-10", "2025-06-15", "2025-06-20", "2025-06-25"]:
+            await client.post(
+                "/api/schedules",
+                json={
+                    "employee_id": seed_data["emp1_id"],
+                    "shift_id": seed_data["shift_morning_id"],
+                    "date": d,
+                },
+                headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+            )
+
+        # Filter date_from=2025-06-12&date_to=2025-06-22
+        resp = await client.get(
+            "/api/schedules?date_from=2025-06-12&date_to=2025-06-22",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        dates = [s["date"] for s in body["items"]]
+        assert "2025-06-15" in dates
+        assert "2025-06-20" in dates
+        assert "2025-06-10" not in dates
+        assert "2025-06-25" not in dates
+
+    async def test_list_schedules_invalid_date_filter(self, client, seed_data):
+        """GET /api/schedules?date_from=invalid → 400"""
+        resp = await client.get(
+            "/api/schedules?date_from=bad-format",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 400
+        assert "Formato de fecha inválido" in resp.json()["detail"]
+
+    async def test_update_schedule(self, client, seed_data):
+        """PUT /api/schedules/{id} → 200"""
+        resp_create = await client.post(
+            "/api/schedules",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "shift_id": seed_data["shift_morning_id"],
+                "date": "2025-07-01",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        sched_id = resp_create.json()["id"]
+
+        resp = await client.put(
+            f"/api/schedules/{sched_id}",
+            json={"shift_id": seed_data["shift_afternoon_id"], "notes": "Changed to afternoon"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["shift_id"] == seed_data["shift_afternoon_id"]
+        assert body["notes"] == "Changed to afternoon"
+
+    async def test_delete_schedule(self, client, seed_data):
+        """DELETE /api/schedules/{id} → 204"""
+        resp_create = await client.post(
+            "/api/schedules",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "shift_id": seed_data["shift_morning_id"],
+                "date": "2025-07-02",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        sched_id = resp_create.json()["id"]
+
+        resp = await client.delete(
+            f"/api/schedules/{sched_id}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 204
+
+    async def test_get_schedule_not_found(self, client, seed_data):
+        """GET /api/schedules/{nonexistent} → 404"""
+        resp = await client.get(
+            "/api/schedules/nonexistent-schedule-id",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 404
+
+    async def test_cross_tenant_schedule_isolation(self, client, seed_data):
+        """Owner B cannot see schedules from tenant A"""
+        await client.post(
+            "/api/schedules",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "shift_id": seed_data["shift_morning_id"],
+                "date": "2025-08-01",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/schedules",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 14. OVERTIME (owner role)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestOvertime:
+    """GET/POST /api/overtime, POST /api/overtime/calculate — owner role"""
+
+    async def test_list_overtime_empty(self, client, seed_data):
+        """GET /api/overtime → 200 (empty initially)"""
+        resp = await client.get(
+            "/api/overtime",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+
+    async def test_list_overtime_no_token(self, client, seed_data):
+        """GET /api/overtime without token → 401"""
+        resp = await client.get("/api/overtime")
+        assert resp.status_code == 401
+
+    async def test_create_overtime(self, client, seed_data):
+        """POST /api/overtime → 201"""
+        resp = await client.post(
+            "/api/overtime",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "date": "2025-06-15",
+                "shift_id": seed_data["shift_morning_id"],
+                "overtime_type": "structural",
+                "total_minutes": 60,
+                "compensated_minutes": 0,
+                "paid_minutes": 60,
+                "hourly_rate_multiplier": 1.75,
+                "hourly_rate": 12.50,
+                "overtime_amount": 21.88,
+                "notes": "Extra hour",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["employee_id"] == seed_data["emp1_id"]
+        assert body["total_minutes"] == 60
+        assert body["overtime_type"] == "structural"
+        assert body["source"] == "manual"
+        assert body["tenant_id"] == seed_data["tenant_a_id"]
+
+    async def test_create_overtime_validation_error(self, client, seed_data):
+        """POST /api/overtime with missing required fields → 422"""
+        resp = await client.post(
+            "/api/overtime",
+            json={"employee_id": seed_data["emp1_id"]},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 422
+
+    async def test_list_overtime_with_filter(self, client, seed_data):
+        """GET /api/overtime?employee_id= → filtered list"""
+        await client.post(
+            "/api/overtime",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "date": "2025-06-15",
+                "total_minutes": 60,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        await client.post(
+            "/api/overtime",
+            json={
+                "employee_id": seed_data["emp2_id"],
+                "date": "2025-06-16",
+                "total_minutes": 30,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            f"/api/overtime?employee_id={seed_data['emp1_id']}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 1
+        assert body["items"][0]["employee_id"] == seed_data["emp1_id"]
+        assert body["items"][0]["employee_name"] == "Carlos López"
+
+    async def test_calculate_overtime_missing_dates(self, client, seed_data):
+        """POST /api/overtime/calculate without date_from/date_to → 400"""
+        resp = await client.post(
+            "/api/overtime/calculate",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 400
+        assert "date_from y date_to son requeridos" in resp.json()["detail"]
+
+    async def test_calculate_overtime_no_data(self, client, seed_data):
+        """POST /api/overtime/calculate with dates but no clock-ins → 0 created"""
+        resp = await client.post(
+            "/api/overtime/calculate?date_from=2025-06-01&date_to=2025-06-30",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["created"] == 0
+        assert isinstance(body["details"], list)
+
+    async def test_calculate_overtime_with_data(
+        self, client, seed_data, db_session
+    ):
+        """POST /api/overtime/calculate detects overtime from clock-ins"""
+        from app.models.schedule import Schedule
+        from app.models.clock_in import ClockIn
+        from app.models.shift import Shift
+        from datetime import datetime, time, timezone, date
+
+        target_date = date(2025, 6, 15)  # Sunday — doesn't matter for overtime calc
+
+        # Create a shift with overtime threshold = 0 so any extra minute counts
+        ot_shift = Shift(
+            tenant_id=seed_data["tenant_a_id"],
+            name="OT Test Shift",
+            start_time=time(8, 0),
+            end_time=time(12, 0),  # 4h shift
+            break_min=0,
+            overtime_threshold_min=0,
+        )
+        db_session.add(ot_shift)
+        await db_session.flush()
+
+        # Schedule emp1 to this shift on target_date
+        sched = Schedule(
+            tenant_id=seed_data["tenant_a_id"],
+            employee_id=seed_data["emp1_id"],
+            shift_id=ot_shift.id,
+            date=target_date,
+        )
+        db_session.add(sched)
+        await db_session.flush()
+
+        # Clock in at 08:00, out at 13:30 → 5.5h worked, shift is 4h → 1.5h overtime
+        ci_in = ClockIn(
+            tenant_id=seed_data["tenant_a_id"],
+            employee_id=seed_data["emp1_id"],
+            type="in",
+            timestamp=datetime.combine(target_date, time(8, 0), tzinfo=timezone.utc),
+        )
+        ci_out = ClockIn(
+            tenant_id=seed_data["tenant_a_id"],
+            employee_id=seed_data["emp1_id"],
+            type="out",
+            timestamp=datetime.combine(target_date, time(13, 30), tzinfo=timezone.utc),
+        )
+        db_session.add(ci_in)
+        db_session.add(ci_out)
+        await db_session.commit()
+
+        resp = await client.post(
+            f"/api/overtime/calculate?date_from=2025-06-15&date_to=2025-06-15&employee_id={seed_data['emp1_id']}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["created"] >= 1
+        assert len(body["details"]) >= 1
+        detail = body["details"][0]
+        assert detail["employee_id"] == seed_data["emp1_id"]
+        assert detail["minutes"] > 0
+
+    async def test_get_overtime_not_found(self, client, seed_data):
+        """GET /api/overtime/{nonexistent} → 404"""
+        resp = await client.get(
+            "/api/overtime/nonexistent-overtime-id",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 404
+
+    async def test_cross_tenant_overtime_isolation(self, client, seed_data):
+        """Owner B cannot see overtime from tenant A"""
+        await client.post(
+            "/api/overtime",
+            json={
+                "employee_id": seed_data["emp1_id"],
+                "date": "2025-06-15",
+                "total_minutes": 60,
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/overtime",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 15. PAYROLL (owner role)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestPayroll:
+    """GET /api/payroll, GET /api/payroll/{month}/{year}, POST /api/payroll/close"""
+
+    async def test_list_payroll_empty(self, client, seed_data):
+        """GET /api/payroll → 200 (empty initially)"""
+        resp = await client.get(
+            "/api/payroll",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+
+    async def test_list_payroll_no_token(self, client, seed_data):
+        """GET /api/payroll without token → 401"""
+        resp = await client.get("/api/payroll")
+        assert resp.status_code == 401
+
+    async def test_get_payroll_by_month_empty(self, client, seed_data):
+        """GET /api/payroll/{month}/{year} → 200 empty list when no payrolls"""
+        resp = await client.get(
+            "/api/payroll/6/2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+        assert len(resp.json()) == 0
+
+    async def test_close_payroll_accepted(self, client, seed_data):
+        """POST /api/payroll/close?month=6&year=2025 → 202 accepted (background task)"""
+        resp = await client.post(
+            "/api/payroll/close?month=6&year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "accepted"
+        assert body["month"] == 6
+        assert body["year"] == 2025
+
+    async def test_close_payroll_no_token(self, client, seed_data):
+        """POST /api/payroll/close without token → 401"""
+        resp = await client.post("/api/payroll/close?month=6&year=2025")
+        assert resp.status_code == 401
+
+    async def test_close_payroll_creates_records(self, client, seed_data):
+        """POST /api/payroll/close runs background task → payrolls appear in DB"""
+        # Close payroll (background task runs synchronously with ASGITransport)
+        await client.post(
+            "/api/payroll/close?month=9&year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        # Verify payrolls were created by querying the month endpoint
+        resp = await client.get(
+            "/api/payroll/9/2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, list)
+        assert len(body) >= 1
+        assert body[0]["year"] == 2025
+        assert body[0]["month"] == 9
+        assert "employee_name" in body[0]
+        assert body[0]["status"] == "calculated"
+
+    async def test_get_payroll_by_month_with_filter(self, client, seed_data):
+        """GET /api/payroll/{month}/{year}?employee_id= → single record or 404"""
+        # Close payroll first
+        await client.post(
+            "/api/payroll/close?month=10&year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            f"/api/payroll/10/2025?employee_id={seed_data['emp1_id']}",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body) == 1
+        assert body[0]["employee_id"] == seed_data["emp1_id"]
+
+    async def test_list_payroll_with_year_filter(self, client, seed_data):
+        """GET /api/payroll?year=2025 → filtered by year"""
+        await client.post(
+            "/api/payroll/close?month=11&year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/payroll?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] >= 1
+        assert all(p["year"] == 2025 for p in body["items"])
+
+    async def test_cross_tenant_payroll_isolation(self, client, seed_data):
+        """Owner B closes payroll and Owner A cannot see it"""
+        await client.post(
+            "/api/payroll/close?month=6&year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/payroll?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        # Owner A should see 0 payrolls (none closed for tenant A yet)
+        assert resp.json()["total"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 16. NOTIFICATIONS (owner role)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestNotifications:
+    """GET/POST /api/notifications, GET /unread, POST /{id}/read"""
+
+    async def test_list_notifications_empty(self, client, seed_data):
+        """GET /api/notifications → 200 (empty initially)"""
+        resp = await client.get(
+            "/api/notifications",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+
+    async def test_list_notifications_no_token(self, client, seed_data):
+        """GET /api/notifications without token → 401"""
+        resp = await client.get("/api/notifications")
+        assert resp.status_code == 401
+
+    async def test_create_notification(self, client, seed_data):
+        """POST /api/notifications → 201"""
+        resp = await client.post(
+            "/api/notifications",
+            json={
+                "recipient_type": "employee",
+                "employee_id": seed_data["emp1_id"],
+                "type": "clocking_reminder",
+                "title": "Recordatorio fichaje",
+                "message": "No olvides fichar al entrar",
+                "priority": "normal",
+                "category": "clocking",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["title"] == "Recordatorio fichaje"
+        assert body["message"] == "No olvides fichar al entrar"
+        assert body["type"] == "clocking_reminder"
+        assert body["is_read"] is False
+        assert body["tenant_id"] == seed_data["tenant_a_id"]
+        assert body["sent_at"] is not None
+
+    async def test_create_notification_validation_error(self, client, seed_data):
+        """POST /api/notifications with missing required fields → 422"""
+        resp = await client.post(
+            "/api/notifications",
+            json={"type": "test"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 422
+
+    async def test_get_unread_count(self, client, seed_data):
+        """GET /api/notifications/unread → count of unread"""
+        # Create 3 notifications
+        for i in range(3):
+            await client.post(
+                "/api/notifications",
+                json={
+                    "type": "info",
+                    "title": f"Notice {i}",
+                    "message": f"Message {i}",
+                },
+                headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+            )
+
+        resp = await client.get(
+            "/api/notifications/unread",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["unread_count"] == 3
+
+    async def test_get_unread_count_no_token(self, client, seed_data):
+        """GET /api/notifications/unread without token → 401"""
+        resp = await client.get("/api/notifications/unread")
+        assert resp.status_code == 401
+
+    async def test_mark_notification_read(self, client, seed_data):
+        """POST /api/notifications/{id}/read → 200 with is_read=True"""
+        # Create a notification
+        resp_create = await client.post(
+            "/api/notifications",
+            json={
+                "type": "info",
+                "title": "Test Notice",
+                "message": "Read me",
+            },
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        notif_id = resp_create.json()["id"]
+
+        # Mark as read
+        resp = await client.post(
+            f"/api/notifications/{notif_id}/read",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["is_read"] is True
+        assert body["read_at"] is not None
+
+    async def test_mark_read_not_found(self, client, seed_data):
+        """POST /api/notifications/{nonexistent}/read → 404"""
+        resp = await client.post(
+            "/api/notifications/nonexistent-id/read",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 404
+
+    async def test_list_notifications_unread_only(self, client, seed_data):
+        """GET /api/notifications?unread_only=true → only unread"""
+        # Create 2 notifications
+        resp1 = await client.post(
+            "/api/notifications",
+            json={"type": "info", "title": "N1", "message": "M1"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        await client.post(
+            "/api/notifications",
+            json={"type": "info", "title": "N2", "message": "M2"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        # Mark first as read
+        await client.post(
+            f"/api/notifications/{resp1.json()['id']}/read",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        # Query unread_only
+        resp = await client.get(
+            "/api/notifications?unread_only=true",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 1
+        assert body["items"][0]["title"] == "N2"
+
+    async def test_cross_tenant_notification_isolation(self, client, seed_data):
+        """Owner B cannot see notifications from tenant A"""
+        await client.post(
+            "/api/notifications",
+            json={"type": "info", "title": "Tenant A Notice", "message": "Secret"},
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/notifications",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 17. CALENDAR (owner role)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class TestCalendar:
+    """GET /api/calendar?year=, POST /api/calendar/generate?year="""
+
+    async def test_get_calendar_empty(self, client, seed_data):
+        """GET /api/calendar?year=2025 → 200 (empty before generate)"""
+        resp = await client.get(
+            "/api/calendar?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, dict)
+        assert "items" in body
+        assert body["total"] == 0
+
+    async def test_get_calendar_no_token(self, client, seed_data):
+        """GET /api/calendar without token → 401"""
+        resp = await client.get("/api/calendar?year=2025")
+        assert resp.status_code == 401
+
+    async def test_generate_calendar(self, client, seed_data):
+        """POST /api/calendar/generate?year=2025 → 200 with 365/366 days"""
+        resp = await client.post(
+            "/api/calendar/generate?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["year"] == 2025
+        assert body["days_generated"] == 365  # 2025 is not a leap year
+
+    async def test_generate_calendar_no_token(self, client, seed_data):
+        """POST /api/calendar/generate without token → 401"""
+        resp = await client.post("/api/calendar/generate?year=2025")
+        assert resp.status_code == 401
+
+    async def test_generate_calendar_duplicate(self, client, seed_data):
+        """POST /api/calendar/generate twice → 400 on second call"""
+        resp1 = await client.post(
+            "/api/calendar/generate?year=2026",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp1.status_code == 200
+
+        resp2 = await client.post(
+            "/api/calendar/generate?year=2026",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp2.status_code == 400
+        assert "ya existe" in resp2.json()["detail"]
+
+    async def test_get_calendar_after_generate(self, client, seed_data):
+        """GET /api/calendar?year= after generate → 365 days via items"""
+        await client.post(
+            "/api/calendar/generate?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/calendar?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["total"] == 365
+        assert len(body["items"]) == 365
+        # Check first entry structure
+        first = body["items"][0]
+        assert first["date"] == "2025-01-01"
+        assert first["year"] == 2025
+        assert "day_type" in first
+        assert "is_working_day" in first
+        assert "is_holiday" in first
+        assert "is_weekend" in first
+
+    async def test_get_calendar_has_weekends(self, client, seed_data):
+        """GET /api/calendar?year= → weekends marked correctly"""
+        await client.post(
+            "/api/calendar/generate?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/calendar?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        body = resp.json()
+        weekends = [d for d in body["items"] if d["is_weekend"]]
+        assert len(weekends) == 104  # 52 Saturdays + 52 Sundays in 2025
+
+    async def test_generate_calendar_leap_year(self, client, seed_data):
+        """POST /api/calendar/generate?year=2024 → 366 days (leap year)"""
+        resp = await client.post(
+            "/api/calendar/generate?year=2024",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["days_generated"] == 366
+
+    async def test_cross_tenant_calendar_isolation(self, client, seed_data):
+        """Owner B generates calendar but Owner A sees nothing"""
+        await client.post(
+            "/api/calendar/generate?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_b_token']}"},
+        )
+
+        resp = await client.get(
+            "/api/calendar?year=2025",
+            headers={"Authorization": f"Bearer {seed_data['owner_a_token']}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["total"] == 0
+
 # ═══════════════════════════════════════════════════════════════════════════
 # EXPORT ASYNC — job_id validation
 # ═══════════════════════════════════════════════════════════════════════════

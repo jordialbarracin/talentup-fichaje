@@ -279,11 +279,13 @@ tr:hover td{background:rgba(0,0,0,0.02)}
 .toast-info{background:#007AFF}
 .toast-icon{flex-shrink:0;width:16px;height:16px}
 
-/* ===== EMPTY STATE ===== */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;gap:12px;color:rgba(0,0,0,0.35);text-align:center}
-.empty-state-icon{width:40px;height:40px;color:rgba(0,0,0,0.15)}
-.empty-state-title{font-size:0.875rem;font-weight:500;color:#1d1d1f}
-.empty-state-desc{font-size:0.8125rem;color:rgba(0,0,0,0.35)}
+/* ===== LANGUAGE SELECTOR — Apple HIG light ===== */
+.lang-selector{display:inline-flex;align-items:center;gap:0;background:rgba(0,0,0,0.04);border-radius:980px;padding:2px}
+.lang-btn{padding:3px 10px;border-radius:980px;font-size:0.6875rem;font-weight:500;color:rgba(0,0,0,0.4);transition:all 200ms ease;letter-spacing:0.02em;white-space:nowrap;cursor:pointer;border:none;background:none;font-family:inherit}
+.lang-btn:hover{color:rgba(0,0,0,0.7)}
+.lang-btn.active{background:#ffffff;color:#FF6B35;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.lang-separator{color:rgba(0,0,0,0.15);font-size:0.6875rem;pointer-events:none;user-select:none;padding:0 1px}
+.lang-selector-login{margin-top:16px;display:flex;justify-content:center}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
@@ -322,35 +324,40 @@ tr:hover td{background:rgba(0,0,0,0.02)}
   <div class="login-card">
     <div class="login-logo">
       <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#FF6B35"/><path d="M8 16L14 22L24 10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <h1>TalentUP Fichaje</h1>
+      <h1 data-i18n="app.title">TalentUP Fichaje</h1>
     </div>
-    <p class="login-sub">Panel de gestión para hostelería</p>
+    <p class="login-sub" data-i18n="app.subtitle">Panel de gestión para hostelería</p>
     <form class="login-form" id="login-form">
       <div>
-        <label for="login-email">Correo electrónico</label>
+        <label for="login-email" data-i18n="login.email">Correo electrónico</label>
         <input type="email" id="login-email" placeholder="admin@restaurante.es" required autocomplete="email">
       </div>
       <div>
-        <label for="login-password">Contraseña</label>
+        <label for="login-password" data-i18n="login.password">Contraseña</label>
         <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
       </div>
       <div class="login-error" id="login-error"></div>
       <button type="submit" class="btn btn-primary" id="login-btn">
-        <span id="login-btn-text">Iniciar sesión</span>
+        <span id="login-btn-text" data-i18n="login.button">Iniciar sesión</span>
         <span class="spinner hidden" id="login-spinner"></span>
       </button>
-      <button type="button" id="demo-btn" class="btn btn-secondary hidden" style="width:100%;margin-top:8px">Entrar en modo demo</button>
-      <div style="text-align:center;margin-top:12px">
-        <button type="button" class="btn btn-ghost" id="register-link" style="font-size:0.8125rem;color:#FF6B35;font-weight:500">
-          Crear cuenta
-        </button>
-      </div>
+      <button type="button" class="btn btn-ghost" id="demo-btn" style="margin-top:8px" data-i18n="login.demo">
+        Entrar modo demo
+      </button>
     </form>
-    <div class="login-meta">
-      <span>¿Necesitas ayuda?</span>
-      <a href="https://github.com/jordialbarracin/talentup-fichaje" target="_blank">Documentación →</a>
+    <!-- Language selector -->
+    <div class="lang-selector lang-selector-login" id="login-lang-selector">
+      <button class="lang-btn" data-lang="es">ES</button>
+      <span class="lang-separator">|</span>
+      <button class="lang-btn" data-lang="ca">CA</button>
+      <span class="lang-separator">|</span>
+      <button class="lang-btn" data-lang="en">EN</button>
     </div>
-    <span class="login-version">v2.0.0</span>
+    <div class="login-meta">
+      <span data-i18n="login.help">¿Necesitas ayuda?</span>
+      <a href="https://github.com/jordialbarracin/talentup-fichaje" target="_blank" data-i18n="login.docs">Documentación →</a>
+    </div>
+    <span class="login-version" data-i18n="app.version">v2.0.0</span>
   </div>
 </div>
 
@@ -464,7 +471,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
 </div>
 
 <!-- ===== DEMO BANNER ===== -->
-<div id="demo-banner" class="demo-banner hidden">Modo demo — los datos mostrados no son reales</div>
+<div id="demo-banner" class="demo-banner hidden" data-i18n="demo.banner">Modo demo — los datos mostrados no son reales</div>
 
 <!-- ===== APP ===== -->
 <div id="app" class="hidden">
@@ -472,48 +479,48 @@ tr:hover td{background:rgba(0,0,0,0.02)}
   <aside id="sidebar">
     <div class="sidebar-logo">
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#FF6B35"/><path d="M8 16L14 22L24 10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <h2>TalentUP Fichaje</h2>
+      <h2 data-i18n="app.title">TalentUP Fichaje</h2>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-item active" data-page="dashboard">
+      <div class="nav-item active" data-page="dashboard" data-i18n="nav.dashboard">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Dashboard
       </div>
-      <div class="nav-item" data-page="empleados">
+      <div class="nav-item" data-page="empleados" data-i18n="nav.employees">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Empleados
       </div>
-      <div class="nav-item" data-page="calendario">
+      <div class="nav-item" data-page="calendario" data-i18n="nav.calendar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Calendario
       </div>
-      <div class="nav-item" data-page="turnos">
+      <div class="nav-item" data-page="turnos" data-i18n="nav.shifts">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         Turnos
       </div>
-      <div class="nav-item" data-page="fichajes">
+      <div class="nav-item" data-page="fichajes" data-i18n="nav.clocking">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Fichajes
       </div>
-      <div class="nav-item" data-page="vacaciones">
+      <div class="nav-item" data-page="vacaciones" data-i18n="nav.vacations">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         Vacaciones
       </div>
-      <div class="nav-item" data-page="bajas">
+      <div class="nav-item" data-page="bajas" data-i18n="nav.leave">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         Bajas
       </div>
-      <div class="nav-item" data-page="informes">
+      <div class="nav-item" data-page="informes" data-i18n="nav.reports">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Informes
       </div>
-      <div class="nav-item" data-page="configuracion">
+      <div class="nav-item" data-page="configuracion" data-i18n="nav.settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Configuración
       </div>
     </nav>
     <div class="sidebar-footer">
-      <div class="nav-item" id="sidebar-logout">
+      <div class="nav-item" id="sidebar-logout" data-i18n="button.logout">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Cerrar sesión
       </div>
@@ -525,15 +532,23 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <!-- NAVBAR -->
     <header id="navbar">
       <div class="navbar-left">
-        <button class="hamburger" id="hamburger-btn" aria-label="Menú">
+        <button class="hamburger" id="hamburger-btn" aria-label="Menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <span class="navbar-title" id="navbar-title">Dashboard</span>
+        <span class="navbar-title" id="navbar-title" data-i18n="nav.dashboard">Dashboard</span>
       </div>
       <div class="navbar-right">
         <div class="online-indicator" id="online-indicator">
           <span class="online-dot"></span>
-          <span id="online-text">Conectado</span>
+          <span id="online-text" data-i18n="status.online">Conectado</span>
+        </div>
+        <!-- Language selector (navbar) -->
+        <div class="lang-selector" id="navbar-lang-selector">
+          <button class="lang-btn" data-lang="es">ES</button>
+          <span class="lang-separator">|</span>
+          <button class="lang-btn" data-lang="ca">CA</button>
+          <span class="lang-separator">|</span>
+          <button class="lang-btn" data-lang="en">EN</button>
         </div>
         <div class="navbar-user">
           <div class="navbar-avatar" id="navbar-avatar">A</div>
@@ -541,7 +556,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         </div>
         <button class="btn-logout" id="navbar-logout">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          <span>Salir</span>
+          <span data-i18n="button.logout_short">Salir</span>
         </button>
       </div>
     </header>
@@ -549,8 +564,8 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <!-- PAGE: DASHBOARD -->
     <div class="page-content" id="page-dashboard">
       <div class="page-header">
-        <h2>Dashboard</h2>
-        <p>Resumen ejecutivo de actividad</p>
+        <h2 data-i18n="page.dashboard.title">Dashboard</h2>
+        <p data-i18n="page.dashboard.subtitle">Resumen ejecutivo de actividad</p>
       </div>
       <div class="stats-grid" id="stats-grid">
         <div class="stat-card">
@@ -560,7 +575,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             </div>
           </div>
           <div class="stat-card-value" id="stat-empleados">—</div>
-          <div class="stat-card-label">Empleados activos hoy</div>
+          <div class="stat-card-label" data-i18n="dashboard.active_today">Empleados activos hoy</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-header">
@@ -569,7 +584,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             </div>
           </div>
           <div class="stat-card-value" id="stat-fichajes">—</div>
-          <div class="stat-card-label">Fichajes hoy</div>
+          <div class="stat-card-label" data-i18n="dashboard.clocks_today">Fichajes hoy</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-header">
@@ -578,7 +593,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             </div>
           </div>
           <div class="stat-card-value" id="stat-incidencias">—</div>
-          <div class="stat-card-label">Incidencias pendientes</div>
+          <div class="stat-card-label" data-i18n="dashboard.incidents">Incidencias pendientes</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-header">
@@ -587,39 +602,39 @@ tr:hover td{background:rgba(0,0,0,0.02)}
             </div>
           </div>
           <div class="stat-card-value" id="stat-extras">—</div>
-          <div class="stat-card-label">Horas extra esta semana</div>
+          <div class="stat-card-label" data-i18n="dashboard.overtime_week">Horas extra esta semana</div>
         </div>
       </div>
 
       <!-- Alertas -->
       <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:24px">
         <div class="stat-card" style="border-left:3px solid #d97706">
-          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f">Sin fichar hoy</h3></div>
-          <div id="alert-no-clock" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px">Cargando…</div>
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f" data-i18n="dashboard.no_clock">Sin fichar hoy</h3></div>
+          <div id="alert-no-clock" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px" data-i18n="status.loading">Cargando…</div>
         </div>
         <div class="stat-card" style="border-left:3px solid #248A3D">
-          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f">Vacaciones pendientes</h3></div>
-          <div id="alert-vacaciones" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px">Cargando…</div>
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f" data-i18n="dashboard.pending_vacations">Vacaciones pendientes</h3></div>
+          <div id="alert-vacaciones" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px" data-i18n="status.loading">Cargando…</div>
         </div>
       </div>
 
       <div class="table-card">
         <div class="table-card-header">
-          <h3>Fichajes de hoy</h3>
+          <h3 data-i18n="clock.today">Fichajes de hoy</h3>
           <span class="text-sm text-muted" id="dashboard-date"></span>
         </div>
         <div class="table-card-body">
           <table>
             <thead>
               <tr>
-                <th>Empleado</th>
-                <th>Tipo</th>
-                <th>Hora</th>
-                <th>Estado</th>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.time">Hora</th>
+                <th data-i18n="table.status">Estado</th>
               </tr>
             </thead>
             <tbody id="dashboard-table-body">
-              <tr><td colspan="4" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando fichajes…</td></tr>
+              <tr><td colspan="4" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -630,47 +645,47 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <div class="page-content hidden" id="page-empleados">
       <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
-          <h2>Empleados</h2>
-          <p>Gestión completa de la plantilla</p>
+          <h2 data-i18n="page.employees.title">Empleados</h2>
+          <p data-i18n="page.employees.subtitle">Gestión completa de la plantilla</p>
         </div>
         <button class="btn btn-primary" id="btn-add-employee">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Añadir empleado
+          <span data-i18n="button.add_employee">Añadir empleado</span>
         </button>
       </div>
       <div class="table-card">
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
-              <input type="text" id="emp-search" placeholder="Buscar nombre, DNI, SS…">
-              <select id="emp-filter-status">
-                <option value="">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="inactive">Inactivos</option>
-                <option value="on_vacation">De vacaciones</option>
-                <option value="on_leave">De baja</option>
-              </select>
-              <select id="emp-filter-turno">
-                <option value="">Todos los turnos</option>
-              </select>
-            </div>
+            <input type="text" id="emp-search" data-i18n-placeholder="employees.search_placeholder" placeholder="Buscar nombre, DNI, SS…" oninput="filterEmpleados()">
+            <select id="emp-filter-status" onchange="filterEmpleados()">
+              <option value="" data-i18n="employees.filter_all_status">Todos los estados</option>
+              <option value="active" data-i18n="employees.filter_active">Activos</option>
+              <option value="inactive" data-i18n="employees.filter_inactive">Inactivos</option>
+              <option value="on_vacation" data-i18n="employees.filter_on_vacation">De vacaciones</option>
+              <option value="on_leave" data-i18n="employees.filter_on_leave">De baja</option>
+            </select>
+            <select id="emp-filter-turno" onchange="filterEmpleados()">
+              <option value="" data-i18n="employees.filter_all_shifts">Todos los turnos</option>
+            </select>
+          </div>
         </div>
         <div class="table-card-body">
           <table>
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>DNI</th>
-                <th>N.º SS</th>
-                <th>Categoría</th>
-                <th>Contrato</th>
-                <th>Turno</th>
-                <th>PIN</th>
-                <th>Estado</th>
-                <th style="width:100px">Acciones</th>
+                <th data-i18n="table.name">Nombre</th>
+                <th data-i18n="table.dni">DNI</th>
+                <th data-i18n="table.nss">N.º SS</th>
+                <th data-i18n="table.category">Categoría</th>
+                <th data-i18n="table.contract">Contrato</th>
+                <th data-i18n="table.shift">Turno</th>
+                <th data-i18n="table.pin">PIN</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:100px" data-i18n="table.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="empleados-table-body">
-              <tr><td colspan="9" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando empleados…</td></tr>
+              <tr><td colspan="9" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -682,12 +697,12 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <div class="page-content hidden" id="page-calendario">
       <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
-          <h2>Calendario</h2>
-          <p>Vista mensual con turnos, festivos y vacaciones</p>
+          <h2 data-i18n="page.calendar.title">Calendario</h2>
+          <p data-i18n="page.calendar.subtitle">Vista mensual con turnos, festivos y vacaciones</p>
         </div>
         <div class="flex gap-2">
-          <button class="btn btn-ghost btn-sm" id="btn-cal-week">Semanal</button>
-          <button class="btn btn-primary btn-sm" id="btn-cal-month">Mensual</button>
+          <button class="btn btn-ghost btn-sm" onclick="calendarView('week')" data-i18n="button.weekly">Semanal</button>
+          <button class="btn btn-primary btn-sm" onclick="calendarView('month')" data-i18n="button.monthly">Mensual</button>
         </div>
       </div>
       <div class="calendar-nav">
@@ -698,10 +713,10 @@ tr:hover td{background:rgba(0,0,0,0.02)}
         <button class="btn btn-ghost btn-icon" id="btn-cal-next">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button class="btn btn-ghost btn-sm" id="btn-cal-today">Hoy</button>
+        <button class="btn btn-ghost btn-sm" onclick="calendarToday()" data-i18n="button.today">Hoy</button>
       </div>
       <div id="calendar-container">
-        <div class="loading-overlay"><span class="spinner"></span> Cargando calendario…</div>
+        <div class="loading-overlay"><span class="spinner"></span> <span data-i18n="calendar.loading">Cargando calendario…</span></div>
       </div>
     </div>
 
@@ -709,44 +724,44 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <div class="page-content hidden" id="page-turnos">
       <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
-          <h2>Turnos</h2>
-          <p>Configuración de turnos laborales</p>
+          <h2 data-i18n="page.shifts.title">Turnos</h2>
+          <p data-i18n="page.shifts.subtitle">Configuración de turnos laborales</p>
         </div>
         <button class="btn btn-primary" id="btn-add-shift">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Crear turno
+          <span data-i18n="button.create_shift">Crear turno</span>
         </button>
       </div>
       <div class="shifts-grid" id="turnos-grid">
-        <div class="loading-overlay" style="grid-column:1/-1"><span class="spinner"></span> Cargando turnos…</div>
+        <div class="loading-overlay" style="grid-column:1/-1"><span class="spinner"></span> <span data-i18n="shifts.loading">Cargando turnos…</span></div>
       </div>
     </div>
 
     <!-- PAGE: FICHAJES -->
     <div class="page-content hidden" id="page-fichajes">
       <div class="page-header">
-        <h2>Fichajes</h2>
-        <p>Histórico completo de fichajes</p>
+        <h2 data-i18n="page.clocking.title">Fichajes</h2>
+        <p data-i18n="page.clocking.subtitle">Histórico completo de fichajes</p>
       </div>
       <div class="table-card">
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
             <input type="date" id="clock-filter-date">
-            <select id="clock-filter-empleado">
-              <option value="">Todos los empleados</option>
+            <select id="clock-filter-empleado" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_employees">Todos los empleados</option>
             </select>
-            <select id="clock-filter-tipo">
-              <option value="">Todos los tipos</option>
-              <option value="in">Entrada</option>
-              <option value="out">Salida</option>
-              <option value="break_start">Pausa</option>
-              <option value="break_end">Vuelta</option>
+            <select id="clock-filter-tipo" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_types">Todos los tipos</option>
+              <option value="in" data-i18n="clock.in">Entrada</option>
+              <option value="out" data-i18n="clock.out">Salida</option>
+              <option value="break_start" data-i18n="clock.break_start">Pausa</option>
+              <option value="break_end" data-i18n="clock.break_end">Vuelta</option>
             </select>
-            <select id="clock-filter-estado">
-              <option value="">Todos los estados</option>
-              <option value="ok">OK</option>
-              <option value="late">Tarde</option>
-              <option value="incident">Incidencia</option>
+            <select id="clock-filter-estado" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_status">Todos los estados</option>
+              <option value="ok" data-i18n="status.ok">OK</option>
+              <option value="late" data-i18n="status.late">Tarde</option>
+              <option value="incident" data-i18n="status.incident">Incidencia</option>
             </select>
           </div>
         </div>
@@ -754,15 +769,15 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <table>
             <thead>
               <tr>
-                <th>Empleado</th>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Hora</th>
-                <th>Estado</th>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.date">Fecha</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.time">Hora</th>
+                <th data-i18n="table.status">Estado</th>
               </tr>
             </thead>
             <tbody id="fichajes-table-body">
-              <tr><td colspan="5" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> Cargando fichajes…</td></tr>
+              <tr><td colspan="5" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -774,16 +789,16 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <div class="page-content hidden" id="page-vacaciones">
       <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
-          <h2>Vacaciones y Permisos</h2>
-          <p>Gestión de solicitudes y calendario</p>
+          <h2 data-i18n="page.vacations.title">Vacaciones y Permisos</h2>
+          <p data-i18n="page.vacations.subtitle">Gestión de solicitudes y calendario</p>
         </div>
         <button class="btn btn-primary" id="btn-add-vacation">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nueva solicitud
+          <span data-i18n="button.new_request">Nueva solicitud</span>
         </button>
       </div>
       <div class="table-card" style="margin-bottom:24px">
-        <div class="table-card-header"><h3>Solicitudes pendientes</h3></div>
+        <div class="table-card-header"><h3 data-i18n="vacations.pending">Solicitudes pendientes</h3></div>
         <div class="table-card-body">
           <div class="table-card-header" style="border-bottom:none;padding-bottom:0;flex-wrap:wrap">
             <div class="search-bar">
@@ -799,27 +814,27 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <table>
             <thead>
               <tr>
-                <th>Empleado</th>
-                <th>Tipo</th>
-                <th>Desde</th>
-                <th>Hasta</th>
-                <th>Días</th>
-                <th>Estado</th>
-                <th style="width:140px">Acciones</th>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.from">Desde</th>
+                <th data-i18n="table.to">Hasta</th>
+                <th data-i18n="table.days">Días</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:140px" data-i18n="table.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="vacaciones-table-body">
-              <tr><td colspan="7" class="empty-state"><span class="spinner spinner-lg"></span><div class="empty-state-title" style="margin-top:8px">Cargando solicitudes…</div></td></tr>
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="vacations.loading">Cargando solicitudes…</span></td></tr>
             </tbody>
           </table>
         </div>
         <div class="pagination" id="vac-pagination"></div>
       </div>
       <div class="table-card">
-        <div class="table-card-header"><h3>Calendario de vacaciones</h3></div>
+        <div class="table-card-header"><h3 data-i18n="vacations.calendar">Calendario de vacaciones</h3></div>
         <div class="table-card-body">
           <div id="vacaciones-calendar" style="padding:16px;min-height:100px">
-            <div class="empty-state"><span class="spinner spinner-lg"></span><div class="empty-state-title" style="margin-top:8px">Cargando calendario…</div></div>
+            <div class="loading-overlay"><span class="spinner"></span> <span data-i18n="calendar.loading">Cargando calendario…</span></div>
           </div>
         </div>
       </div>
@@ -829,30 +844,29 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <div class="page-content hidden" id="page-bajas">
       <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
         <div>
-          <h2>Bajas (IT)</h2>
-          <p>Registro de incapacidad temporal y permisos</p>
+          <h2 data-i18n="page.leave.title">Bajas (IT)</h2>
+          <p data-i18n="page.leave.subtitle">Registro de incapacidad temporal y permisos</p>
         </div>
         <button class="btn btn-primary" id="btn-add-leave">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Registrar baja
+          <span data-i18n="button.register_leave">Registrar baja</span>
         </button>
       </div>
       <div class="table-card">
         <div class="table-card-header" style="flex-wrap:wrap">
           <div class="search-bar">
-            <input type="text" id="leave-search" placeholder="Buscar empleado o tipo…">
-            <select id="leave-filter-status">
-              <option value="">Todas las bajas</option>
-              <option value="active">Activas</option>
-              <option value="finished">Finalizadas</option>
+            <select id="leave-filter-status" onchange="filterBajas()">
+              <option value="" data-i18n="leave.filter_all">Todas las bajas</option>
+              <option value="active" data-i18n="leave.filter_active">Activas</option>
+              <option value="finished" data-i18n="leave.filter_finished">Finalizadas</option>
             </select>
-            <select id="leave-filter-type">
-              <option value="">Todos los tipos</option>
-              <option value="EC">Enfermedad Común</option>
-              <option value="AL">Accidente Laboral</option>
-              <option value="EP">Enfermedad Profesional</option>
-              <option value="MAT">Maternidad</option>
-              <option value="PAT">Paternidad</option>
+            <select id="leave-filter-type" onchange="filterBajas()">
+              <option value="" data-i18n="leave.filter_all_types">Todos los tipos</option>
+              <option value="EC" data-i18n="leave.EC">Enfermedad Común</option>
+              <option value="AL" data-i18n="leave.AL">Accidente Laboral</option>
+              <option value="EP" data-i18n="leave.EP">Enfermedad Profesional</option>
+              <option value="MAT" data-i18n="leave.MAT">Maternidad</option>
+              <option value="PAT" data-i18n="leave.PAT">Paternidad</option>
             </select>
           </div>
         </div>
@@ -860,17 +874,17 @@ tr:hover td{background:rgba(0,0,0,0.02)}
           <table>
             <thead>
               <tr>
-                <th>Empleado</th>
-                <th>Tipo</th>
-                <th>Inicio</th>
-                <th>Fin previsto</th>
-                <th>Días</th>
-                <th>Estado</th>
-                <th style="width:100px">Acciones</th>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.start">Inicio</th>
+                <th data-i18n="table.expected_end">Fin previsto</th>
+                <th data-i18n="table.days">Días</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:100px" data-i18n="table.actions">Acciones</th>
               </tr>
             </thead>
             <tbody id="bajas-table-body">
-              <tr><td colspan="7" class="empty-state"><span class="spinner spinner-lg"></span><div class="empty-state-title" style="margin-top:8px">Cargando bajas…</div></td></tr>
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="leave.loading">Cargando bajas…</span></td></tr>
             </tbody>
           </table>
         </div>
@@ -881,50 +895,50 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <!-- PAGE: INFORMES -->
     <div class="page-content hidden" id="page-informes">
       <div class="page-header">
-        <h2>Informes</h2>
-        <p>Reportes de horas, absentismo y costes laborales</p>
+        <h2 data-i18n="page.reports.title">Informes</h2>
+        <p data-i18n="page.reports.subtitle">Reportes de horas, absentismo y costes laborales</p>
       </div>
       <div class="reports-filters">
         <div class="filter-group">
-          <label>Desde</label>
+          <label data-i18n="reports.from">Desde</label>
           <input type="date" id="report-start">
         </div>
         <div class="filter-group">
-          <label>Hasta</label>
+          <label data-i18n="reports.to">Hasta</label>
           <input type="date" id="report-end">
         </div>
         <div class="filter-group">
-          <label>Tipo de informe</label>
-          <select id="report-type">
-            <option value="hours">Horas trabajadas</option>
-            <option value="overtime">Horas extra</option>
-            <option value="absenteeism">Absentismo</option>
-            <option value="labor-costs">Costes laborales</option>
-            <option value="inspection">Inspección de trabajo</option>
-            <option value="payroll">Nómina</option>
+          <label data-i18n="reports.type">Tipo de informe</label>
+          <select id="report-type" onchange="loadReports()">
+            <option value="hours" data-i18n="reports.type_hours">Horas trabajadas</option>
+            <option value="overtime" data-i18n="reports.type_overtime">Horas extra</option>
+            <option value="absenteeism" data-i18n="reports.type_absenteeism">Absentismo</option>
+            <option value="labor-costs" data-i18n="reports.type_labor_costs">Costes laborales</option>
+            <option value="inspection" data-i18n="reports.type_inspection">Inspección de trabajo</option>
+            <option value="payroll" data-i18n="reports.type_payroll">Nómina</option>
           </select>
         </div>
         <div class="reports-actions">
-          <button class="btn btn-primary btn-sm" id="btn-load-reports">Generar informe</button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-pdf">Exportar PDF</button>
-          <button class="btn btn-secondary btn-sm" id="btn-export-excel">Exportar Excel</button>
+          <button class="btn btn-primary btn-sm" onclick="loadReports()" data-i18n="button.generate">Generar informe</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')" data-i18n="button.export_pdf">Exportar PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportReport('excel')" data-i18n="button.export_excel">Exportar Excel</button>
         </div>
       </div>
       <div class="reports-section">
-        <h3 id="report-title">Horas por empleado</h3>
+        <h3 id="report-title" data-i18n="reports.title_hours">Horas por empleado</h3>
         <div class="table-card">
           <div class="table-card-body">
             <table>
               <thead id="report-thead">
                 <tr>
-                  <th>Empleado</th>
-                  <th>Horas ordinarias</th>
-                  <th>Horas extra</th>
-                  <th>Total</th>
+                  <th data-i18n="table.employee">Empleado</th>
+                  <th data-i18n="reports.col_regular_hours">Horas ordinarias</th>
+                  <th data-i18n="reports.col_overtime_hours">Horas extra</th>
+                  <th data-i18n="reports.col_total">Total</th>
                 </tr>
               </thead>
               <tbody id="report-body">
-                <tr><td colspan="4" class="text-center text-muted" style="padding:32px">Selecciona un rango de fechas y genera el informe</td></tr>
+                <tr><td colspan="4" class="text-center text-muted" style="padding:32px" data-i18n="reports.empty">Selecciona un rango de fechas y genera el informe</td></tr>
               </tbody>
             </table>
           </div>
@@ -935,82 +949,81 @@ tr:hover td{background:rgba(0,0,0,0.02)}
     <!-- PAGE: CONFIGURACIÓN -->
     <div class="page-content hidden" id="page-configuracion">
       <div class="page-header">
-        <h2>Configuración</h2>
-        <p>Datos del restaurante, convenio y preferencias</p>
+        <h2 data-i18n="page.settings.title">Configuración</h2>
+        <p data-i18n="page.settings.subtitle">Datos del restaurante, convenio y preferencias</p>
       </div>
       <div class="settings-tabs" id="settings-tabs">
-        <div class="settings-tab active" data-tab="restaurante">Restaurante</div>
-        <div class="settings-tab" data-tab="convenio">Convenio</div>
-        <div class="settings-tab" data-tab="calendario">Calendario laboral</div>
-        <div class="settings-tab" data-tab="festivos">Festivos</div>
-        <div class="settings-tab" data-tab="notificaciones">Notificaciones</div>
-        <div class="settings-tab" data-tab="facturacion">Facturación</div>
+        <div class="settings-tab active" data-tab="restaurante" data-i18n="settings.tab_restaurant">Restaurante</div>
+        <div class="settings-tab" data-tab="convenio" data-i18n="settings.tab_agreement">Convenio</div>
+        <div class="settings-tab" data-tab="calendario" data-i18n="settings.tab_calendar">Calendario laboral</div>
+        <div class="settings-tab" data-tab="festivos" data-i18n="settings.tab_holidays">Festivos</div>
+        <div class="settings-tab" data-tab="notificaciones" data-i18n="settings.tab_notifications">Notificaciones</div>
       </div>
 
       <div class="settings-panel active" id="panel-restaurante">
         <div class="settings-card">
           <div class="form-group">
-            <label>Nombre del restaurante</label>
+            <label data-i18n="settings.restaurant_name">Nombre del restaurante</label>
             <input type="text" id="cfg-nombre" placeholder="Ej: Restaurante La Marina">
           </div>
           <div class="form-group">
-            <label>CIF / NIF</label>
+            <label data-i18n="settings.cif">CIF / NIF</label>
             <input type="text" id="cfg-cif" placeholder="B12345678">
           </div>
           <div class="form-group">
-            <label>Dirección</label>
+            <label data-i18n="settings.address">Dirección</label>
             <input type="text" id="cfg-direccion" placeholder="Calle Mayor, 12">
           </div>
           <div class="form-group">
-            <label>Teléfono</label>
+            <label data-i18n="settings.phone">Teléfono</label>
             <input type="text" id="cfg-telefono" placeholder="+34 91 123 45 67">
           </div>
           <div class="form-group">
-            <label>Email</label>
+            <label data-i18n="settings.email">Email</label>
             <input type="email" id="cfg-email" placeholder="info@restaurante.es">
           </div>
-          <button class="btn btn-primary" id="btn-save-restaurant">Guardar configuración</button>
+          <button class="btn btn-primary" onclick="saveSettings()" data-i18n="button.save_settings">Guardar configuración</button>
         </div>
       </div>
 
       <div class="settings-panel" id="panel-convenio">
         <div class="settings-card">
           <div class="form-group">
-            <label>Convenio colectivo</label>
+            <label data-i18n="settings.agreement">Convenio colectivo</label>
             <input type="text" id="cfg-convenio" placeholder="Convenio Hostelería">
           </div>
           <div class="form-group">
-            <label>Comunidad Autónoma</label>
+            <label data-i18n="settings.ccaa">Comunidad Autónoma</label>
             <select id="cfg-ccaa">
-              <option value="">Seleccionar…</option>
-              <option value="andalucia">Andalucía</option>
-              <option value="aragon">Aragón</option>
-              <option value="asturias">Asturias</option>
-              <option value="baleares">Baleares</option>
-              <option value="canarias">Canarias</option>
-              <option value="cantabria">Cantabria</option>
-              <option value="castilla-mancha">Castilla-La Mancha</option>
-              <option value="castilla-leon">Castilla y León</option>
-              <option value="catalunya">Cataluña</option>
-              <option value="extremadura">Extremadura</option>
-              <option value="galicia">Galicia</option>
-              <option value="madrid">Comunidad de Madrid</option>
-              <option value="murcia">Región de Murcia</option>
-              <option value="navarra">Navarra</option>
-              <option value="pais-vasco">País Vasco</option>
-              <option value="rioja">La Rioja</option>
-              <option value="valencia">Comunidad Valenciana</option>
+              <option value="" data-i18n="ccaa.select">Seleccionar…</option>
+              <option value="andalucia" data-i18n="ccaa.andalucia">Andalucía</option>
+              <option value="aragon" data-i18n="ccaa.aragon">Aragón</option>
+              <option value="asturias" data-i18n="ccaa.asturias">Asturias</option>
+              <option value="baleares" data-i18n="ccaa.baleares">Baleares</option>
+              <option value="canarias" data-i18n="ccaa.canarias">Canarias</option>
+              <option value="cantabria" data-i18n="ccaa.cantabria">Cantabria</option>
+              <option value="castilla-mancha" data-i18n="ccaa.castilla_mancha">Castilla-La Mancha</option>
+              <option value="castilla-leon" data-i18n="ccaa.castilla_leon">Castilla y León</option>
+              <option value="catalunya" data-i18n="ccaa.catalunya">Cataluña</option>
+              <option value="extremadura" data-i18n="ccaa.extremadura">Extremadura</option>
+              <option value="galicia" data-i18n="ccaa.galicia">Galicia</option>
+              <option value="madrid" data-i18n="ccaa.madrid">Comunidad de Madrid</option>
+              <option value="murcia" data-i18n="ccaa.murcia">Región de Murcia</option>
+              <option value="navarra" data-i18n="ccaa.navarra">Navarra</option>
+              <option value="pais-vasco" data-i18n="ccaa.pais_vasco">País Vasco</option>
+              <option value="rioja" data-i18n="ccaa.rioja">La Rioja</option>
+              <option value="valencia" data-i18n="ccaa.valencia">Comunidad Valenciana</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Tolerancia de fichaje (minutos)</label>
+            <label data-i18n="settings.tolerance">Tolerancia de fichaje (minutos)</label>
             <input type="number" id="cfg-tolerancia" placeholder="5" min="0" max="60">
           </div>
           <div class="form-group">
-            <label>Días de vacaciones por año</label>
+            <label data-i18n="settings.vacation_days">Días de vacaciones por año</label>
             <input type="number" id="cfg-vacation-days" placeholder="30" min="0" max="45">
           </div>
-          <button class="btn btn-primary" id="btn-save-convenio">Guardar configuración</button>
+          <button class="btn btn-primary" onclick="saveSettings()" data-i18n="button.save_settings">Guardar configuración</button>
         </div>
       </div>
 
@@ -1192,6 +1205,7 @@ tr:hover td{background:rgba(0,0,0,0.02)}
 <div id="modal-container"></div>
 
 <script type="module" src="src/app.js"></script>
+<script src="i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </body>
 </html>

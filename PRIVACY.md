@@ -57,7 +57,7 @@ Transcurrido ese plazo, los datos se suprimen de forma segura.
 
 No cedemos datos personales a terceros, salvo:
 
-- **Proveedores de infraestructura** (Neon — base de datos, Railway — hosting, Vercel — frontend) que actúan como encargados del tratamiento con los que tenemos contrato DPA vigente.
+- **Proveedores de infraestructura** (supabase/PostgreSQL — base de datos, Vercel/Cloudflare — hosting y frontend) que actúan como encargados del tratamiento con los que tenemos contrato DPA vigente.
 - **Obligación legal** — Fuerzas y cuerpos de seguridad, jueces y tribunales cuando exista requerimiento legal.
 
 ---
@@ -89,7 +89,7 @@ Si consideras que no hemos tratado tus datos conforme a la normativa, puedes pre
 Aplicamos las siguientes medidas técnicas y organizativas:
 
 - **Cifrado en tránsito** — Todo el tráfico viaja por HTTPS/TLS 1.3.
-- **Cifrado en reposo** — La base de datos está cifrada (Neon cifrado AES-256).
+- **Cifrado en reposo** — La base de datos está cifrada (AES-256 para PostgreSQL en producción, SQLCipher para SQLite en desarrollo).
 - **Hash de contraseñas** — Las contraseñas se almacenan hasheadas con bcrypt.
 - **Autenticación JWT** — Tokens firmados con secreto único por tenant.
 - **Control de acceso** — Roles (admin, manager, employee) con permisos granulares.
@@ -101,7 +101,7 @@ Aplicamos las siguientes medidas técnicas y organizativas:
 
 ## 9. Transferencias Internacionales
 
-Los datos se almacenan en servidores ubicados en la **Unión Europea** (Neon — AWS Frankfurt, Alemania; Railway — EU). No realizamos transferencias internacionales fuera del EEE.
+Los datos se almacenan en servidores ubicados en la **Unión Europea** (Supabase — AWS Frankfurt, Alemania; Vercel — edge network EU). No realizamos transferencias internacionales fuera del EEE.
 
 ---
 

@@ -167,6 +167,10 @@ class RefreshResponse(BaseModel):
     tenant_id: Optional[str] = None
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 # --- Endpoints ---
 @router.post("/login", response_model=AuthResponse)
 async def login(req: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)):

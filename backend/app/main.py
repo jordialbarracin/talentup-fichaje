@@ -46,6 +46,7 @@ from app.routers import (
     billing,
     devices,
 )
+from app.rate_limit import RateLimitMiddleware
 
 # ── Bootstrap logging ───────────────────────────────────────────────────────
 configure_logging()
@@ -208,6 +209,8 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+# Rate limiting — protects login, clock, and all API endpoints
+app.add_middleware(RateLimitMiddleware, default_limit=100, window_seconds=60)
 
 # ── Request logging middleware ───────────────────────────────────────────────
 @app.middleware("http")
