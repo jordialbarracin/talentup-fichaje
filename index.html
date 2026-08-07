@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Gestión de fichajes para hostelería</title>
+<style>
+/* ============================================================
+   TalentUP Fichaje — Premium Linear-inspired Light Mode
+   Brand: #FF6B35 accent · Apple HIG · No dark colors
+   ============================================================ */
+
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f5f7;color:#1d1d1f;font-weight:400;line-height:1.5;letter-spacing:-0.022em;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+a{color:#FF6B35;text-decoration:none;transition:color 200ms ease}
+a:hover{color:#E55A2B}
+button{cursor:pointer;font-family:inherit;font-size:inherit;border:none;background:none;color:inherit;letter-spacing:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit;color:#1d1d1f;background:#f5f5f7;border:none;border-radius:8px;padding:10px 14px;outline:none;transition:box-shadow 200ms ease,background 200ms ease;font-weight:400;letter-spacing:-0.022em}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px rgba(255,107,53,0.3);background:#ffffff}
+input::placeholder{color:rgba(0,0,0,0.25);font-weight:400}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-weight:600;color:rgba(0,0,0,0.4);font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.06)}
+td{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.04);font-weight:400;color:#1d1d1f;font-size:0.8125rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,0,0,0.02)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.2)}
+::selection{background:rgba(255,107,53,0.2);color:#1d1d1f}
+
+/* ===== UTILITY ===== */
+.hidden{display:none!important}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.justify-center{justify-content:center}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.gap-4{gap:16px}
+.mt-4{margin-top:16px}
+.mb-4{margin-bottom:16px}
+.text-center{text-align:center}
+.text-sm{font-size:0.8125rem}
+.text-xs{font-size:0.6875rem}
+.text-muted{color:rgba(0,0,0,0.45)}
+.font-medium{font-weight:500}
+.w-full{width:100%}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== BUTTONS — Linear pill style ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border-radius:980px;font-weight:500;font-size:0.8125rem;letter-spacing:-0.022em;transition:all 200ms ease;white-space:nowrap;line-height:1.2}
+.btn:hover{opacity:0.88}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:#FF6B35;color:#ffffff}
+.btn-primary:hover{background:#E55A2B;opacity:1}
+.btn-secondary{background:transparent;color:#FF6B35;border:1px solid rgba(255,107,53,0.35)}
+.btn-secondary:hover{background:rgba(255,107,53,0.06);border-color:#FF6B35;opacity:1}
+.btn-ghost{background:transparent;color:rgba(0,0,0,0.5)}
+.btn-ghost:hover{color:#1d1d1f;background:rgba(0,0,0,0.04);opacity:1}
+.btn-danger{background:#FF3B30;color:#ffffff}
+.btn-danger:hover{background:#E02E24;opacity:1}
+.btn-sm{padding:5px 12px;font-size:0.75rem}
+.btn-icon{width:30px;height:30px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none!important}
+
+/* ===== LOGIN SCREEN — Linear style ===== */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;position:relative;overflow:hidden;background:#f5f5f7}
+.login-card{background:#ffffff;border:none;border-radius:12px;padding:48px 40px 40px;width:100%;max-width:384px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.login-logo svg{flex-shrink:0}
+.login-logo h1{font-size:1.375rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.028em;line-height:1.1}
+.login-sub{color:rgba(0,0,0,0.45);font-size:0.875rem;margin-bottom:32px;font-weight:400;letter-spacing:-0.022em}
+.login-form{display:flex;flex-direction:column;gap:14px}
+.login-form label{display:block;font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.login-form input{background:#f5f5f7;border:none;border-radius:8px;padding:12px 14px;font-size:0.875rem;font-weight:400;letter-spacing:-0.022em;width:100%}
+.login-form input:focus{box-shadow:0 0 0 2px rgba(255,107,53,0.3);background:#ffffff}
+.login-form input::placeholder{color:rgba(0,0,0,0.25)}
+.login-form .btn{margin-top:4px;width:100%;padding:12px;font-size:0.875rem;font-weight:500;letter-spacing:-0.022em}
+.login-error{color:#FF3B30;font-size:0.8125rem;text-align:center;min-height:20px;font-weight:400}
+.login-version{position:absolute;bottom:14px;right:20px;font-size:0.625rem;color:rgba(0,0,0,0.15);font-family:ui-monospace,SF Mono,monospace;letter-spacing:0.03em}
+.login-meta{margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:space-between;font-size:0.75rem;color:rgba(0,0,0,0.35);font-weight:400;letter-spacing:-0.022em}
+.login-meta a{color:#FF6B35;font-weight:500}
+.login-meta a:hover{color:#E55A2B}
+
+/* ===== DEMO BANNER ===== */
+.demo-banner{background:#FF9500;color:#ffffff;text-align:center;padding:7px 16px;font-size:0.75rem;font-weight:500;position:sticky;top:0;z-index:50;animation:slideDown 300ms cubic-bezier(0.16,1,0.3,1);letter-spacing:-0.01em}
+
+/* ===== APP LAYOUT ===== */
+#app{display:flex;min-height:100vh;background:#f5f5f7}
+#sidebar{width:224px;background:#f5f5f7;border-right:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:40;transition:transform 200ms ease}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:18px 16px 14px;border-bottom:1px solid rgba(0,0,0,0.06)}
+.sidebar-logo h2{font-size:0.9375rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.022em}
+.sidebar-nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:400;color:rgba(0,0,0,0.5);transition:all 200ms ease;cursor:pointer;font-size:0.8125rem;letter-spacing:-0.022em}
+.nav-item:hover{color:#1d1d1f;background:rgba(0,0,0,0.04)}
+.nav-item.active{color:#FF6B35;background:rgba(255,107,53,0.08);font-weight:500}
+.nav-item svg{flex-shrink:0;opacity:0.6;stroke-width:1.5}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{padding:8px;border-top:1px solid rgba(0,0,0,0.06)}
+.sidebar-footer .nav-item{color:rgba(0,0,0,0.3);font-size:0.75rem}
+.sidebar-footer .nav-item:hover{color:#FF3B30}
+
+/* ===== MAIN CONTENT ===== */
+#main{flex:1;margin-left:224px;display:flex;flex-direction:column;min-height:100vh;background:#f5f5f7}
+#navbar{display:flex;align-items:center;justify-content:space-between;padding:10px 28px;background:rgba(245,245,247,0.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;z-index:30}
+.navbar-left{display:flex;align-items:center;gap:10px}
+.navbar-left .hamburger{display:none;width:30px;height:30px;align-items:center;justify-content:center;border-radius:6px;color:rgba(0,0,0,0.4);transition:all 200ms ease}
+.navbar-left .hamburger:hover{color:#1d1d1f;background:rgba(0,0,0,0.04)}
+.navbar-title{font-size:0.8125rem;font-weight:500;color:rgba(0,0,0,0.45);letter-spacing:-0.022em}
+.navbar-right{display:flex;align-items:center;gap:12px}
+.navbar-user{display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#1d1d1f;font-weight:400;letter-spacing:-0.022em}
+.navbar-avatar{width:28px;height:28px;border-radius:50%;background:#FF6B35;display:flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:600;color:#ffffff;flex-shrink:0}
+.online-indicator{display:flex;align-items:center;gap:5px;font-size:0.6875rem;color:#34C759;padding:3px 10px;border-radius:980px;background:rgba(52,199,89,0.1);font-weight:500;letter-spacing:-0.022em}
+.online-indicator.offline{color:rgba(0,0,0,0.35);background:rgba(0,0,0,0.05)}
+.online-dot{width:5px;height:5px;border-radius:50%;background:#34C759}
+.online-indicator.offline .online-dot{background:rgba(0,0,0,0.2)}
+.btn-logout{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:980px;font-size:0.75rem;color:rgba(0,0,0,0.4);transition:all 200ms ease;font-weight:400;letter-spacing:-0.022em}
+.btn-logout:hover{color:#FF3B30;background:rgba(255,59,48,0.06)}
+
+/* ===== PAGE CONTENT ===== */
+.page-content{padding:28px;flex:1}
+.page-header{margin-bottom:24px}
+.page-header h2{font-size:1.375rem;font-weight:600;color:#1d1d1f;margin-bottom:2px;letter-spacing:-0.028em}
+.page-header p{color:rgba(0,0,0,0.45);font-size:0.8125rem;font-weight:400}
+
+/* ===== STATS CARDS — Linear style ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:#ffffff;border:none;border-radius:10px;padding:20px;transition:all 200ms ease;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.stat-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stat-card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.stat-card-icon.orange{background:rgba(255,107,53,0.1);color:#FF6B35}
+.stat-card-icon.teal{background:rgba(52,199,89,0.1);color:#34C759}
+.stat-card-icon.red{background:rgba(255,59,48,0.1);color:#FF3B30}
+.stat-card-icon.purple{background:rgba(175,82,222,0.08);color:#AF52DE}
+.stat-card-value{font-size:1.75rem;font-weight:600;color:#1d1d1f;line-height:1.1;letter-spacing:-0.028em}
+.stat-card-label{font-size:0.75rem;color:rgba(0,0,0,0.45);margin-top:3px;font-weight:400;letter-spacing:-0.022em}
+
+/* ===== TABLE CARD — Linear style ===== */
+.table-card{background:#ffffff;border:none;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(0,0,0,0.06);flex-wrap:wrap;gap:8px}
+.table-card-header h3{font-size:0.875rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.022em}
+.table-card-body{overflow-x:auto;padding:0}
+.table-card-body table{min-width:600px}
+.table-card-body .empty-state{padding:40px 16px;text-align:center;color:rgba(0,0,0,0.25)}
+
+/* ===== BADGES — Linear style ===== */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;line-height:1.3}
+.badge-ok{background:rgba(52,199,89,0.12);color:#34C759}
+.badge-late{background:rgba(255,107,53,0.12);color:#FF6B35}
+.badge-incident{background:rgba(255,59,48,0.12);color:#FF3B30}
+.badge-active{background:rgba(52,199,89,0.12);color:#34C759}
+.badge-inactive{background:rgba(0,0,0,0.06);color:rgba(0,0,0,0.35)}
+.badge-pending{background:rgba(255,149,0,0.12);color:#FF9500}
+.badge-approved{background:rgba(52,199,89,0.12);color:#34C759}
+.badge-rejected{background:rgba(255,59,48,0.12);color:#FF3B30}
+.badge-on-leave{background:rgba(0,122,255,0.1);color:#007AFF}
+
+/* ===== MODAL — Linear style ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fadeIn 150ms ease}
+.modal{background:#ffffff;border:none;border-radius:10px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;animation:slideUp 200ms ease;box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.modal-wide{max-width:620px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;background:#ffffff;z-index:1}
+.modal-header h3{font-size:1rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.022em}
+.modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:rgba(0,0,0,0.4);transition:all 200ms ease}
+.modal-close:hover{color:#1d1d1f;background:rgba(0,0,0,0.05)}
+.modal-body{padding:20px}
+.modal-body .form-group{margin-bottom:14px}
+.modal-body label{display:block;font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.modal-body input,.modal-body select,.modal-body textarea{width:100%}
+.modal-body textarea{resize:vertical;min-height:60px}
+.modal-body .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid rgba(0,0,0,0.06);position:sticky;bottom:0;background:#ffffff}
+
+/* ===== SHIFT CARD ===== */
+.shifts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.shift-card{background:#ffffff;border:none;border-radius:10px;padding:18px;transition:all 200ms ease;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.shift-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.shift-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:0 2px 2px 0}
+.shift-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.shift-card-name{font-size:0.9375rem;font-weight:600;color:#1d1d1f}
+.shift-card-time{font-size:0.8125rem;color:rgba(0,0,0,0.5);margin-bottom:3px}
+.shift-card-tolerance{font-size:0.6875rem;color:rgba(0,0,0,0.3)}
+.shift-card-actions{display:flex;gap:6px;margin-top:10px}
+
+/* ===== SCHEDULE ===== */
+.schedule-wrapper{overflow-x:auto}
+.schedule-table{min-width:800px;border-collapse:separate;border-spacing:0}
+.schedule-table th{position:sticky;top:0;background:#f5f5f7;z-index:2;padding:8px 10px;font-size:0.6875rem;text-align:center;border-bottom:1px solid rgba(0,0,0,0.06);font-weight:600;color:rgba(0,0,0,0.4)}
+.schedule-table th:first-child{text-align:left;min-width:130px;z-index:3;left:0}
+.schedule-table td{padding:6px 4px;text-align:center;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer;transition:all 200ms ease;font-size:0.6875rem;min-width:90px}
+.schedule-table td:first-child{text-align:left;font-weight:500;color:#1d1d1f;position:sticky;left:0;background:#f5f5f7;z-index:1;min-width:130px}
+.schedule-table td:hover{background:rgba(255,107,53,0.06)}
+.schedule-cell{display:inline-block;padding:3px 8px;border-radius:5px;font-size:0.625rem;font-weight:500;white-space:nowrap}
+.schedule-empty{color:rgba(0,0,0,0.12);font-size:0.625rem}
+.schedule-holiday{background:rgba(255,59,48,0.04)}
+.schedule-holiday .schedule-empty{color:rgba(255,59,48,0.25)}
+.schedule-vacation{background:rgba(52,199,89,0.04)}
+
+/* ===== REPORTS ===== */
+.reports-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:20px}
+.reports-filters .filter-group{display:flex;flex-direction:column;gap:3px}
+.reports-filters label{font-size:0.6875rem;font-weight:500;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em}
+.reports-filters input,.reports-filters select{padding:7px 10px;font-size:0.8125rem}
+.reports-actions{display:flex;gap:8px;margin-top:2px;flex-wrap:wrap}
+.reports-section{margin-bottom:24px}
+.reports-section h3{font-size:0.9375rem;font-weight:600;color:#1d1d1f;margin-bottom:10px}
+
+/* ===== SETTINGS TABS ===== */
+.settings-tabs{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid rgba(0,0,0,0.06);padding-bottom:0;overflow-x:auto}
+.settings-tab{padding:8px 16px;border-radius:6px 6px 0 0;font-size:0.8125rem;font-weight:400;color:rgba(0,0,0,0.45);transition:all 200ms ease;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
+.settings-tab:hover{color:#1d1d1f;background:rgba(0,0,0,0.02)}
+.settings-tab.active{color:#FF6B35;border-bottom-color:#FF6B35;font-weight:500}
+.settings-panel{display:none}
+.settings-panel.active{display:block}
+.settings-card{background:#ffffff;border:none;border-radius:10px;padding:24px;max-width:560px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.settings-card .form-group{margin-bottom:18px}
+.settings-card label{display:block;font-size:0.6875rem;font-weight:500;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:5px}
+.settings-card input,.settings-card select{width:100%}
+
+/* ===== PIN TOGGLE ===== */
+.pin-hidden{font-family:ui-monospace,SF Mono,monospace;letter-spacing:2px;cursor:pointer;color:rgba(0,0,0,0.25);transition:color 240ms cubic-bezier(0.16,1,0.3,1)}
+.pin-hidden:hover{color:#1d1d1f}
+.pin-visible{font-family:ui-monospace,SF Mono,monospace;letter-spacing:2px;cursor:pointer;color:#1d1d1f}
+
+/* ===== PAGINATION ===== */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;border-top:1px solid rgba(0,0,0,0.06)}
+.page-btn{padding:5px 10px;border-radius:5px;font-size:0.75rem;color:rgba(0,0,0,0.45);border:1px solid rgba(0,0,0,0.08);transition:all 200ms ease;cursor:pointer;background:transparent;white-space:nowrap}
+.page-btn:hover{color:#1d1d1f;border-color:rgba(255,107,53,0.3)}
+.page-btn.active{background:#FF6B35;color:#ffffff;border-color:#FF6B35}
+.page-btn:disabled{opacity:0.25;cursor:not-allowed}
+.page-info{font-size:0.75rem;color:rgba(0,0,0,0.25)}
+
+/* ===== SEARCH BAR ===== */
+.search-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search-bar input{padding:7px 10px;font-size:0.8125rem;min-width:180px}
+.search-bar select{padding:7px 10px;font-size:0.8125rem}
+
+/* ===== CALENDAR — Linear style ===== */
+.calendar-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.calendar-nav h3{font-size:1rem;font-weight:600;color:#1d1d1f;min-width:180px;text-align:center;letter-spacing:-0.022em}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.calendar-header-cell{padding:6px;text-align:center;font-size:0.6875rem;font-weight:500;color:rgba(0,0,0,0.4);text-transform:uppercase;letter-spacing:0.05em}
+.calendar-cell{background:#ffffff;border:none;border-radius:8px;padding:6px;min-height:72px;transition:all 200ms ease;cursor:pointer;position:relative}
+.calendar-cell:hover{box-shadow:0 0 0 1px rgba(255,107,53,0.25)}
+.calendar-cell .day-num{font-size:0.75rem;font-weight:600;color:#1d1d1f;margin-bottom:3px}
+.calendar-cell.other-month .day-num{color:rgba(0,0,0,0.15)}
+.calendar-cell.today{border-color:#FF6B35;background:rgba(255,107,53,0.03)}
+.calendar-cell.today .day-num{color:#FF6B35}
+.calendar-cell.has-event .day-num::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#FF6B35;margin-left:3px;vertical-align:super}
+.calendar-event{font-size:0.5625rem;padding:2px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;font-weight:500}
+.calendar-event.vacation{background:rgba(52,199,89,0.12);color:#34C759}
+.calendar-event.holiday{background:rgba(255,59,48,0.12);color:#FF3B30}
+.calendar-event.shift{background:rgba(255,107,53,0.12);color:#FF6B35}
+.calendar-event.leave{background:rgba(0,122,255,0.1);color:#007AFF}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,0.08);border-top-color:#FF6B35;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;vertical-align:middle}
+.spinner-lg{width:28px;height:28px;border-width:2.5px}
+.loading-overlay{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:rgba(0,0,0,0.4);font-size:0.8125rem}
+
+/* ===== TOAST ===== */
+.toast-container{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{padding:12px 16px;border-radius:8px;font-size:0.8125rem;font-weight:400;color:#ffffff;animation:slideInRight 300ms cubic-bezier(0.16,1,0.3,1);box-shadow:0 4px 16px rgba(0,0,0,0.12);display:flex;align-items:center;gap:8px;line-height:1.4}
+.toast.toast-out{animation:slideOutRight 300ms cubic-bezier(0.16,1,0.3,1) forwards}
+.toast-error{background:#FF3B30}
+.toast-success{background:#34C759}
+.toast-warning{background:#FF9500}
+.toast-info{background:#007AFF}
+.toast-icon{flex-shrink:0;width:16px;height:16px}
+
+/* ===== LANGUAGE SELECTOR — Apple HIG light ===== */
+.lang-selector{display:inline-flex;align-items:center;gap:0;background:rgba(0,0,0,0.04);border-radius:980px;padding:2px}
+.lang-btn{padding:3px 10px;border-radius:980px;font-size:0.6875rem;font-weight:500;color:rgba(0,0,0,0.4);transition:all 200ms ease;letter-spacing:0.02em;white-space:nowrap;cursor:pointer;border:none;background:none;font-family:inherit}
+.lang-btn:hover{color:rgba(0,0,0,0.7)}
+.lang-btn.active{background:#ffffff;color:#FF6B35;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.lang-separator{color:rgba(0,0,0,0.15);font-size:0.6875rem;pointer-events:none;user-select:none;padding:0 1px}
+.lang-selector-login{margin-top:16px;display:flex;justify-content:center}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  #navbar{padding:10px 16px}
+  .navbar-left .hamburger{display:flex}
+  .navbar-title{display:none}
+  .page-content{padding:20px 16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .login-card{padding:32px 24px}
+  .reports-filters{flex-direction:column;align-items:stretch}
+  .reports-actions{flex-wrap:wrap}
+  .schedule-table td{min-width:70px;font-size:0.625rem}
+  .schedule-table th{font-size:0.625rem}
+  .modal-body .form-row{grid-template-columns:1fr}
+  .calendar-grid{gap:2px}
+  .calendar-cell{min-height:56px;padding:4px}
+  .settings-tabs{flex-wrap:nowrap}
+  .search-bar input{min-width:120px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .navbar-user .navbar-avatar{width:26px;height:26px;font-size:0.625rem}
+  .btn-logout span{display:none}
+  .modal{padding:0;border-radius:10px;margin:8px}
+  .calendar-cell{min-height:44px}
+}
+</style>
+
+<!-- ===== PWA ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B35">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TalentUP">
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#FF6B35"/><path d="M8 16L14 22L24 10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1 data-i18n="app.title">TalentUP Fichaje</h1>
+    </div>
+    <p class="login-sub" data-i18n="app.subtitle">Panel de gestión para hostelería</p>
+    <form class="login-form" id="login-form">
+      <div>
+        <label for="login-email" data-i18n="login.email">Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="admin@restaurante.es" required autocomplete="email">
+      </div>
+      <div>
+        <label for="login-password" data-i18n="login.password">Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        <span id="login-btn-text" data-i18n="login.button">Iniciar sesión</span>
+        <span class="spinner hidden" id="login-spinner"></span>
+      </button>
+      <button type="button" class="btn btn-ghost" id="demo-btn" style="margin-top:8px" data-i18n="login.demo">
+        Entrar modo demo
+      </button>
+    </form>
+    <!-- Language selector -->
+    <div class="lang-selector lang-selector-login" id="login-lang-selector">
+      <button class="lang-btn" data-lang="es">ES</button>
+      <span class="lang-separator">|</span>
+      <button class="lang-btn" data-lang="ca">CA</button>
+      <span class="lang-separator">|</span>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+    <div class="login-meta">
+      <span data-i18n="login.help">¿Necesitas ayuda?</span>
+      <a href="https://github.com/jordialbarracin/talentup-fichaje" target="_blank" data-i18n="login.docs">Documentación →</a>
+    </div>
+    <span class="login-version" data-i18n="app.version">v2.0.0</span>
+  </div>
+</div>
+
+<!-- ===== REGISTER MODAL ===== -->
+<div id="register-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fadeIn 150ms ease">
+  <div style="background:#ffffff;border:none;border-radius:10px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;animation:slideUp 200ms ease;box-shadow:0 4px 16px rgba(0,0,0,0.08)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;letter-spacing:-0.022em">Crear cuenta</h3>
+      <button class="modal-close" id="register-modal-close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="padding:20px">
+      <form id="register-form">
+        <div class="form-group">
+          <label>Nombre del restaurante</label>
+          <input type="text" id="reg-restaurant" placeholder="Ej: Restaurante La Marina" required>
+        </div>
+        <div class="form-group">
+          <label>Tu nombre</label>
+          <input type="text" id="reg-name" placeholder="Ej: Juan Pérez" required>
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="reg-email" placeholder="admin@restaurante.es" required>
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Min. 6 caracteres" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label>Teléfono (opcional)</label>
+          <input type="tel" id="reg-phone" placeholder="+34 612 345 678">
+        </div>
+        <div id="register-error" style="color:#FF3B30;font-size:0.8125rem;text-align:center;min-height:20px;font-weight:400"></div>
+        <button type="submit" class="btn btn-primary" id="register-btn" style="width:100%;padding:12px;font-size:0.875rem;font-weight:500;margin-top:4px">
+          <span id="register-btn-text">Crear cuenta</span>
+          <span class="spinner hidden" id="register-spinner"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ONBOARDING WIZARD ===== -->
+<div id="onboarding-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fadeIn 150ms ease">
+  <div style="background:#ffffff;border:none;border-radius:10px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:slideUp 200ms ease;box-shadow:0 4px 16px rgba(0,0,0,0.08)">
+    <!-- Progress bar -->
+    <div style="padding:20px 20px 0">
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <div class="onb-step-indicator active" data-step="1" style="flex:1;height:3px;border-radius:2px;background:#FF6B35;transition:background 300ms ease"></div>
+        <div class="onb-step-indicator" data-step="2" style="flex:1;height:3px;border-radius:2px;background:rgba(0,0,0,0.08);transition:background 300ms ease"></div>
+        <div class="onb-step-indicator" data-step="3" style="flex:1;height:3px;border-radius:2px;background:rgba(0,0,0,0.08);transition:background 300ms ease"></div>
+      </div>
+    </div>
+
+    <!-- Step 1: Restaurant config -->
+    <div class="onb-step" data-step="1">
+      <div style="padding:0 20px">
+        <h3 style="font-size:1.125rem;font-weight:600;color:#1d1d1f;margin-bottom:4px;letter-spacing:-0.022em">Configura tu restaurante</h3>
+        <p style="color:rgba(0,0,0,0.45);font-size:0.8125rem;margin-bottom:20px">Estos datos se usaran en los informes y contratos</p>
+        <div class="form-group">
+          <label>Nombre del restaurante</label>
+          <input type="text" id="onb-name" placeholder="Ej: Restaurante La Marina">
+        </div>
+        <div class="form-group">
+          <label>Direccion</label>
+          <input type="text" id="onb-address" placeholder="Calle Mayor, 12, Madrid">
+        </div>
+        <div class="form-group">
+          <label>Telefono</label>
+          <input type="tel" id="onb-phone" placeholder="+34 91 123 45 67">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary onb-next" data-step="1">Continuar</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Shifts config -->
+    <div class="onb-step hidden" data-step="2">
+      <div style="padding:0 20px">
+        <h3 style="font-size:1.125rem;font-weight:600;color:#1d1d1f;margin-bottom:4px;letter-spacing:-0.022em">Configura tus turnos</h3>
+        <p style="color:rgba(0,0,0,0.45);font-size:0.8125rem;margin-bottom:16px">Tres turnos por defecto. Puedes editarlos o crear nuevos.</p>
+        <div id="onb-shifts-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary onb-next" data-step="2">Continuar</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Employees -->
+    <div class="onb-step hidden" data-step="3">
+      <div style="padding:0 20px">
+        <h3 style="font-size:1.125rem;font-weight:600;color:#1d1d1f;margin-bottom:4px;letter-spacing:-0.022em">Anade tus empleados</h3>
+        <p style="color:rgba(0,0,0,0.45);font-size:0.8125rem;margin-bottom:16px">Puedes anadirlos ahora o hacerlo mas tarde desde el panel.</p>
+        <div id="onb-employees-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px"></div>
+        <button class="btn btn-secondary" id="onb-add-employee" style="width:100%;padding:10px;font-size:0.8125rem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:4px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Anadir empleado
+        </button>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:16px 20px;border-top:1px solid rgba(0,0,0,0.06);margin-top:16px">
+        <button class="btn btn-ghost onb-skip">Saltar</button>
+        <button class="btn btn-primary" id="onb-finish">Finalizar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DEMO BANNER ===== -->
+<div id="demo-banner" class="demo-banner hidden" data-i18n="demo.banner">Modo demo — los datos mostrados no son reales</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="hidden">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#FF6B35"/><path d="M8 16L14 22L24 10" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h2 data-i18n="app.title">TalentUP Fichaje</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" data-i18n="nav.dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="empleados" data-i18n="nav.employees">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Empleados
+      </div>
+      <div class="nav-item" data-page="calendario" data-i18n="nav.calendar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Calendario
+      </div>
+      <div class="nav-item" data-page="turnos" data-i18n="nav.shifts">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Turnos
+      </div>
+      <div class="nav-item" data-page="fichajes" data-i18n="nav.clocking">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Fichajes
+      </div>
+      <div class="nav-item" data-page="vacaciones" data-i18n="nav.vacations">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Vacaciones
+      </div>
+      <div class="nav-item" data-page="bajas" data-i18n="nav.leave">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Bajas
+      </div>
+      <div class="nav-item" data-page="informes" data-i18n="nav.reports">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Informes
+      </div>
+      <div class="nav-item" data-page="configuracion" data-i18n="nav.settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configuración
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="nav-item" id="sidebar-logout" data-i18n="button.logout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- NAVBAR -->
+    <header id="navbar">
+      <div class="navbar-left">
+        <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="navbar-title" id="navbar-title" data-i18n="nav.dashboard">Dashboard</span>
+      </div>
+      <div class="navbar-right">
+        <div class="online-indicator" id="online-indicator">
+          <span class="online-dot"></span>
+          <span id="online-text" data-i18n="status.online">Conectado</span>
+        </div>
+        <!-- Language selector (navbar) -->
+        <div class="lang-selector" id="navbar-lang-selector">
+          <button class="lang-btn" data-lang="es">ES</button>
+          <span class="lang-separator">|</span>
+          <button class="lang-btn" data-lang="ca">CA</button>
+          <span class="lang-separator">|</span>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <div class="navbar-user">
+          <div class="navbar-avatar" id="navbar-avatar">A</div>
+          <span id="navbar-name">Admin</span>
+        </div>
+        <button class="btn-logout" id="navbar-logout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span data-i18n="button.logout_short">Salir</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page-content" id="page-dashboard">
+      <div class="page-header">
+        <h2 data-i18n="page.dashboard.title">Dashboard</h2>
+        <p data-i18n="page.dashboard.subtitle">Resumen ejecutivo de actividad</p>
+      </div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon orange">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-empleados">—</div>
+          <div class="stat-card-label" data-i18n="dashboard.active_today">Empleados activos hoy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon teal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-fichajes">—</div>
+          <div class="stat-card-label" data-i18n="dashboard.clocks_today">Fichajes hoy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon red">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-incidencias">—</div>
+          <div class="stat-card-label" data-i18n="dashboard.incidents">Incidencias pendientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon purple">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-extras">—</div>
+          <div class="stat-card-label" data-i18n="dashboard.overtime_week">Horas extra esta semana</div>
+        </div>
+      </div>
+
+      <!-- Alertas -->
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:24px">
+        <div class="stat-card" style="border-left:3px solid #d97706">
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f" data-i18n="dashboard.no_clock">Sin fichar hoy</h3></div>
+          <div id="alert-no-clock" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px" data-i18n="status.loading">Cargando…</div>
+        </div>
+        <div class="stat-card" style="border-left:3px solid #248A3D">
+          <div class="stat-card-header"><h3 style="font-size:0.9rem;font-weight:600;color:#1d1d1f" data-i18n="dashboard.pending_vacations">Vacaciones pendientes</h3></div>
+          <div id="alert-vacaciones" style="font-size:0.85rem;color:rgba(0,0,0,0.5);min-height:40px" data-i18n="status.loading">Cargando…</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3 data-i18n="clock.today">Fichajes de hoy</h3>
+          <span class="text-sm text-muted" id="dashboard-date"></span>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.time">Hora</th>
+                <th data-i18n="table.status">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-table-body">
+              <tr><td colspan="4" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: EMPLEADOS -->
+    <div class="page-content hidden" id="page-empleados">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 data-i18n="page.employees.title">Empleados</h2>
+          <p data-i18n="page.employees.subtitle">Gestión completa de la plantilla</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-employee">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="button.add_employee">Añadir empleado</span>
+        </button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <input type="text" id="emp-search" data-i18n-placeholder="employees.search_placeholder" placeholder="Buscar nombre, DNI, SS…" oninput="filterEmpleados()">
+            <select id="emp-filter-status" onchange="filterEmpleados()">
+              <option value="" data-i18n="employees.filter_all_status">Todos los estados</option>
+              <option value="active" data-i18n="employees.filter_active">Activos</option>
+              <option value="inactive" data-i18n="employees.filter_inactive">Inactivos</option>
+              <option value="on_vacation" data-i18n="employees.filter_on_vacation">De vacaciones</option>
+              <option value="on_leave" data-i18n="employees.filter_on_leave">De baja</option>
+            </select>
+            <select id="emp-filter-turno" onchange="filterEmpleados()">
+              <option value="" data-i18n="employees.filter_all_shifts">Todos los turnos</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="table.name">Nombre</th>
+                <th data-i18n="table.dni">DNI</th>
+                <th data-i18n="table.nss">N.º SS</th>
+                <th data-i18n="table.category">Categoría</th>
+                <th data-i18n="table.contract">Contrato</th>
+                <th data-i18n="table.shift">Turno</th>
+                <th data-i18n="table.pin">PIN</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:100px" data-i18n="table.actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="empleados-table-body">
+              <tr><td colspan="9" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="emp-pagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: CALENDARIO -->
+    <div class="page-content hidden" id="page-calendario">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 data-i18n="page.calendar.title">Calendario</h2>
+          <p data-i18n="page.calendar.subtitle">Vista mensual con turnos, festivos y vacaciones</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm" onclick="calendarView('week')" data-i18n="button.weekly">Semanal</button>
+          <button class="btn btn-primary btn-sm" onclick="calendarView('month')" data-i18n="button.monthly">Mensual</button>
+        </div>
+      </div>
+      <div class="calendar-nav">
+        <button class="btn btn-ghost btn-icon" id="btn-cal-prev">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h3 id="calendar-title">Julio 2026</h3>
+        <button class="btn btn-ghost btn-icon" id="btn-cal-next">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="calendarToday()" data-i18n="button.today">Hoy</button>
+      </div>
+      <div id="calendar-container">
+        <div class="loading-overlay"><span class="spinner"></span> <span data-i18n="calendar.loading">Cargando calendario…</span></div>
+      </div>
+    </div>
+
+    <!-- PAGE: TURNOS -->
+    <div class="page-content hidden" id="page-turnos">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 data-i18n="page.shifts.title">Turnos</h2>
+          <p data-i18n="page.shifts.subtitle">Configuración de turnos laborales</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-shift">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="button.create_shift">Crear turno</span>
+        </button>
+      </div>
+      <div class="shifts-grid" id="turnos-grid">
+        <div class="loading-overlay" style="grid-column:1/-1"><span class="spinner"></span> <span data-i18n="shifts.loading">Cargando turnos…</span></div>
+      </div>
+    </div>
+
+    <!-- PAGE: FICHAJES -->
+    <div class="page-content hidden" id="page-fichajes">
+      <div class="page-header">
+        <h2 data-i18n="page.clocking.title">Fichajes</h2>
+        <p data-i18n="page.clocking.subtitle">Histórico completo de fichajes</p>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <input type="date" id="clock-filter-date">
+            <select id="clock-filter-empleado" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_employees">Todos los empleados</option>
+            </select>
+            <select id="clock-filter-tipo" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_types">Todos los tipos</option>
+              <option value="in" data-i18n="clock.in">Entrada</option>
+              <option value="out" data-i18n="clock.out">Salida</option>
+              <option value="break_start" data-i18n="clock.break_start">Pausa</option>
+              <option value="break_end" data-i18n="clock.break_end">Vuelta</option>
+            </select>
+            <select id="clock-filter-estado" onchange="filterFichajes()">
+              <option value="" data-i18n="clocking.filter_all_status">Todos los estados</option>
+              <option value="ok" data-i18n="status.ok">OK</option>
+              <option value="late" data-i18n="status.late">Tarde</option>
+              <option value="incident" data-i18n="status.incident">Incidencia</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.date">Fecha</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.time">Hora</th>
+                <th data-i18n="table.status">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="fichajes-table-body">
+              <tr><td colspan="5" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="status.loading">Cargando…</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="clock-pagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: VACACIONES -->
+    <div class="page-content hidden" id="page-vacaciones">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 data-i18n="page.vacations.title">Vacaciones y Permisos</h2>
+          <p data-i18n="page.vacations.subtitle">Gestión de solicitudes y calendario</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-vacation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="button.new_request">Nueva solicitud</span>
+        </button>
+      </div>
+      <div class="table-card" style="margin-bottom:24px">
+        <div class="table-card-header"><h3 data-i18n="vacations.pending">Solicitudes pendientes</h3></div>
+        <div class="table-card-body">
+          <div class="table-card-header" style="border-bottom:none;padding-bottom:0;flex-wrap:wrap">
+            <div class="search-bar">
+              <input type="text" id="vac-search" placeholder="Buscar empleado o tipo…">
+              <select id="vac-filter-status">
+                <option value="">Todos los estados</option>
+                <option value="pending">Pendientes</option>
+                <option value="approved">Aprobadas</option>
+                <option value="rejected">Rechazadas</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.from">Desde</th>
+                <th data-i18n="table.to">Hasta</th>
+                <th data-i18n="table.days">Días</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:140px" data-i18n="table.actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="vacaciones-table-body">
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="vacations.loading">Cargando solicitudes…</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="vac-pagination"></div>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header"><h3 data-i18n="vacations.calendar">Calendario de vacaciones</h3></div>
+        <div class="table-card-body">
+          <div id="vacaciones-calendar" style="padding:16px;min-height:100px">
+            <div class="loading-overlay"><span class="spinner"></span> <span data-i18n="calendar.loading">Cargando calendario…</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: BAJAS -->
+    <div class="page-content hidden" id="page-bajas">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 data-i18n="page.leave.title">Bajas (IT)</h2>
+          <p data-i18n="page.leave.subtitle">Registro de incapacidad temporal y permisos</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-leave">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="button.register_leave">Registrar baja</span>
+        </button>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header" style="flex-wrap:wrap">
+          <div class="search-bar">
+            <select id="leave-filter-status" onchange="filterBajas()">
+              <option value="" data-i18n="leave.filter_all">Todas las bajas</option>
+              <option value="active" data-i18n="leave.filter_active">Activas</option>
+              <option value="finished" data-i18n="leave.filter_finished">Finalizadas</option>
+            </select>
+            <select id="leave-filter-type" onchange="filterBajas()">
+              <option value="" data-i18n="leave.filter_all_types">Todos los tipos</option>
+              <option value="EC" data-i18n="leave.EC">Enfermedad Común</option>
+              <option value="AL" data-i18n="leave.AL">Accidente Laboral</option>
+              <option value="EP" data-i18n="leave.EP">Enfermedad Profesional</option>
+              <option value="MAT" data-i18n="leave.MAT">Maternidad</option>
+              <option value="PAT" data-i18n="leave.PAT">Paternidad</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="table.employee">Empleado</th>
+                <th data-i18n="table.type">Tipo</th>
+                <th data-i18n="table.start">Inicio</th>
+                <th data-i18n="table.expected_end">Fin previsto</th>
+                <th data-i18n="table.days">Días</th>
+                <th data-i18n="table.status">Estado</th>
+                <th style="width:100px" data-i18n="table.actions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="bajas-table-body">
+              <tr><td colspan="7" class="text-center text-muted" style="padding:32px"><span class="spinner"></span> <span data-i18n="leave.loading">Cargando bajas…</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="leave-pagination"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: INFORMES -->
+    <div class="page-content hidden" id="page-informes">
+      <div class="page-header">
+        <h2 data-i18n="page.reports.title">Informes</h2>
+        <p data-i18n="page.reports.subtitle">Reportes de horas, absentismo y costes laborales</p>
+      </div>
+      <div class="reports-filters">
+        <div class="filter-group">
+          <label data-i18n="reports.from">Desde</label>
+          <input type="date" id="report-start">
+        </div>
+        <div class="filter-group">
+          <label data-i18n="reports.to">Hasta</label>
+          <input type="date" id="report-end">
+        </div>
+        <div class="filter-group">
+          <label data-i18n="reports.type">Tipo de informe</label>
+          <select id="report-type" onchange="loadReports()">
+            <option value="hours" data-i18n="reports.type_hours">Horas trabajadas</option>
+            <option value="overtime" data-i18n="reports.type_overtime">Horas extra</option>
+            <option value="absenteeism" data-i18n="reports.type_absenteeism">Absentismo</option>
+            <option value="labor-costs" data-i18n="reports.type_labor_costs">Costes laborales</option>
+            <option value="inspection" data-i18n="reports.type_inspection">Inspección de trabajo</option>
+            <option value="payroll" data-i18n="reports.type_payroll">Nómina</option>
+          </select>
+        </div>
+        <div class="reports-actions">
+          <button class="btn btn-primary btn-sm" onclick="loadReports()" data-i18n="button.generate">Generar informe</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')" data-i18n="button.export_pdf">Exportar PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportReport('excel')" data-i18n="button.export_excel">Exportar Excel</button>
+        </div>
+      </div>
+      <div class="reports-section">
+        <h3 id="report-title" data-i18n="reports.title_hours">Horas por empleado</h3>
+        <div class="table-card">
+          <div class="table-card-body">
+            <table>
+              <thead id="report-thead">
+                <tr>
+                  <th data-i18n="table.employee">Empleado</th>
+                  <th data-i18n="reports.col_regular_hours">Horas ordinarias</th>
+                  <th data-i18n="reports.col_overtime_hours">Horas extra</th>
+                  <th data-i18n="reports.col_total">Total</th>
+                </tr>
+              </thead>
+              <tbody id="report-body">
+                <tr><td colspan="4" class="text-center text-muted" style="padding:32px" data-i18n="reports.empty">Selecciona un rango de fechas y genera el informe</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: CONFIGURACIÓN -->
+    <div class="page-content hidden" id="page-configuracion">
+      <div class="page-header">
+        <h2 data-i18n="page.settings.title">Configuración</h2>
+        <p data-i18n="page.settings.subtitle">Datos del restaurante, convenio y preferencias</p>
+      </div>
+      <div class="settings-tabs" id="settings-tabs">
+        <div class="settings-tab active" data-tab="restaurante" data-i18n="settings.tab_restaurant">Restaurante</div>
+        <div class="settings-tab" data-tab="convenio" data-i18n="settings.tab_agreement">Convenio</div>
+        <div class="settings-tab" data-tab="calendario" data-i18n="settings.tab_calendar">Calendario laboral</div>
+        <div class="settings-tab" data-tab="festivos" data-i18n="settings.tab_holidays">Festivos</div>
+        <div class="settings-tab" data-tab="notificaciones" data-i18n="settings.tab_notifications">Notificaciones</div>
+      </div>
+
+      <div class="settings-panel active" id="panel-restaurante">
+        <div class="settings-card">
+          <div class="form-group">
+            <label data-i18n="settings.restaurant_name">Nombre del restaurante</label>
+            <input type="text" id="cfg-nombre" placeholder="Ej: Restaurante La Marina">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.cif">CIF / NIF</label>
+            <input type="text" id="cfg-cif" placeholder="B12345678">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.address">Dirección</label>
+            <input type="text" id="cfg-direccion" placeholder="Calle Mayor, 12">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.phone">Teléfono</label>
+            <input type="text" id="cfg-telefono" placeholder="+34 91 123 45 67">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.email">Email</label>
+            <input type="email" id="cfg-email" placeholder="info@restaurante.es">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()" data-i18n="button.save_settings">Guardar configuración</button>
+        </div>
+      </div>
+
+      <div class="settings-panel" id="panel-convenio">
+        <div class="settings-card">
+          <div class="form-group">
+            <label data-i18n="settings.agreement">Convenio colectivo</label>
+            <input type="text" id="cfg-convenio" placeholder="Convenio Hostelería">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.ccaa">Comunidad Autónoma</label>
+            <select id="cfg-ccaa">
+              <option value="" data-i18n="ccaa.select">Seleccionar…</option>
+              <option value="andalucia" data-i18n="ccaa.andalucia">Andalucía</option>
+              <option value="aragon" data-i18n="ccaa.aragon">Aragón</option>
+              <option value="asturias" data-i18n="ccaa.asturias">Asturias</option>
+              <option value="baleares" data-i18n="ccaa.baleares">Baleares</option>
+              <option value="canarias" data-i18n="ccaa.canarias">Canarias</option>
+              <option value="cantabria" data-i18n="ccaa.cantabria">Cantabria</option>
+              <option value="castilla-mancha" data-i18n="ccaa.castilla_mancha">Castilla-La Mancha</option>
+              <option value="castilla-leon" data-i18n="ccaa.castilla_leon">Castilla y León</option>
+              <option value="catalunya" data-i18n="ccaa.catalunya">Cataluña</option>
+              <option value="extremadura" data-i18n="ccaa.extremadura">Extremadura</option>
+              <option value="galicia" data-i18n="ccaa.galicia">Galicia</option>
+              <option value="madrid" data-i18n="ccaa.madrid">Comunidad de Madrid</option>
+              <option value="murcia" data-i18n="ccaa.murcia">Región de Murcia</option>
+              <option value="navarra" data-i18n="ccaa.navarra">Navarra</option>
+              <option value="pais-vasco" data-i18n="ccaa.pais_vasco">País Vasco</option>
+              <option value="rioja" data-i18n="ccaa.rioja">La Rioja</option>
+              <option value="valencia" data-i18n="ccaa.valencia">Comunidad Valenciana</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.tolerance">Tolerancia de fichaje (minutos)</label>
+            <input type="number" id="cfg-tolerancia" placeholder="5" min="0" max="60">
+          </div>
+          <div class="form-group">
+            <label data-i18n="settings.vacation_days">Días de vacaciones por año</label>
+            <input type="number" id="cfg-vacation-days" placeholder="30" min="0" max="45">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()" data-i18n="button.save_settings">Guardar configuración</button>
+        </div>
+      </div>
+
+      <div class="settings-panel" id="panel-calendario">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Año del calendario laboral</label>
+            <input type="number" id="cfg-cal-year" value="2026">
+          </div>
+          <div class="form-group">
+            <label>Horas semanales ordinarias</label>
+            <input type="number" id="cfg-weekly-hours" placeholder="40" min="0" max="60">
+          </div>
+          <div class="form-group">
+            <label>Días laborables por semana</label>
+            <select id="cfg-work-days">
+              <option value="5">Lunes a Viernes</option>
+              <option value="6">Lunes a Sábado</option>
+              <option value="7">Todos los días</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-save-calendar">Guardar configuración</button>
+        </div>
+      </div>
+
+      <div class="settings-panel" id="panel-festivos">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Año</label>
+            <input type="number" id="cfg-holiday-year" value="2026">
+          </div>
+          <div class="table-card" style="margin-bottom:16px">
+            <div class="table-card-header"><h3>Festivos registrados</h3></div>
+            <div class="table-card-body">
+              <table>
+                <thead><tr><th>Fecha</th><th>Nombre</th><th>Tipo</th><th style="width:60px">Acción</th></tr></thead>
+                <tbody id="holidays-table-body">
+                  <tr><td colspan="4" class="text-center text-muted" style="padding:16px">Cargando festivos…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="form-row" style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px;align-items:end">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Fecha</label>
+              <input type="date" id="cfg-holiday-date">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Nombre</label>
+              <input type="text" id="cfg-holiday-name" placeholder="Nombre del festivo">
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-add-holiday">Añadir</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" id="panel-notificaciones">
+        <div class="settings-card">
+          <div class="form-group">
+            <label>Notificaciones por email</label>
+            <select id="cfg-notif-email">
+              <option value="all">Todas las notificaciones</option>
+              <option value="important">Solo importantes</option>
+              <option value="none">Ninguna</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Recordatorio de fichaje</label>
+            <select id="cfg-notif-clock">
+              <option value="15">15 minutos después del inicio</option>
+              <option value="30">30 minutos después del inicio</option>
+              <option value="60">1 hora después del inicio</option>
+              <option value="0">No recordar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Aviso de vacaciones pendientes</label>
+            <select id="cfg-notif-vacation">
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensual</option>
+              <option value="never">Nunca</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-save-notifications">Guardar configuración</button>
+        </div>
+      </div>
+
+      <!-- PANEL: FACTURACIÓN -->
+      <div class="settings-panel" id="panel-facturacion">
+        <div class="settings-card" style="max-width:600px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,107,53,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <h3 style="font-size:1rem;font-weight:600;color:#1d1d1f;margin:0">Facturación y plan</h3>
+              <p style="font-size:0.8125rem;color:rgba(0,0,0,0.45);margin:2px 0 0">Gestiona tu suscripción y método de pago</p>
+            </div>
+          </div>
+
+          <div id="billing-loading" style="text-align:center;padding:24px;color:rgba(0,0,0,0.35);font-size:0.875rem">
+            Cargando información de facturación…
+          </div>
+
+          <div id="billing-content" class="hidden">
+            <!-- Plan actual -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:#f5f5f7;border-radius:8px;margin-bottom:16px">
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Plan actual</div>
+                <div id="billing-plan-name" style="font-size:1.125rem;font-weight:600;color:#1d1d1f;text-transform:capitalize">—</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Estado</div>
+                <div id="billing-status" style="font-size:0.875rem;font-weight:500">—</div>
+              </div>
+            </div>
+
+            <!-- Próximo cobro -->
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#f5f5f7;border-radius:8px;margin-bottom:20px">
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px">Próxima renovación</div>
+                <div id="billing-next-payment" style="font-size:0.875rem;font-weight:500;color:#1d1d1f">—</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:0.6875rem;font-weight:600;color:rgba(0,0,0,0.45);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px">Importe</div>
+                <div id="billing-amount" style="font-size:0.875rem;font-weight:500;color:#1d1d1f">—</div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-primary" id="billing-change-plan-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Cambiar plan
+              </button>
+              <button class="btn btn-secondary" id="billing-manage-subscription-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Gestionar suscripción
+              </button>
+            </div>
+
+            <!-- Planes disponibles -->
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(0,0,0,0.06)">
+              <h4 style="font-size:0.8125rem;font-weight:600;color:#1d1d1f;margin:0 0 12px">Planes disponibles</h4>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+                <div style="padding:14px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;text-align:center">
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Básico</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">29€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">/mes</div>
+                </div>
+                <div style="padding:14px;border:2px solid #FF6B35;border-radius:8px;text-align:center;position:relative">
+                  <div style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:#FF6B35;color:#fff;font-size:0.625rem;font-weight:600;padding:2px 8px;border-radius:4px">Popular</div>
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Pro</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">39€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">/mes</div>
+                </div>
+                <div style="padding:14px;border:1px solid rgba(0,0,0,0.08);border-radius:8px;text-align:center">
+                  <div style="font-size:0.8125rem;font-weight:600;color:#1d1d1f">Kit inicial</div>
+                  <div style="font-size:1.25rem;font-weight:700;color:#FF6B35;margin:4px 0">49€</div>
+                  <div style="font-size:0.6875rem;color:rgba(0,0,0,0.45)">pago único</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="billing-error" class="hidden" style="text-align:center;padding:24px;color:#FF3B30;font-size:0.875rem">
+            No se pudo cargar la información de facturación.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ===== MODAL CONTAINER ===== -->
+<div id="modal-container"></div>
+
+<script type="module" src="src/app.js"></script>
+<script src="i18n.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+<!-- ===== PWA Service Worker registration ===== -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function (reg) {
+        console.log('SW registered:', reg.scope);
+      })
+      .catch(function (err) {
+        console.warn('SW registration failed:', err.message);
+      });
+  });
+}
+</script>
+</body>
+</html>
