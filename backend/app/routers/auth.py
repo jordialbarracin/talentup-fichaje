@@ -36,8 +36,18 @@ from app.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS,
 )
+from app.openapi_docs import (
+    AuthResponse as _OpenAPIAuthResponse,
+    ErrorResponse as _ErrorResponse,
+    LogoutResponse,
+    UserOut,
+    auth_responses,
+    crud_responses,
+    EXAMPLES_LOGIN_REQUEST,
+    EXAMPLES_LOGIN_RESPONSE,
+)
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 # Cookie security: env override for local HTTP dev/tests.
 # Default True (production). Set COOKIE_SECURE=false for Playwright E2E over HTTP.
@@ -172,7 +182,33 @@ class RefreshRequest(BaseModel):
 
 
 # --- Endpoints ---
-@router.post("/login", response_model=AuthResponse)
+@router.post(
+    "/login",
+    response_model=AuthResponse,
+    summary="Iniciar sesión",
+    description=(
+        "Autentica a un usuario con email + password y devuelve un JWT de acceso y un refresh token. "
+        "Ambos tokens también se setean como cookies httpOnly (`access_token` y `refresh_token`).\n\n"
+        "Rate limiting: máximo 10 intentos fallidos por IP cada 5 minutos. Los intentos fallidos "
+        "se cuentan; los exitosos no consumen cuota."
+    ),
+    responses={
+        200: {
+            "description": "Login exitoso. Los JWT se setean como cookies httpOnly.",
+            "model": AuthResponse,
+            "content": {"application/json": {"examples": {"login_ok": EXAMPLES_LOGIN_RESPONSE}}},
+        },
+        401: {"description": "Email o contraseña incorrectos.", "model": _ErrorResponse},
+        403: {"description": "Usuario inactivo.", "model": _ErrorResponse},
+        422: {"description": "Error de validación de esquema.", "model": _ErrorResponse},
+        429: {"description": "Demasiados intentos de login. Bloqueado temporalmente.", "model": _ErrorResponse},
+    },
+    openapi_extra={
+        "requestBody": {
+            "content": {"application/json": {"examples": {"owner_login": EXAMPLES_LOGIN_REQUEST}}}
+        }
+    },
+)
 async def login(req: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)):
     """Authenticate user and return JWT access + refresh tokens (also as httpOnly cookies)."""
     # Rate limit login attempts — only count failed attempts, read real IP behind proxy
@@ -234,7 +270,20 @@ async def login(req: LoginRequest, response: Response, request: Request, db: Asy
     )
 
 
-@router.post("/refresh", response_model=RefreshResponse)
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    summary="Renovar token de acceso",
+    description=(
+        "Intercambia un refresh token válido (leído de la cookie httpOnly `refresh_token`) por un nuevo "
+        "token de acceso. El refresh token usado se revoca (rotación) y se emite uno nuevo. "
+        "Si la cookie está ausente o el token es inválido/expirado/revocado, se devuelve 401."
+    ),
+    responses={
+        200: {"description": "Nuevo access token emitido.", "model": RefreshResponse},
+        401: {"description": "Refresh token requerido, inválido, expirado o revocado.", "model": _ErrorResponse},
+    },
+)
 async def refresh(
     request: Request,
     response: Response,
@@ -321,7 +370,23 @@ async def refresh(
     )
 
 
-@router.post("/register", response_model=AuthResponse, status_code=201)
+@router.post(
+    "/register",
+    response_model=AuthResponse,
+    status_code=201,
+    summary="Registrar nuevo restaurante (self-service)",
+    description=(
+        "Alta self-service: crea un nuevo tenant + usuario owner + 3 turnos por defecto "
+        "(Mañana, Tarde, Noche). Rate-limited: máximo 3 registros por hora por IP. "
+        "La contraseña debe tener al menos 6 caracteres."
+    ),
+    responses={
+        201: {"description": "Tenant y usuario owner creados. JWT en cookies httpOnly.", "model": AuthResponse},
+        400: {"description": "Email ya registrado.", "model": _ErrorResponse},
+        422: {"description": "Error de validación (password < 6, campos vacíos).", "model": _ErrorResponse},
+        429: {"description": "Demasiados intentos de registro. Intenta de nuevo en una hora.", "model": _ErrorResponse},
+    },
+)
 async def register(
     req: RegisterRequest,
     request: Request,

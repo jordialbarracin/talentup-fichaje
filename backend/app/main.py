@@ -47,6 +47,15 @@ from app.routers import (
     devices,
 )
 from app.rate_limit import RateLimitMiddleware
+from app.openapi_docs import (
+    API_TITLE as _OPENAPI_TITLE,
+    API_DESCRIPTION as _OPENAPI_DESCRIPTION,
+    API_VERSION as _OPENAPI_API_VERSION,
+    API_CONTACT as _OPENAPI_CONTACT,
+    API_LICENSE as _OPENAPI_LICENSE,
+    TAGS_METADATA as _OPENAPI_TAGS,
+    HealthResponse,
+)
 
 # ── Bootstrap logging ───────────────────────────────────────────────────────
 configure_logging()
@@ -54,7 +63,7 @@ logger = get_logger(__name__)
 
 # ── Process start time for uptime metric ───────────────────────────────────
 _START_TIME = time.time()
-APP_VERSION = "2.0.0"
+APP_VERSION = _OPENAPI_API_VERSION
 
 
 # ── Redis helper (lazy) ─────────────────────────────────────────────────────
@@ -93,13 +102,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="TalentUP Fichaje API",
-    description="SaaS de fichaje digital para hostelería. Multi-tenant. Cumple RD-ley 8/2019.",
+    title=_OPENAPI_TITLE,
+    description=_OPENAPI_DESCRIPTION,
     version=APP_VERSION,
+    contact=_OPENAPI_CONTACT,
+    license_info=_OPENAPI_LICENSE,
+    openapi_tags=_OPENAPI_TAGS,
     lifespan=lifespan,
     docs_url="/docs" if not _is_production() else None,
     redoc_url="/redoc" if not _is_production() else None,
     openapi_url="/openapi.json" if not _is_production() else None,
+    terms_of_service="https://talentup-fichaje.com/terminos",
 )
 
 # Body size limit middleware (1 MB)
@@ -276,7 +289,20 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # ── Deep health check ────────────────────────────────────────────────────────
-@app.get("/api/health")
+@app.get(
+    "/api/health",
+    response_model=HealthResponse,
+    tags=["Health"],
+    summary="Health check profundo",
+    description=(
+        "Comprueba el estado de la base de datos (SELECT 1), Redis (ping) y el uptime. "
+        "Devuelve `200` si todo está OK o `503` si algún subsistema falla (`status=degraded`)."
+    ),
+    responses={
+        200: {"description": "Servicio saludable.", "model": HealthResponse},
+        503: {"description": "Servicio degradado (DB o Redis caídos).", "model": HealthResponse},
+    },
+)
 async def health():
     """Health check profundo: DB SELECT 1, Redis ping y uptime."""
     started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_START_TIME))
@@ -327,7 +353,15 @@ async def health():
 
 
 # ── Metrics endpoint ─────────────────────────────────────────────────────────
-@app.get("/api/metrics")
+@app.get(
+    "/api/metrics",
+    tags=["Health"],
+    summary="Métricas Prometheus",
+    description=(
+        "Expone métricas en formato Prometheus para scraping. Endpoint público. "
+        "Incluye contadores de peticiones HTTP, duración y conexiones activas."
+    ),
+)
 async def metrics():
     """Expose Prometheus metrics for scraping. Public endpoint."""
     from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
