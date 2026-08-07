@@ -581,8 +581,9 @@ async def get_today(
 ):
     """Get all clock-ins for today for the current tenant."""
     tenant_id = current_user.tenant_id
-    today_start = datetime.combine(date.today(), time.min, tzinfo=timezone.utc)
-    today_end = datetime.combine(date.today(), time.max, tzinfo=timezone.utc)
+    now_utc = datetime.now(timezone.utc)
+    today_start = datetime.combine(now_utc.date(), time.min, tzinfo=timezone.utc)
+    today_end = datetime.combine(now_utc.date(), time.max, tzinfo=timezone.utc)
 
     result = await db.execute(
         select(ClockIn).where(

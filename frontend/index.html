@@ -316,6 +316,14 @@ tr:hover td{background:rgba(0,0,0,0.02)}
   .calendar-cell{min-height:44px}
 }
 </style>
+
+<!-- ===== PWA ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B35">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TalentUP">
 </head>
 <body>
 
@@ -1207,5 +1215,20 @@ tr:hover td{background:rgba(0,0,0,0.02)}
 <script type="module" src="src/app.js"></script>
 <script src="i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+<!-- ===== PWA Service Worker registration ===== -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function (reg) {
+        console.log('SW registered:', reg.scope);
+      })
+      .catch(function (err) {
+        console.warn('SW registration failed:', err.message);
+      });
+  });
+}
+</script>
 </body>
 </html>
