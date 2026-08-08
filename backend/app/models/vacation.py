@@ -2,7 +2,7 @@
 import html
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Date, DateTime, ForeignKey, Text, Index
 from app.database import Base
 
 
@@ -15,6 +15,10 @@ def _s(value):
 
 class Vacation(Base):
     __tablename__ = "vacations"
+
+    __table_args__ = (
+        Index("ix_vacation_tenant_emp_status", "tenant_id", "employee_id", "status"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

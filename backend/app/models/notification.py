@@ -4,7 +4,7 @@ TalentUP Fichaje — Notification model (avisos y notificaciones).
 import uuid
 import html
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
@@ -18,6 +18,10 @@ def _s(value):
 
 class Notification(Base):
     __tablename__ = "notifications"
+
+    __table_args__ = (
+        Index("ix_notification_tenant_read", "tenant_id", "is_read"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

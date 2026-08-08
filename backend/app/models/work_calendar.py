@@ -4,7 +4,7 @@ TalentUP Fichaje — WorkCalendar model (calendario laboral).
 import html
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Time, Text
+from sqlalchemy import Column, String, Boolean, Integer, Date, DateTime, ForeignKey, Time, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
@@ -18,6 +18,11 @@ def _s(value):
 
 class WorkCalendar(Base):
     __tablename__ = "work_calendar"
+
+    __table_args__ = (
+        Index("ix_work_calendar_tenant_year", "tenant_id", "year"),
+        Index("ix_work_calendar_tenant_date", "tenant_id", "date"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

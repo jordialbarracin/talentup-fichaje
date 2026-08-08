@@ -171,7 +171,7 @@ class PrometheusMetricsMiddleware(BaseHTTPMiddleware):
     """Collect HTTP request duration and count metrics for Prometheus."""
 
     async def dispatch(self, request, call_next):
-        from app.metrics import HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION_SECONDS, ACTIVE_CONNECTIONS
+        from app.metrics import HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION_SECONDS, ACTIVE_CONNECTIONS, daily_counters
 
         ACTIVE_CONNECTIONS.inc()
         start = time.perf_counter()
@@ -187,6 +187,12 @@ class PrometheusMetricsMiddleware(BaseHTTPMiddleware):
 
         HTTP_REQUESTS_TOTAL.labels(method=method, endpoint=path, status=status_code).inc()
         HTTP_REQUEST_DURATION_SECONDS.labels(method=method, endpoint=path).observe(duration)
+
+        # App-level daily counters (skip metrics/health endpoints to avoid noise)
+        if path not in ("/api/metrics", "/api/health"):
+            daily_counters.record_request()
+            if int(status_code) >= 500:
+                daily_counters.record_error()
 
         return response
 
@@ -228,8 +234,13 @@ app.add_middleware(RateLimitMiddleware, default_limit=100, window_seconds=60)
 # ── Request logging middleware ───────────────────────────────────────────────
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Log every request with method, path, status and duration."""
-    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())[:8]
+    """Log every request with method, path, status, duration and request_id.
+
+    Generates a full UUID per request (or reuses an incoming X-Request-ID header),
+    propagates it to logs and to the response header X-Request-ID.
+    """
+    # Reuse incoming X-Request-ID if provided, otherwise generate a full UUID.
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
     request.state.request_id = request_id
 
     start = time.perf_counter()
@@ -252,7 +263,7 @@ async def log_requests(request: Request, call_next):
 
     duration_ms = (time.perf_counter() - start) * 1000
     # No loggear health checks tan verbosamente en prod
-    if request.url.path != "/api/health" or os.environ.get("LOG_LEVEL", "").upper() == "DEBUG":
+    if request.url.path not in ("/api/health", "/api/metrics") or os.environ.get("LOG_LEVEL", "").upper() == "DEBUG":
         log_request(
             logger=logger,
             method=request.method,
@@ -261,7 +272,7 @@ async def log_requests(request: Request, call_next):
             duration_ms=duration_ms,
             request_id=request_id,
         )
-    response.headers["x-request-id"] = request_id
+    response.headers["X-Request-ID"] = request_id
     return response
 
 
@@ -270,6 +281,12 @@ async def log_requests(request: Request, call_next):
 async def global_exception_handler(request: Request, exc: Exception):
     """Log unhandled exceptions and return a generic 500."""
     request_id = getattr(request.state, "request_id", "-")
+    # Record error in daily counters
+    try:
+        from app.metrics import daily_counters
+        daily_counters.record_error()
+    except Exception:
+        pass
     logger.exception(
         "unhandled_exception",
         extra={
@@ -356,13 +373,55 @@ async def health():
 @app.get(
     "/api/metrics",
     tags=["Health"],
+    summary="Métricas de la aplicación",
+    description=(
+        "Devuelve métricas operativas en JSON: uptime (segundos), total de peticiones "
+        "hoy, errores hoy (5xx), tenants activos y empleados totales. Endpoint público."
+    ),
+)
+async def metrics(db: "AsyncSession" = None):
+    """Expose app-level metrics as JSON: uptime, requests today, errors today,
+    active tenants, total employees."""
+    from app.metrics import daily_counters, PROCESS_START_TIME
+    from sqlalchemy import func, select as sa_select
+
+    uptime_seconds = round(time.time() - PROCESS_START_TIME)
+    counters = daily_counters.snapshot()
+
+    active_tenants = 0
+    total_employees = 0
+    try:
+        async with engine.begin() as conn:
+            result = await conn.execute(sa_select(func.count(Tenant.id)).where(Tenant.is_active == True))
+            active_tenants = result.scalar() or 0
+            result = await conn.execute(sa_select(func.count(Employee.id)).where(Employee.is_active == True))
+            total_employees = result.scalar() or 0
+    except Exception as exc:
+        logger.error("metrics_db_failed", extra={"error": str(exc)})
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "uptime_seconds": uptime_seconds,
+            "requests_today": counters["requests"],
+            "errors_today": counters["errors"],
+            "active_tenants": active_tenants,
+            "total_employees": total_employees,
+            "date": counters["date"],
+        },
+    )
+
+
+@app.get(
+    "/api/metrics/prometheus",
+    tags=["Health"],
     summary="Métricas Prometheus",
     description=(
         "Expone métricas en formato Prometheus para scraping. Endpoint público. "
         "Incluye contadores de peticiones HTTP, duración y conexiones activas."
     ),
 )
-async def metrics():
+async def prometheus_metrics():
     """Expose Prometheus metrics for scraping. Public endpoint."""
     from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

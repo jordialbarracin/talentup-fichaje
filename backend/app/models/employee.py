@@ -7,7 +7,8 @@ responses are safe while raw values are preserved in the database.
 import html
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Text, Index
+from sqlalchemy.orm import relationship
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
@@ -51,6 +52,10 @@ def _mask_email(value):
 
 class Employee(Base):
     __tablename__ = "employees"
+
+    __table_args__ = (
+        Index("ix_employee_tenant_active", "tenant_id", "is_active"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)
@@ -98,6 +103,9 @@ class Employee(Base):
     fingerprint_hash = Column(String(200), nullable=True)
     shift_id = Column(String(36), ForeignKey("shifts.id"), nullable=True)
     clock_method = Column(String(20), default="pin")
+
+    # ===== RELATIONSHIPS (eager-loadable to avoid N+1) =====
+    shift = relationship("Shift", lazy="raise")
 
     # ===== VACACIONES =====
     vacation_annual_days = Column(Numeric(5, 2), default=30)

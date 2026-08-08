@@ -7,7 +7,7 @@ responses are safe while raw values are preserved in the database.
 import html
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Integer, Numeric, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Integer, Numeric, Date, DateTime, ForeignKey, Text, Index
 # UUID type: String(36) for SQLite compatibility
 from app.database import Base
 
@@ -21,6 +21,11 @@ def _s(value):
 
 class Payroll(Base):
     __tablename__ = "payroll"
+
+    __table_args__ = (
+        Index("ix_payroll_tenant_period", "tenant_id", "year", "month"),
+        Index("ix_payroll_tenant_emp", "tenant_id", "employee_id"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String(36), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False)

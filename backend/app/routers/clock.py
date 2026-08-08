@@ -22,6 +22,7 @@ from app.models.device import Device
 from app.models.tenant import Tenant
 from app.auth import verify_password, compute_pin_hash_fast, require_manager, get_current_user, decode_token
 from app.audit import log_action
+from app.logging_config import get_logger, log_clock_event
 from app.pagination import paginate
 from app.rate_limiter import (
     check_rate_limit,
@@ -39,9 +40,13 @@ from app.rate_limiter import (
     record_pin_failure,
     is_pin_blocked,
     _rate_limit_key as _build_rate_limit_key,
+    check_tenant_clock_rate,
+    CLOCK_TENANT_MAX_PER_HOUR,
+    CLOCK_TENANT_WINDOW_SECONDS,
 )
 
 router = APIRouter(prefix="/api/clock", tags=["clock"])
+logger = get_logger(__name__)
 
 # --- Device token dependency ---
 DEVICE_TOKEN_HEADER = "Authorization"
@@ -163,6 +168,14 @@ async def clock_in(
 
     # --- Rate limiting by IP+tenant_id, independently for PIN attempts ---
     rate_key = _rate_limit_key(request, data.tenant_id)
+
+    # --- Tenant-level hourly rate limit (100 fichajes/hour per tenant) ---
+    if not await check_tenant_clock_rate(data.tenant_id):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Límite horario por tenant superado. Máximo {CLOCK_TENANT_MAX_PER_HOUR} fichajes por hora.",
+            headers={"Retry-After": str(CLOCK_TENANT_WINDOW_SECONDS)},
+        )
 
     # Check PIN block
     blocked, remaining = await is_pin_blocked(rate_key)
@@ -287,6 +300,16 @@ async def clock_in(
     await db.commit()
     await db.refresh(clock)
 
+    # Structured log with request_id propagation
+    log_clock_event(
+        logger=logger,
+        clock_type=data_type,
+        employee_id=str(matched_emp.id),
+        tenant_id=str(data.tenant_id),
+        success=True,
+        request_id=getattr(request.state, "request_id", "-"),
+    )
+
     # Response labels in Spanish
     _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
     return {
@@ -311,6 +334,14 @@ async def clock_nfc(
     """
     # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
     rate_key = _rate_limit_key(request, data.tenant_id)
+
+    # --- Tenant-level hourly rate limit (100 fichajes/hour per tenant) ---
+    if not await check_tenant_clock_rate(data.tenant_id):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Límite horario por tenant superado. Máximo {CLOCK_TENANT_MAX_PER_HOUR} fichajes por hora.",
+            headers={"Retry-After": str(CLOCK_TENANT_WINDOW_SECONDS)},
+        )
 
     if not await _check_method_limit(_nfc_limits, rate_key, CLOCK_MAX_PER_MINUTE, "nfc"):
         raise HTTPException(
@@ -413,6 +444,16 @@ async def clock_nfc(
     await db.commit()
     await db.refresh(clock)
 
+    # Structured log with request_id propagation
+    log_clock_event(
+        logger=logger,
+        clock_type=f"nfc:{data_type}",
+        employee_id=str(matched_emp.id),
+        tenant_id=str(data.tenant_id),
+        success=True,
+        request_id=getattr(request.state, "request_id", "-"),
+    )
+
     _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
 
     # Broadcast NFC event to all connected WebSocket clients
@@ -453,6 +494,14 @@ async def clock_qr(
     """
     # --- Rate limiting by IP+tenant_id (same as PIN endpoint) ---
     rate_key = _rate_limit_key(request, data.tenant_id)
+
+    # --- Tenant-level hourly rate limit (100 fichajes/hour per tenant) ---
+    if not await check_tenant_clock_rate(data.tenant_id):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Límite horario por tenant superado. Máximo {CLOCK_TENANT_MAX_PER_HOUR} fichajes por hora.",
+            headers={"Retry-After": str(CLOCK_TENANT_WINDOW_SECONDS)},
+        )
 
     if not await _check_method_limit(_qr_limits, rate_key, CLOCK_MAX_PER_MINUTE, "qr"):
         raise HTTPException(
@@ -520,6 +569,16 @@ async def clock_qr(
     db.add(clock)
     await db.commit()
     await db.refresh(clock)
+
+    # Structured log with request_id propagation
+    log_clock_event(
+        logger=logger,
+        clock_type=f"qr:{data_type}",
+        employee_id=str(matched_emp.id),
+        tenant_id=str(data.tenant_id),
+        success=True,
+        request_id=getattr(request.state, "request_id", "-"),
+    )
 
     _labels = {"in": "Entrada", "out": "Salida", "break_start": "Inicio de pausa", "break_end": "Fin de pausa"}
     return {

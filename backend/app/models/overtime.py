@@ -24,6 +24,7 @@ class Overtime(Base):
 
     __table_args__ = (
         Index('ix_overtime_tenant_date', 'tenant_id', 'date'),
+        Index('ix_overtime_tenant_emp_date', 'tenant_id', 'employee_id', 'date'),
     )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

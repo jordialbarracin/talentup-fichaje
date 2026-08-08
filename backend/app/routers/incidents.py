@@ -59,16 +59,26 @@ async def list_incidents(
 
     query = query.order_by(Incident.date.desc(), Incident.created_at.desc())
 
-    async def _transform(inc: Incident) -> dict:
-        d = inc.to_dict()
-        # Lazy-load employee name per page item
-        emp_result = await db.execute(
-            select(Employee.name).where(Employee.id == inc.employee_id)
-        )
-        d["employee_name"] = emp_result.scalar_one_or_none() or "Desconocido"
-        return d
+    # Paginate raw incidents first, then batch-load employee names (avoids N+1).
+    page_result = await paginate(db, query, page, limit, item_transform=lambda i: i)
+    incidents = page_result["items"]
 
-    return await paginate(db, query, page, limit, item_transform=_transform)
+    emp_ids = {i.employee_id for i in incidents if i.employee_id}
+    emp_map = {}
+    if emp_ids:
+        emp_result = await db.execute(
+            select(Employee.id, Employee.name).where(Employee.id.in_(emp_ids))
+        )
+        emp_map = {e_id: name for e_id, name in emp_result.all()}
+
+    items = []
+    for inc in incidents:
+        item = inc.to_dict()
+        item["employee_name"] = emp_map.get(inc.employee_id, "Desconocido")
+        items.append(item)
+
+    page_result["items"] = items
+    return page_result
 
 
 @router.post("/detect")

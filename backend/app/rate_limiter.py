@@ -42,6 +42,10 @@ _pin_limits: dict[str, list[float]] = defaultdict(list)
 _nfc_limits: dict[str, list[float]] = defaultdict(list)
 _qr_limits: dict[str, list[float]] = defaultdict(list)
 _login_limits: dict[str, list[float]] = defaultdict(list)
+# Tenant-level hourly clock rate limit. Key = tenant_id only (IP-agnostic).
+# Caps total fichajes per tenant to CLOCK_TENANT_MAX_PER_HOUR per hour,
+# in addition to the per-IP+tenant minute limits above.
+_tenant_clock_limits: dict[str, list[float]] = defaultdict(list)
 # PIN failure tracking remains per IP+tenant (failed attempts are not tied to employee_id)
 _pin_failures: dict[str, list[float]] = defaultdict(list)
 # PIN blocks: key = f"{ip}:{tenant_id}" -> unblock timestamp
@@ -51,6 +55,9 @@ CLOCK_MAX_PER_MINUTE = 10
 PIN_FAIL_MAX_PER_MINUTE = 5
 PIN_BLOCK_MINUTES = 5
 WINDOW_SECONDS = 60
+# Tenant-level hourly limit: max 100 fichajes per hour per tenant (any IP/method).
+CLOCK_TENANT_MAX_PER_HOUR = 100
+CLOCK_TENANT_WINDOW_SECONDS = 3600
 
 
 def _cleanup_and_check(
@@ -225,3 +232,33 @@ async def record_pin_failure(key: str) -> bool:
         _pin_blocks[key] = now + PIN_BLOCK_MINUTES * 60
         return True
     return False
+
+
+# ── Tenant-level hourly rate limit for clock endpoints ─────────────────────
+# Max 100 fichajes per hour per tenant_id, independent of IP/method.
+# Tracked in-memory only (Redis backend optional extension).
+async def check_tenant_clock_rate(tenant_id: str) -> bool:
+    """
+    Check (without recording) whether the tenant is under the hourly limit.
+    Returns True if allowed, False if the tenant has exceeded CLOCK_TENANT_MAX_PER_HOUR.
+    """
+    if not tenant_id:
+        return True
+    client = _get_redis_client()
+    if client is not None:
+        now = int(time_module.time())
+        bucket = now // CLOCK_TENANT_WINDOW_SECONDS
+        redis_key = f"rate:tenant_clock:{tenant_id}:{bucket}"
+        try:
+            count = await client.incr(redis_key)
+            await client.expire(redis_key, CLOCK_TENANT_WINDOW_SECONDS)
+            return count <= CLOCK_TENANT_MAX_PER_HOUR
+        except Exception:
+            pass
+    # In-memory: cleanup + record atomically
+    now = time_module.time()
+    store = _tenant_clock_limits
+    if tenant_id in store:
+        store[tenant_id] = [t for t in store[tenant_id] if now - t < CLOCK_TENANT_WINDOW_SECONDS]
+    store[tenant_id].append(now)
+    return len(store[tenant_id]) <= CLOCK_TENANT_MAX_PER_HOUR

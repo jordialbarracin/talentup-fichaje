@@ -18,6 +18,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, s
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models.clock_in import ClockIn
@@ -670,9 +671,9 @@ async def report_inspection(
 
     # Get employees
     if tid:
-        emp_query = select(Employee).where(Employee.tenant_id == tid)
+        emp_query = select(Employee).where(Employee.tenant_id == tid).options(selectinload(Employee.shift))
     else:
-        emp_query = select(Employee)
+        emp_query = select(Employee).options(selectinload(Employee.shift))
     if employee_id:
         emp_query = emp_query.where(Employee.id == employee_id)
     emp_query = emp_query.order_by(Employee.name)
@@ -692,10 +693,12 @@ async def report_inspection(
         if t:
             tenant_info = {"name": t.name, "legal_name": t.legal_name, "cif": t.cif, "address": t.address}
 
-    # Get clock-ins
+    # Get clock-ins (only needed columns to reduce payload).
     day_start = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
     day_end = datetime.combine(end_date, time.max, tzinfo=timezone.utc)
-    clock_query = select(ClockIn).where(
+    clock_query = select(
+        ClockIn.employee_id, ClockIn.timestamp, ClockIn.type, ClockIn.is_cancelled
+    ).where(
         ClockIn.timestamp >= day_start,
         ClockIn.timestamp <= day_end,
     )
@@ -705,9 +708,9 @@ async def report_inspection(
         clock_query = clock_query.where(ClockIn.employee_id.in_(emp_ids))
     clock_query = clock_query.order_by(ClockIn.employee_id, ClockIn.timestamp).limit(500)
     result = await db.execute(clock_query)
-    all_clock_ins = result.scalars().all()
+    all_clock_ins = result.all()
 
-    # Get incidents
+    # Get incidents (full ORM needed for to_dict())
     inc_query = select(Incident).where(
         Incident.date >= start_date,
         Incident.date <= end_date,
@@ -829,9 +832,9 @@ async def report_absenteeism(
     end_date = _parse_date(date_to, "date_to")
 
     if tid:
-        emp_query = select(Employee).where(Employee.tenant_id == tid)
+        emp_query = select(Employee).where(Employee.tenant_id == tid).options(selectinload(Employee.shift))
     else:
-        emp_query = select(Employee)
+        emp_query = select(Employee).options(selectinload(Employee.shift))
     emp_query = emp_query.order_by(Employee.name)
     page_result = await paginate(db, emp_query, page, limit, item_transform=lambda e: e)
     employees = page_result["items"]
@@ -997,10 +1000,12 @@ async def report_labor_costs(
     payrolls = page_result["items"]
     total_payrolls = page_result["total"]
 
-    # Get employees for names
+    # Get employees for names (only needed columns, avoids full ORM load)
     emp_ids = {p.employee_id for p in payrolls}
-    emp_result = await db.execute(select(Employee).where(Employee.id.in_(emp_ids)))
-    emp_map = {e.id: e for e in emp_result.scalars().all()}
+    emp_result = await db.execute(
+        select(Employee.id, Employee.name, Employee.categoria_profesional).where(Employee.id.in_(emp_ids))
+    )
+    emp_map = {row[0]: (row[1], row[2]) for row in emp_result.all()}
 
     total_base = 0
     total_night = 0
@@ -1014,7 +1019,9 @@ async def report_labor_costs(
 
     employee_costs = []
     for p in payrolls:
-        emp = emp_map.get(p.employee_id)
+        emp_data = emp_map.get(p.employee_id)
+        emp_name = emp_data[0] if emp_data else "Desconocido"
+        emp_category = emp_data[1] if emp_data else ""
         total_base += float(p.base_salary or 0)
         total_night += float(p.night_plus or 0)
         total_holiday += float(p.holiday_plus or 0)
@@ -1027,8 +1034,8 @@ async def report_labor_costs(
 
         employee_costs.append({
             "employee_id": str(p.employee_id),
-            "name": emp.name if emp else "Desconocido",
-            "category": emp.categoria_profesional if emp else "",
+            "name": emp_name,
+            "category": emp_category or "",
             "base_salary": float(p.base_salary or 0),
             "night_plus": float(p.night_plus or 0),
             "holiday_plus": float(p.holiday_plus or 0),

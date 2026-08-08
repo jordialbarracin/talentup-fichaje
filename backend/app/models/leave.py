@@ -21,6 +21,7 @@ class Leave(Base):
 
     __table_args__ = (
         Index('ix_leave_tenant_emp', 'tenant_id', 'employee_id'),
+        Index('ix_leave_tenant_dates', 'tenant_id', 'start_date', 'end_date'),
     )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

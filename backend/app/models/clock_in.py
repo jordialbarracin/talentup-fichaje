@@ -25,6 +25,7 @@ class ClockIn(Base):
 
     __table_args__ = (
         Index("ix_clock_tenant_emp_time", "tenant_id", "employee_id", "timestamp"),
+        Index("ix_clock_tenant_time", "tenant_id", "timestamp"),
     )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

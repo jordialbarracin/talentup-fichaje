@@ -5,8 +5,9 @@ GET/POST/PUT/DELETE /api/employees
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import Optional
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models.employee import Employee
@@ -138,9 +139,9 @@ async def list_employees(
     """List all employees for the current user's tenant."""
     tenant_id = current_user.tenant_id
     if current_user.role == "super_admin":
-        query = select(Employee)
+        query = select(Employee).options(selectinload(Employee.shift))
     else:
-        query = select(Employee).where(Employee.tenant_id == tenant_id)
+        query = select(Employee).where(Employee.tenant_id == tenant_id).options(selectinload(Employee.shift))
 
     if search:
         # Literal search only — no SQL interpolation
@@ -188,9 +189,9 @@ async def create_employee(
     tenant = tenant_result.scalar_one_or_none()
     if tenant:
         current_count_result = await db.execute(
-            select(Employee).where(Employee.tenant_id == tenant_id)
+            select(func.count()).select_from(Employee).where(Employee.tenant_id == tenant_id)
         )
-        current_count = len(current_count_result.scalars().all())
+        current_count = current_count_result.scalar() or 0
         max_employees = tenant.max_employees or 50
         if current_count >= max_employees:
             raise HTTPException(
