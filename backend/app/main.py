@@ -25,6 +25,8 @@ os.environ.setdefault("LOG_LEVEL", "INFO")
 
 from app.logging_config import configure_logging, get_logger, log_request
 from app.database import init_db, engine
+from app.models.tenant import Tenant
+from app.models.employee import Employee
 from app.routers import (
     auth,
     employees,
@@ -379,7 +381,7 @@ async def health():
         "hoy, errores hoy (5xx), tenants activos y empleados totales. Endpoint público."
     ),
 )
-async def metrics(db: "AsyncSession" = None):
+async def metrics():
     """Expose app-level metrics as JSON: uptime, requests today, errors today,
     active tenants, total employees."""
     from app.metrics import daily_counters, PROCESS_START_TIME
