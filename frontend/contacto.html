@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Contacto</title>
+<meta name="description" content="Contacta con TalentUP Fichaje. Formulario de contacto, soporte técnico e información comercial para empresas de hostelería. Fichaje digital NFC.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jordialbarracin.github.io/talentup-fichaje/contacto.html">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #1d1d1f;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+  a { color: #FF6B35; text-decoration: none; transition: color 200ms ease; }
+  a:hover { color: #e55a2b; }
+  input, textarea, select { font-family: inherit; }
+
+  /* Navbar */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 56px;
+    background: rgba(255,255,255,0.80);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .navbar-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 18px; letter-spacing: -0.022em; color: #1d1d1f;
+  }
+  .navbar-logo svg { display: block; }
+  .navbar-links { display: flex; align-items: center; gap: 28px; }
+  .navbar-links a {
+    font-size: 14px; font-weight: 500; color: #6e6e73;
+    letter-spacing: -0.01em; transition: color 200ms ease;
+  }
+  .navbar-links a:hover { color: #1d1d1f; }
+  .navbar-links a.active { color: #FF6B35; }
+  .navbar-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; padding: 0 18px;
+    background: #FF6B35; color: #fff; font-size: 13px; font-weight: 600;
+    border-radius: 980px; letter-spacing: -0.01em;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .navbar-cta:hover { opacity: 0.88; transform: scale(1.02); color: #fff; }
+
+  /* Hero */
+  .contact-hero {
+    padding: 130px 24px 56px; text-align: center;
+    background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+  }
+  .page-label {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: #FF6B35; margin-bottom: 12px;
+  }
+  .contact-hero h1 {
+    font-size: 44px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.1; margin-bottom: 16px;
+  }
+  .contact-hero p {
+    font-size: 18px; color: #6e6e73; max-width: 540px; margin: 0 auto;
+  }
+
+  /* Layout */
+  .contact-section { padding: 24px 24px 80px; }
+  .contact-inner {
+    max-width: 1080px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px;
+    align-items: start;
+  }
+
+  /* Form card */
+  .form-card {
+    background: #ffffff; border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .form-card h2 {
+    font-size: 24px; font-weight: 600; letter-spacing: -0.022em;
+    margin-bottom: 8px;
+  }
+  .form-card .form-sub { font-size: 15px; color: #6e6e73; margin-bottom: 32px; }
+  .form-group { margin-bottom: 22px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  label {
+    display: block; font-size: 13px; font-weight: 600;
+    letter-spacing: -0.01em; color: #1d1d1f; margin-bottom: 8px;
+  }
+  label .req { color: #FF6B35; margin-left: 2px; }
+  input, textarea {
+    width: 100%; padding: 12px 14px;
+    font-size: 15px; color: #1d1d1f;
+    background: #f5f5f7; border: 1px solid transparent;
+    border-radius: 10px; outline: none;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  input:focus, textarea:focus {
+    background: #ffffff; border-color: #FF6B35;
+  }
+  input::placeholder, textarea::placeholder { color: #aeaeb2; }
+  textarea { resize: vertical; min-height: 140px; }
+  select {
+    width: 100%; padding: 12px 14px; font-size: 15px; color: #1d1d1f;
+    background: #f5f5f7; border: 1px solid transparent; border-radius: 10px;
+    outline: none; cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236e6e73' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+    padding-right: 36px;
+  }
+  select:focus { background: #ffffff; border-color: #FF6B35; }
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 48px; padding: 0 28px; width: 100%;
+    background: #FF6B35; color: #fff; font-size: 15px; font-weight: 600;
+    border-radius: 980px; letter-spacing: -0.01em;
+    transition: opacity 200ms ease, transform 200ms ease;
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: scale(1.01); color: #fff; }
+  .form-note { font-size: 13px; color: #86868b; margin-top: 16px; text-align: center; }
+
+  /* Success message (hidden by default) */
+  .form-success {
+    display: none; text-align: center; padding: 24px;
+    background: #f5f5f7; border-radius: 12px; margin-top: 20px;
+  }
+  .form-success.show { display: block; }
+  .form-success h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: #1d1d1f; }
+  .form-success p { font-size: 14px; color: #6e6e73; }
+
+  /* Info panel */
+  .info-panel { display: flex; flex-direction: column; gap: 20px; }
+  .info-card {
+    background: #fafafa; border-radius: 16px; padding: 28px;
+    border: 1px solid rgba(0,0,0,0.04);
+  }
+  .info-card h3 {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: #FF6B35; margin-bottom: 14px;
+  }
+  .info-card .info-title {
+    font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
+    color: #1d1d1f; margin-bottom: 8px;
+  }
+  .info-card p { font-size: 14px; color: #6e6e73; line-height: 1.6; margin-bottom: 14px; }
+  .info-card a { font-size: 14px; font-weight: 500; }
+  .info-card .info-list { list-style: none; }
+  .info-card .info-list li {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 14px; color: #1d1d1f; padding: 4px 0;
+  }
+  .info-card .info-list li svg { flex-shrink: 0; color: #FF6B35; margin-top: 2px; }
+
+  /* Footer */
+  footer { padding: 48px 24px 32px; border-top: 1px solid rgba(0,0,0,0.06); }
+  .footer-inner { max-width: 1100px; margin: 0 auto; }
+  .footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 32px; margin-bottom: 32px; }
+  .footer-brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; letter-spacing: -0.022em; color: #1d1d1f; }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 24px; }
+  .footer-links a { font-size: 13px; color: #6e6e73; }
+  .footer-links a:hover { color: #FF6B35; }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,0.06); }
+  .footer-copy { font-size: 13px; color: #6e6e73; }
+  .footer-legal { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-legal a { font-size: 13px; color: #6e6e73; }
+  .footer-legal a:hover { color: #FF6B35; }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .contact-inner { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .navbar-links { display: none; }
+    .navbar { padding: 0 16px; }
+    .contact-hero { padding: 110px 16px 40px; }
+    .contact-hero h1 { font-size: 32px; }
+    .contact-section { padding: 16px 16px 64px; }
+    .form-card { padding: 28px 22px; }
+    .footer-top { flex-direction: column; gap: 20px; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="landing.html" class="navbar-logo" style="color:inherit">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="24" height="24" rx="6" stroke="#FF6B35" stroke-width="1.5"/>
+      <path d="M8 14L12 18L20 10" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    TalentUP
+  </a>
+  <div class="navbar-links">
+    <a href="landing.html#features">Características</a>
+    <a href="landing.html#pricing">Precios</a>
+    <a href="landing.html#faq">FAQ</a>
+    <a href="terminos.html">Términos</a>
+    <a href="contacto.html" class="active">Contacto</a>
+  </div>
+  <a href="https://jordialbarracin.github.io/talentup-fichaje/" class="navbar-cta" target="_blank" rel="noopener">Acceder</a>
+</nav>
+
+<!-- Hero -->
+<section class="contact-hero">
+  <div class="page-label">Contacto</div>
+  <h1>Hablemos</h1>
+  <p>Cuéntanos qué necesitas. Te respondemos en menos de 24 horas hábiles.</p>
+</section>
+
+<!-- Contact -->
+<section class="contact-section">
+  <div class="contact-inner">
+    <!-- Form -->
+    <div class="form-card">
+      <h2>Envíanos un mensaje</h2>
+      <p class="form-sub">Rellena el formulario y te contactaremos por email. Sin compromiso.</p>
+      <form id="contactForm" action="mailto:hola@talentup.es" method="post" enctype="text/plain" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Nombre<span class="req">*</span></label>
+            <input type="text" id="name" name="name" placeholder="Tu nombre" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email<span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="tucorreo@empresa.com" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="company">Empresa</label>
+            <input type="text" id="company" name="company" placeholder="Nombre de tu empresa">
+          </div>
+          <div class="form-group">
+            <label for="topic">Motivo</label>
+            <select id="topic" name="topic">
+              <option value="comercial">Información comercial</option>
+              <option value="demo">Solicitar una demo</option>
+              <option value="soporte">Soporte técnico</option>
+              <option value="dpa">DPA y privacidad</option>
+              <option value="facturacion">Facturación</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="message">Mensaje<span class="req">*</span></label>
+          <textarea id="message" name="message" placeholder="Cuéntanos en qué te podemos ayudar" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Enviar mensaje</button>
+        <p class="form-note">Al enviar este formulario aceptas nuestra política de privacidad y el tratamiento de tus datos para responder tu consulta.</p>
+      </form>
+      <div class="form-success" id="formSuccess">
+        <h3>Mensaje enviado</h3>
+        <p>Gracias por contactar con TalentUP. Te responderemos lo antes posible.</p>
+      </div>
+    </div>
+
+    <!-- Info panel -->
+    <div class="info-panel">
+      <div class="info-card">
+        <h3>Soporte técnico</h3>
+        <div class="info-title">¿Ya eres cliente?</div>
+        <p>Accede a nuestro centro de ayuda o escríbenos directamente. Los planes Pro y Enterprise incluyen soporte prioritario con respuesta en menos de 4 horas hábiles.</p>
+        <ul class="info-list">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14V12H2V4Z" stroke="#FF6B35" stroke-width="1.5"/><path d="M2 5L8 9L14 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> soporte@talentup.es</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3H13C13.5 3 14 3.5 14 4V12C14 12.5 13.5 13 13 13H3C2.5 13 2 12.5 2 12V4C2 3.5 2.5 3 3 3Z" stroke="#FF6B35" stroke-width="1.5"/></svg> Centro de ayuda</li>
+        </ul>
+      </div>
+
+      <div class="info-card">
+        <h3>Información comercial</h3>
+        <div class="info-title">Equipo de ventas</div>
+        <p>¿Quieres ver TalentUP Fichaje en acción? Solicita una demo personalizada para tu empresa de hostelería y te ayudamos a configurar tu prueba de 14 días.</p>
+        <ul class="info-list">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14V12H2V4Z" stroke="#FF6B35" stroke-width="1.5"/><path d="M2 5L8 9L14 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ventas@talentup.es</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14V12H2V4Z" stroke="#FF6B35" stroke-width="1.5"/><path d="M2 5L8 9L14 5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> hola@talentup.es</li>
+        </ul>
+        <a href="https://jordialbarracin.github.io/talentup-fichaje/" target="_blank" rel="noopener">Probar gratis 14 días</a>
+      </div>
+
+      <div class="info-card">
+        <h3>Datos legales</h3>
+        <div class="info-title">TalentUP</div>
+        <p>Empresa proveedora del servicio de fichaje digital TalentUP Fichaje, con domicilio en España. CIF disponible bajo solicitud.</p>
+        <ul class="info-list">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 14V6L8 2L12 6V14H4Z" stroke="#FF6B35" stroke-width="1.5" stroke-linejoin="round"/></svg> España</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#FF6B35" stroke-width="1.5"/><path d="M8 4V8L10.5 9.5" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round"/></svg> Lun-Vie, 9:00-18:00 (CET)</li>
+        </ul>
+        <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:14px;">
+          <a href="terminos.html">Términos de Servicio</a>
+          <a href="landing.html#">Política de privacidad</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="24" height="24" rx="6" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M8 14L12 18L20 10" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        TalentUP
+      </div>
+      <div class="footer-links">
+        <a href="landing.html#features">Características</a>
+        <a href="landing.html#pricing">Precios</a>
+        <a href="landing.html#faq">FAQ</a>
+        <a href="terminos.html">Términos</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 TalentUP. Todos los derechos reservados.</div>
+      <div class="footer-legal">
+        <a href="landing.html#">Privacidad</a>
+        <a href="landing.html#">DPA</a>
+        <a href="terminos.html">Términos</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Progressive enhancement: show success message on submit instead of mailto redirect
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name = document.getElementById('name').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var message = document.getElementById('message').value.trim();
+    if (!name || !email || !message) { return; }
+    var success = document.getElementById('formSuccess');
+    success.classList.add('show');
+    this.reset();
+    success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+</script>
+
+</body>
+</html>
