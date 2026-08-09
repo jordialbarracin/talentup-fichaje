@@ -1,0 +1,43 @@
+# TalentUP Fichaje — robots.txt
+# Fichaje digital NFC, PIN y offline para hostelería
+# https://talentup.es
+
+User-agent: *
+Allow: /
+
+# Páginas privadas / dashboard no indexables
+Disallow: /dashboard
+Disallow: /dashboard_new.html
+Disallow: /index.html
+Disallow: /offline.html
+Disallow: /api/
+
+# No rastrear parámetros de seguimiento ni sesiones
+Disallow: /*?session
+Disallow: /*?token
+Disallow: /*?utm_
+
+# Bots de IA generativa — permitidos para visibilidad en respuestas
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Sitemap
+Sitemap: https://talentup.es/sitemap.xml

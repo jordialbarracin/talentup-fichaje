@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — TalentUP</title>
+<link rel="stylesheet" href="design_system.css">
+<style>
+  /* ==========================================================================
+     Layout especifico del dashboard. Tokens (color, espacio, tipografia,
+     sombra) vienen todos de design_system.css — aqui solo se compone el grid
+     y los componentes propios de cada una de las 7 vistas.
+     ========================================================================== */
+
+  /* --- 1. Estructura -------------------------------------------------------- */
+  #navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-navbar);
+    height: var(--navbar-h);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 var(--space-5);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .navbar-left  { display: flex; align-items: center; gap: var(--space-3); }
+  .navbar-right { display: flex; align-items: center; gap: var(--space-2); }
+
+  .mobile-only { display: none; }
+
+  #sidebar {
+    position: fixed; top: var(--navbar-h); left: 0; bottom: 0;
+    z-index: var(--z-sidebar);
+    width: var(--sidebar-w);
+    padding: var(--space-4) var(--space-3);
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+  }
+  #sidebar nav ul { display: flex; flex-direction: column; gap: 2px; }
+  .nav-section-label { padding: var(--space-4) var(--space-3) var(--space-1); }
+  #sidebar .nav-item { width: 100%; text-align: left; background: none; border: none; }
+
+  .sidebar-scrim {
+    position: fixed; inset: 0; top: var(--navbar-h);
+    z-index: calc(var(--z-sidebar) - 1);
+    background: var(--bg-scrim);
+  }
+
+  #main-content {
+    margin-left: var(--sidebar-w);
+    margin-top: var(--navbar-h);
+    padding: var(--space-6);
+    min-height: calc(100vh - var(--navbar-h));
+  }
+
+  .page-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  /* --- 2. KPIs ---------------------------------------------------------------- */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+  .kpi-card { display: flex; flex-direction: column; gap: var(--space-3); }
+  .kpi-top { display: flex; align-items: flex-start; gap: var(--space-4); }
+  .kpi-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kpi-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .kpi-icon--brand   { background: var(--brand-tint-12);  color: var(--brand); }
+  .kpi-icon--success { background: var(--success-tint);   color: var(--success-strong); }
+  .kpi-icon--danger  { background: var(--danger-tint);    color: var(--danger); }
+  .kpi-icon--info    { background: var(--info-tint);      color: var(--info); }
+  .kpi-icon--warning { background: var(--warning-tint);   color: var(--warning-strong); }
+  .kpi-value { font-size: 1.75rem; font-weight: 600; letter-spacing: var(--tracking-snug); line-height: 1.15; margin: 2px 0; }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 3px; }
+  .kpi-spark { width: 100%; height: 34px; display: block; }
+  .live-dot { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+  .live-dot::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--success); animation: tu-ping 1.8s var(--ease-out) infinite; }
+
+  /* --- Progreso semanal (Dashboard) ------------------------------------------- */
+  .progress-card { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .progress-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+  .progress-track { position: relative; height: 10px; border-radius: var(--radius-pill); background: rgba(0,0,0,.06); overflow: hidden; }
+  .progress-fill { position: absolute; inset: 0 auto 0 0; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--brand) 0%, var(--success) 100%); transition: width 900ms var(--ease-out); }
+  .progress-foot { display: flex; justify-content: space-between; gap: var(--space-3); }
+
+  /* --- 3. Grid principal ------------------------------------------------------ */
+  .content-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--space-4); align-items: start; margin-bottom: var(--space-4); }
+
+  .emp-cell { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+  .emp-avatar {
+    width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-app); border: 1px solid var(--border);
+    font-size: var(--text-micro); font-weight: 600; color: var(--text-secondary);
+  }
+  .emp-avatar--lg { width: 44px; height: 44px; font-size: var(--text-body-sm); border: none; }
+  .emp-avatar--cocina  { background: var(--brand-tint-12);  color: var(--brand); }
+  .emp-avatar--sala    { background: var(--info-tint);      color: var(--info); }
+  .emp-avatar--barra   { background: var(--success-tint);   color: var(--success-strong); }
+  .emp-avatar--soporte { background: var(--warning-tint);   color: var(--warning-strong); }
+  .emp-name-wrap { min-width: 0; }
+  .emp-name-wrap .emp-name { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .emp-name-wrap .emp-sub  { display: block; font-size: var(--text-micro); color: var(--text-tertiary); }
+
+  /* --- Calendario de turnos (resumen semanal, dashboard) -------------------- */
+  .calendar-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); min-width: 640px; }
+  .calendar-day {
+    min-height: 136px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .calendar-day.is-today { border-color: var(--brand); background: var(--brand-tint-06); }
+  .calendar-day-head { margin-bottom: 2px; }
+  .calendar-day-num { font-size: var(--text-body-sm); font-weight: 600; }
+  .shift-chip { border-radius: var(--radius-sm); padding: 3px 6px; font-size: var(--text-micro); font-weight: 500; line-height: 1.35; }
+  .shift-chip--morning   { background: var(--brand-tint-12); color: var(--brand); }
+  .shift-chip--afternoon { background: var(--info-tint);     color: var(--info); }
+  .shift-chip--night     { background: rgba(0,0,0,0.06);     color: var(--text-secondary); }
+
+  /* --- Alertas -------------------------------------------------------------- */
+  .alert-list { display: flex; flex-direction: column; gap: 2px; }
+  .alert-item { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); transition: background var(--dur-base) var(--ease-out); }
+  .alert-item:hover { background: var(--bg-hover); }
+  .alert-icon { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .alert-icon svg { width: 15px; height: 15px; stroke-width: 2; }
+  .alert-icon--danger  { background: var(--danger-tint); color: var(--danger); }
+  .alert-icon--warning { background: var(--warning-tint); color: var(--warning-strong); }
+  .alert-icon--info    { background: var(--info-tint); color: var(--info); }
+  .alert-title { font-size: var(--text-body-sm); font-weight: 500; }
+  .alert-sub   { font-size: var(--text-caption); color: var(--text-secondary); margin-top: 1px; }
+
+  /* --- Cabecera de usuario -------------------------------------------------- */
+  .btn-notif { position: relative; }
+  .notif-dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--danger); border: 2px solid var(--bg-surface);
+  }
+  .user-menu {
+    display: flex; align-items: center; gap: var(--space-2);
+    padding: 4px var(--space-3) 4px 4px;
+    border-radius: var(--radius-pill);
+    transition: background var(--dur-base) var(--ease-out);
+  }
+  .user-menu:hover { background: var(--bg-hover); }
+  .avatar {
+    width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--brand); color: var(--text-on-brand);
+    font-size: var(--text-micro); font-weight: 600;
+  }
+  .user-info { display: flex; flex-direction: column; line-height: 1.25; text-align: left; }
+  .user-name { font-size: var(--text-caption); font-weight: 600; color: var(--text-primary); }
+
+  /* --- Vistas y skeleton ----------------------------------------------------- */
+  .view { display: none; }
+  .view.is-active { display: block; animation: tu-rise var(--dur-slow) var(--ease-out); }
+  .view-skeleton { display: flex; flex-direction: column; gap: var(--space-4); }
+  .skel-row { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-3); }
+  .skel-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+
+  /* --- Toolbar de vista (busqueda / filtros) ---------------------------------- */
+  .view-toolbar { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; margin-bottom: var(--space-4); }
+  .search-input { max-width: 280px; }
+  .filter-select { max-width: 200px; }
+  .chip-filters { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .chip-filter {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; min-height: 30px;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-caption); font-weight: 500;
+    color: var(--text-secondary); background: var(--bg-app);
+    border: 1px solid transparent;
+    transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+    cursor: pointer;
+  }
+  .chip-filter:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .chip-filter.active { background: var(--brand-tint-12); color: var(--brand); }
+  .chip-count { font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: var(--radius-pill); background: rgba(0,0,0,0.08); }
+  .chip-filter.active .chip-count { background: var(--brand); color: #fff; }
+
+  /* --- Departamentos ---------------------------------------------------------- */
+  .dept-tag { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-caption); }
+  .dept-cocina  { color: var(--brand); }
+  .dept-sala    { color: var(--info); }
+  .dept-barra   { color: var(--success-strong); }
+  .dept-soporte { color: var(--warning-strong); }
+
+  /* --- Barra de horas del mes -------------------------------------------------- */
+  .hbar-wrap { display: flex; align-items: center; gap: var(--space-2); }
+  .hbar { position: relative; height: 6px; border-radius: var(--radius-pill); background: rgba(0,0,0,.06); width: 64px; overflow: hidden; flex-shrink: 0; }
+  .hbar span { position: absolute; inset: 0; border-radius: inherit; background: var(--brand); transition: width var(--dur-slow) var(--ease-out); }
+  .hbar span.is-over { background: var(--success); }
+
+  /* --- Vista Empleados: tabla / tarjetas --------------------------------------- */
+  .emp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4); }
+  .emp-tile { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+  .emp-tile-head { display: flex; align-items: center; gap: var(--space-3); }
+  .emp-tile-name { font-size: var(--text-body); font-weight: 600; }
+  .emp-tile-contact { display: flex; flex-direction: column; gap: 6px; font-size: var(--text-caption); color: var(--text-secondary); }
+  .emp-tile-contact div { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .emp-tile-contact svg { width: 13px; height: 13px; flex-shrink: 0; stroke-width: 1.75; }
+  .emp-tile-contact span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .emp-tile-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+  .hidden-view { display: none !important; }
+
+  /* --- Timeline (fichajes) ----------------------------------------------------- */
+  .timeline { position: relative; padding: var(--space-2) var(--space-4) var(--space-2) 32px; }
+  .timeline::before { content: ''; position: absolute; left: 13px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; padding-bottom: var(--space-5); }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute; left: -32px; top: 0;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-surface); border: 2px solid var(--border-strong);
+  }
+  .timeline-dot svg { width: 11px; height: 11px; stroke-width: 2.25; }
+  .timeline-dot--in    { border-color: var(--success); color: var(--success-strong); }
+  .timeline-dot--out   { border-color: var(--danger);  color: var(--danger); }
+  .timeline-dot--wait  { border-color: var(--warning); color: var(--warning-strong); }
+  .timeline-dot--off   { border-color: var(--border-strong); color: var(--text-tertiary); }
+  .timeline-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+  .timeline-meta { display: flex; align-items: center; gap: var(--space-3); }
+  .timeline-time { font-size: var(--text-caption); font-weight: 600; color: var(--text-primary); min-width: 88px; font-variant-numeric: tabular-nums; }
+  .timeline-device { font-size: var(--text-micro); color: var(--text-tertiary); white-space: nowrap; }
+
+  /* --- Calendario semanal de turnos (vista Turnos) ------------------------------ */
+  .schedule-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .schedule-table { min-width: 820px; }
+  .schedule-table th.day-col, .schedule-table td.shift-cell { text-align: center; }
+  .shift-abbr {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 22px; border-radius: var(--radius-sm);
+    font-size: 10px; font-weight: 700;
+  }
+  .shift-abbr--m { background: var(--brand-tint-12); color: var(--brand); }
+  .shift-abbr--t { background: var(--info-tint);     color: var(--info); }
+  .shift-abbr--n { background: rgba(0,0,0,.06);       color: var(--text-secondary); }
+  .shift-abbr--l { background: var(--bg-app); color: var(--text-quaternary); }
+  .shift-abbr--v { background: var(--success-tint); color: var(--success-strong); }
+  .shift-abbr--b { background: var(--danger-tint); color: var(--danger); }
+  .legend-row { display: flex; gap: var(--space-4); flex-wrap: wrap; margin-bottom: var(--space-4); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: var(--text-caption); color: var(--text-secondary); }
+
+  /* --- Graficos SVG -------------------------------------------------------------- */
+  .chart-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .chart-card svg { width: 100%; height: auto; display: block; }
+  .chart-axis-label  { font-size: 9px; fill: var(--text-secondary); font-family: var(--font-sans); }
+  .chart-value-label { font-size: 9px; font-weight: 600; fill: var(--text-primary); font-family: var(--font-sans); }
+  .donut-wrap { display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
+  .donut-wrap svg { width: 160px; height: 160px; flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: var(--space-3); flex: 1; min-width: 160px; }
+  .donut-legend-item { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); font-size: var(--text-body-sm); }
+  .stat-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-bottom: var(--space-4); }
+  .ring-card { display: flex; align-items: center; gap: var(--space-4); }
+  .ring-card svg { width: 72px; height: 72px; flex-shrink: 0; }
+  .ring-track { fill: none; stroke: rgba(0,0,0,0.06); stroke-width: 7; }
+  .ring-value { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 900ms var(--ease-out); }
+  .ring-label-num { font-size: 15px; font-weight: 700; fill: var(--text-primary); font-family: var(--font-sans); }
+
+  /* --- Heatmap de asistencia (Reportes) -------------------------------------------- */
+  .heatmap-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: var(--space-2); }
+  .heatmap { display: flex; flex-direction: column; gap: 3px; min-width: 720px; }
+  .heatmap-row { display: flex; align-items: center; gap: var(--space-2); }
+  .heatmap-name { width: 132px; flex-shrink: 0; font-size: var(--text-micro); color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .heatmap-cells { display: flex; gap: 3px; }
+  .heatmap-cell { width: 15px; height: 15px; border-radius: 3px; background: rgba(0,0,0,0.05); flex-shrink: 0; }
+  .heatmap-cell[data-lvl="1"] { background: var(--danger-tint); }
+  .heatmap-cell[data-lvl="2"] { background: var(--warning-tint); }
+  .heatmap-cell[data-lvl="3"] { background: var(--brand-tint-35); }
+  .heatmap-cell[data-lvl="4"] { background: var(--brand); }
+  .heatmap-cell[data-lvl="5"] { background: rgba(0,0,0,0.08); }
+  .heatmap-legend { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); font-size: var(--text-micro); color: var(--text-secondary); }
+
+  /* --- Rankings (Reportes) --------------------------------------------------------- */
+  .rank-list { display: flex; flex-direction: column; }
+  .rank-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-hairline); }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-pos { width: 20px; flex-shrink: 0; font-size: var(--text-caption); font-weight: 700; color: var(--text-tertiary); text-align: center; }
+  .rank-bar-wrap { flex: 1; min-width: 0; }
+  .rank-bar-track { height: 6px; border-radius: var(--radius-pill); background: rgba(0,0,0,.05); overflow: hidden; margin-top: 4px; }
+  .rank-bar-fill { height: 100%; border-radius: inherit; }
+  .rank-val { flex-shrink: 0; font-size: var(--text-caption); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* --- Incidencias ----------------------------------------------------------------- */
+  .incident-list { display: flex; flex-direction: column; gap: var(--space-3); }
+  .incident-card { display: flex; gap: var(--space-4); padding: var(--space-5); align-items: flex-start; }
+  .incident-icon {
+    width: 40px; height: 40px; flex-shrink: 0; border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--danger-tint); color: var(--danger);
+  }
+  .incident-icon svg { width: 20px; height: 20px; stroke-width: 1.75; }
+  .incident-body { flex: 1; min-width: 0; }
+  .incident-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; margin-bottom: 4px; }
+  .incident-title { font-size: var(--text-body); font-weight: 600; }
+  .incident-desc { font-size: var(--text-body-sm); color: var(--text-secondary); margin: 6px 0 var(--space-3); }
+  .incident-meta { display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: var(--text-caption); color: var(--text-secondary); margin-bottom: var(--space-3); }
+  .incident-actions { display: flex; gap: var(--space-2); }
+  .badge-review { background: var(--info-tint); color: var(--info); }
+  .incident-card.is-resolved { opacity: 0.6; }
+
+  /* --- Ajustes ----------------------------------------------------------------------- */
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .device-list { display: flex; flex-direction: column; gap: var(--space-3); }
+  .device-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+  .device-icon { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--bg-app); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; }
+  .device-icon svg { width: 20px; height: 20px; stroke-width: 1.5; }
+  .device-info { flex: 1; min-width: 0; }
+  .device-name { font-size: var(--text-body-sm); font-weight: 600; }
+  .device-meta { font-size: var(--text-micro); color: var(--text-tertiary); font-family: var(--font-mono); }
+  .device-signal { display: flex; align-items: flex-end; gap: 2px; height: 14px; flex-shrink: 0; }
+  .device-signal i { display: block; width: 3px; background: rgba(0,0,0,0.12); border-radius: 1px; }
+  .device-signal i:nth-child(1) { height: 30%; } .device-signal i:nth-child(2) { height: 55%; }
+  .device-signal i:nth-child(3) { height: 75%; } .device-signal i:nth-child(4) { height: 100%; }
+  .device-signal.is-on i.on { background: var(--success); }
+  .device-signal.is-off i { background: rgba(0,0,0,0.08); }
+  .notif-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) 0; border-bottom: 1px solid var(--border); }
+  .notif-row:last-child { border-bottom: none; }
+  .notif-label { font-size: var(--text-body-sm); font-weight: 500; }
+  .notif-desc { font-size: var(--text-caption); color: var(--text-secondary); margin-top: 2px; }
+  .logo-drop { width: 88px; height: 88px; border-radius: var(--radius-lg); border: 1.5px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); flex-shrink: 0; }
+  .form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
+
+  @keyframes tu-ping { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(2.2); } }
+
+  @media (max-width: 900px) {
+    .mobile-only { display: inline-flex; }
+    #sidebar { transform: translateX(-100%); transition: transform var(--dur-base) var(--ease-out); box-shadow: var(--shadow-modal); }
+    #sidebar.is-open { transform: translateX(0); }
+    #main-content { margin-left: 0; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .content-grid { grid-template-columns: 1fr; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .stat-grid-3 { grid-template-columns: 1fr; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 480px) {
+    .user-info { display: none; }
+    #main-content { padding: var(--space-4); }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<header id="navbar">
+  <div class="navbar-left">
+    <button id="sidebar-toggle" class="btn btn-icon btn-ghost mobile-only" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <a href="#" class="tu-lockup">
+      <svg class="tu-mark" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="13" cy="13" r="7" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M13 9v4l2.6 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="tu-mark-arc-outer" d="M3.5 13a9.5 9.5 0 0 1 3-6.9M22.5 13a9.5 9.5 0 0 1-3 6.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="tu-wordmark">Talent<em>UP</em></span>
+    </a>
+  </div>
+  <div class="navbar-right">
+    <button class="btn btn-icon btn-ghost btn-notif" aria-label="Notificaciones">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <span class="notif-dot" aria-hidden="true"></span>
+    </button>
+    <button class="user-menu" aria-haspopup="true" aria-expanded="false">
+      <span class="avatar">JA</span>
+      <span class="user-info">
+        <span class="user-name">Jordi Albarracin</span>
+        <span class="t-micro t-muted" style="text-transform:none;letter-spacing:normal;">Administrador</span>
+      </span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+  </div>
+</header>
+
+<div id="sidebar-scrim" class="sidebar-scrim hidden"></div>
+
+<aside id="sidebar">
+  <nav aria-label="Navegacion principal">
+    <ul id="nav-list">
+      <li><button type="button" class="nav-item active" data-view="dashboard" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="empleados">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="flex-1">Empleados</span>
+        <span id="nav-emp-count" class="t-micro t-muted">24</span>
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="fichajes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        Fichajes
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="turnos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        Turnos
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="reportes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9M10 21V3M17 21v-7"/></svg>
+        Reportes
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="incidencias">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 2.6 18.1a1.6 1.6 0 0 0 1.4 2.4h16a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z"/><path d="M12 9.5v4M12 16.8v.1"/></svg>
+        <span class="flex-1">Incidencias</span>
+        <span id="nav-incident-count" class="badge badge-incident" style="padding:1px 6px;">—</span>
+      </button></li>
+      <li><button type="button" class="nav-item" data-view="ajustes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        Ajustes
+      </button></li>
+    </ul>
+  </nav>
+</aside>
+
+<main id="main-content">
+
+  <!-- ======================= VISTA: DASHBOARD ======================= -->
+  <section class="view is-active" data-view="dashboard" id="view-dashboard">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Dashboard</h1>
+        <p class="t-body-sm t-muted mt-2" id="dash-date">—</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-secondary btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+          Exportar
+        </button>
+        <button class="btn btn-primary btn-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nuevo fichaje
+        </button>
+      </div>
+    </div>
+
+    <section class="kpi-grid" aria-label="Indicadores clave" id="kpi-grid">
+      <!-- Generado por JS: renderKpis() -->
+    </section>
+
+    <section class="card card-pad progress-card" aria-label="Progreso semanal">
+      <div class="progress-head">
+        <div>
+          <h3 class="t-body-sm" style="font-weight:600;">Progreso semanal de horas</h3>
+          <p class="t-caption t-muted mt-1" id="progress-sub">—</p>
+        </div>
+        <span class="t-h2 tabular" id="progress-pct">—</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-foot">
+        <span class="t-caption t-muted">Lun</span>
+        <span class="t-caption t-muted">Dom</span>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <h3>Fichajes por dia — ultimos 7 dias</h3>
+          <div class="legend-row" style="margin:0;">
+            <span class="legend-item"><span class="dot" style="background:var(--success-strong);"></span>A tiempo</span>
+            <span class="legend-item"><span class="dot" style="background:var(--brand);"></span>Con retraso</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <svg viewBox="0 0 560 190" role="img" aria-label="Fichajes por dia de la ultima semana">
+            <line x1="10" y1="150" x2="550" y2="150" stroke="var(--border)" stroke-width="1"/>
+            <rect x="20" y="52" width="18" height="98" rx="3" fill="var(--success)"/>
+            <rect x="40" y="134" width="18" height="16" rx="3" fill="var(--brand)"/>
+            <text x="29" y="168" text-anchor="middle" class="chart-axis-label">Lun</text>
+            <rect x="96" y="58" width="18" height="92" rx="3" fill="var(--success)"/>
+            <rect x="116" y="128" width="18" height="22" rx="3" fill="var(--brand)"/>
+            <text x="105" y="168" text-anchor="middle" class="chart-axis-label">Mar</text>
+            <rect x="172" y="47" width="18" height="103" rx="3" fill="var(--success)"/>
+            <rect x="192" y="139" width="18" height="11" rx="3" fill="var(--brand)"/>
+            <text x="181" y="168" text-anchor="middle" class="chart-axis-label">Mie</text>
+            <rect x="248" y="63" width="18" height="87" rx="3" fill="var(--success)"/>
+            <rect x="268" y="123" width="18" height="27" rx="3" fill="var(--brand)"/>
+            <text x="257" y="168" text-anchor="middle" class="chart-axis-label">Jue</text>
+            <rect x="324" y="42" width="18" height="108" rx="3" fill="var(--success)"/>
+            <rect x="344" y="139" width="18" height="11" rx="3" fill="var(--brand)"/>
+            <text x="333" y="168" text-anchor="middle" class="chart-axis-label">Vie</text>
+            <rect x="400" y="69" width="18" height="81" rx="3" fill="var(--success)"/>
+            <rect x="420" y="134" width="18" height="16" rx="3" fill="var(--brand)"/>
+            <text x="409" y="168" text-anchor="middle" class="chart-axis-label">Sab</text>
+            <rect x="476" y="74" width="18" height="76" rx="3" fill="var(--success)"/>
+            <rect x="496" y="145" width="18" height="5" rx="3" fill="var(--brand)"/>
+            <text x="485" y="168" text-anchor="middle" class="chart-axis-label">Dom</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Alertas</h3>
+          <span class="badge badge-incident" id="dash-alert-count" style="padding:1px 7px;">—</span>
+        </div>
+        <div class="card-body alert-list" id="dash-alerts" style="padding:var(--space-2);">
+          <!-- Generado por JS: renderAlerts() -->
+        </div>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      <div class="card chart-card">
+        <div class="card-header"><h3>Horas trabajadas — ultimas 4 semanas</h3></div>
+        <div class="card-body">
+          <svg viewBox="0 0 300 190" role="img" aria-label="Evolucion de horas trabajadas en las ultimas 4 semanas">
+            <defs>
+              <linearGradient id="areaFillDash" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="var(--brand)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="10" y1="150" x2="290" y2="150" stroke="var(--border)" stroke-width="1"/>
+            <path d="M30,96 L110,112 L190,64 L270,42 L270,150 L30,150 Z" fill="url(#areaFillDash)"/>
+            <path d="M30,96 L110,112 L190,64 L270,42" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="30" cy="96" r="3.5" fill="var(--bg-surface)" stroke="var(--brand)" stroke-width="2"/>
+            <circle cx="110" cy="112" r="3.5" fill="var(--bg-surface)" stroke="var(--brand)" stroke-width="2"/>
+            <circle cx="190" cy="64" r="3.5" fill="var(--bg-surface)" stroke="var(--brand)" stroke-width="2"/>
+            <circle cx="270" cy="42" r="4.5" fill="var(--brand)"/>
+            <text x="30" y="168" text-anchor="middle" class="chart-axis-label">S1</text>
+            <text x="110" y="168" text-anchor="middle" class="chart-axis-label">S2</text>
+            <text x="190" y="168" text-anchor="middle" class="chart-axis-label">S3</text>
+            <text x="270" y="168" text-anchor="middle" class="chart-axis-label">S4</text>
+            <text x="270" y="30" class="chart-value-label" text-anchor="middle">712h</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Plantilla por area</h3></div>
+        <div class="card-body donut-wrap" id="dash-donut">
+          <!-- Generado por JS: renderDonut('dash-donut') -->
+        </div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <h3>Fichajes de hoy</h3>
+          <button type="button" class="btn btn-ghost btn-sm" data-goto="fichajes">Ver todos</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Horas</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="dash-today-tbody">
+              <!-- Generado por JS: renderDashToday() -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Turnos — esta semana</h3>
+          <div class="flex gap-1">
+            <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana anterior">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana siguiente">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="card-body calendar-scroll">
+          <div class="calendar-grid" id="dash-calendar">
+            <!-- Generado por JS: renderDashCalendar() -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ======================= VISTA: EMPLEADOS ======================= -->
+  <section class="view" data-view="empleados" id="view-empleados">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Empleados</h1>
+        <p class="t-body-sm t-muted mt-2" id="emp-count-label">24 personas en plantilla</p>
+      </div>
+      <button class="btn btn-primary btn-sm">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo empleado
+      </button>
+    </div>
+
+    <div class="view-toolbar">
+      <input type="search" class="input search-input" id="emp-search" placeholder="Buscar por nombre...">
+      <select class="filter-select" id="emp-filter-area">
+        <option value="todos">Todas las areas</option>
+        <option value="Cocina">Cocina</option>
+        <option value="Sala">Sala</option>
+        <option value="Barra">Barra</option>
+        <option value="Soporte">Soporte</option>
+      </select>
+      <div class="segmented" id="emp-view-toggle" style="margin-left:auto;">
+        <button type="button" class="active" data-emp-view="tabla">Tabla</button>
+        <button type="button" data-emp-view="tarjetas">Tarjetas</button>
+      </div>
+    </div>
+
+    <div class="card" id="emp-view-tabla">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Area</th>
+              <th>Contacto</th>
+              <th>Alta</th>
+              <th>Horas / mes</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="emp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="emp-grid hidden-view" id="emp-view-tarjetas"></div>
+  </section>
+
+  <!-- ======================= VISTA: FICHAJES ======================= -->
+  <section class="view" data-view="fichajes" id="view-fichajes">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Fichajes</h1>
+        <p class="t-body-sm t-muted mt-2">Actividad de fichaje de hoy, en orden cronologico</p>
+      </div>
+      <div class="flex gap-1">
+        <button class="btn btn-icon btn-ghost btn-sm" aria-label="Dia anterior">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="btn btn-ghost btn-sm" style="pointer-events:none;" id="fichaje-day-label">Hoy</span>
+        <button class="btn btn-icon btn-ghost btn-sm" aria-label="Dia siguiente">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="view-toolbar">
+      <div class="chip-filters" id="fichaje-filters">
+        <button type="button" class="chip-filter active" data-filter="all">Todos <span class="chip-count" id="cnt-all">24</span></button>
+        <button type="button" class="chip-filter" data-filter="ok">A tiempo <span class="chip-count" id="cnt-ok">0</span></button>
+        <button type="button" class="chip-filter" data-filter="tarde">Con retraso <span class="chip-count" id="cnt-tarde">0</span></button>
+        <button type="button" class="chip-filter" data-filter="pendiente">En curso <span class="chip-count" id="cnt-pendiente">0</span></button>
+        <button type="button" class="chip-filter" data-filter="sinfichar">Sin fichar <span class="chip-count" id="cnt-sinfichar">0</span></button>
+      </div>
+    </div>
+
+    <div class="card card-pad">
+      <div class="timeline" id="fichaje-timeline"></div>
+    </div>
+  </section>
+
+  <!-- ======================= VISTA: TURNOS ======================= -->
+  <section class="view" data-view="turnos" id="view-turnos">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Turnos</h1>
+        <p class="t-body-sm t-muted mt-2">Planificacion semanal — 3 al 9 de agosto</p>
+      </div>
+      <button class="btn btn-primary btn-sm">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Asignar turno
+      </button>
+    </div>
+
+    <div class="legend-row">
+      <span class="legend-item"><span class="shift-abbr shift-abbr--m">M</span>Manana</span>
+      <span class="legend-item"><span class="shift-abbr shift-abbr--t">T</span>Tarde</span>
+      <span class="legend-item"><span class="shift-abbr shift-abbr--n">N</span>Noche</span>
+      <span class="legend-item"><span class="shift-abbr shift-abbr--l">L</span>Libranza</span>
+      <span class="legend-item"><span class="shift-abbr shift-abbr--v">V</span>Vacaciones</span>
+      <span class="legend-item"><span class="shift-abbr shift-abbr--b">B</span>Baja</span>
+    </div>
+
+    <div class="view-toolbar">
+      <select class="filter-select" id="turno-filter-area">
+        <option value="todos">Todas las areas</option>
+        <option value="Cocina">Cocina</option>
+        <option value="Sala">Sala</option>
+        <option value="Barra">Barra</option>
+        <option value="Soporte">Soporte</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="schedule-scroll">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th class="day-col">Lun</th>
+              <th class="day-col">Mar</th>
+              <th class="day-col">Mie</th>
+              <th class="day-col">Jue</th>
+              <th class="day-col">Vie</th>
+              <th class="day-col">Sab</th>
+              <th class="day-col">Dom</th>
+            </tr>
+          </thead>
+          <tbody id="turnos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= VISTA: REPORTES ======================= -->
+  <section class="view" data-view="reportes" id="view-reportes">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Reportes</h1>
+        <p class="t-body-sm t-muted mt-2">Vision agregada de agosto 2026, sobre 24 empleados</p>
+      </div>
+      <div class="segmented">
+        <button type="button" class="active">30 dias</button>
+        <button type="button">90 dias</button>
+        <button type="button">Ano</button>
+      </div>
+    </div>
+
+    <section class="stat-grid-3" id="reportes-rings">
+      <!-- Generado por JS: renderRings() -->
+    </section>
+
+    <section class="chart-grid">
+      <div class="card chart-card">
+        <div class="card-header"><h3>Horas trabajadas — ultimas 8 semanas</h3></div>
+        <div class="card-body">
+          <svg viewBox="0 0 520 190" role="img" aria-label="Evolucion de horas trabajadas">
+            <defs>
+              <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="var(--brand)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="10" y1="150" x2="510" y2="150" stroke="var(--border)" stroke-width="1"/>
+            <path d="M20,110 L82,96 L144,104 L206,74 L268,88 L330,58 L392,66 L454,40 L454,150 L20,150 Z" fill="url(#areaFill)"/>
+            <path d="M20,110 L82,96 L144,104 L206,74 L268,88 L330,58 L392,66 L454,40" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="454" cy="40" r="4" fill="var(--brand)"/>
+            <text x="20" y="168" class="chart-axis-label">S1</text>
+            <text x="82" y="168" class="chart-axis-label">S2</text>
+            <text x="144" y="168" class="chart-axis-label">S3</text>
+            <text x="206" y="168" class="chart-axis-label">S4</text>
+            <text x="268" y="168" class="chart-axis-label">S5</text>
+            <text x="330" y="168" class="chart-axis-label">S6</text>
+            <text x="392" y="168" class="chart-axis-label">S7</text>
+            <text x="440" y="168" class="chart-axis-label">S8</text>
+            <text x="440" y="32" class="chart-value-label" text-anchor="middle">642h</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Plantilla por area</h3></div>
+        <div class="card-body donut-wrap" id="reportes-donut">
+          <!-- Generado por JS: renderDonut() -->
+        </div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="card">
+        <div class="card-header"><h3>Top 5 — horas extra este mes</h3></div>
+        <div class="card-body">
+          <div class="rank-list" id="rank-extra"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Top 5 — mas retrasos este mes</h3></div>
+        <div class="card-body">
+          <div class="rank-list" id="rank-tarde"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="card card-pad">
+      <div class="flex items-center justify-between mb-4" style="flex-wrap:wrap;gap:var(--space-2);">
+        <h3 class="t-h2">Mapa de asistencia — ultimas 3 semanas</h3>
+        <p class="t-caption t-muted">24 empleados x 21 dias</p>
+      </div>
+      <div class="heatmap-scroll">
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+      <div class="heatmap-legend">
+        <span>Menos</span>
+        <span class="heatmap-cell" data-lvl="0"></span>
+        <span class="heatmap-cell" data-lvl="3"></span>
+        <span class="heatmap-cell" data-lvl="4"></span>
+        <span class="heatmap-cell" data-lvl="1"></span>
+        <span>Mas · rojo = ausencia</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= VISTA: INCIDENCIAS ======================= -->
+  <section class="view" data-view="incidencias" id="view-incidencias">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Incidencias</h1>
+        <p class="t-body-sm t-muted mt-2" id="incident-summary">—</p>
+      </div>
+    </div>
+
+    <div class="view-toolbar">
+      <div class="tabs" id="incident-tabs" style="border-bottom:none;">
+        <button type="button" class="tab active" data-incident-tab="todas">Todas</button>
+        <button type="button" class="tab" data-incident-tab="abierta">Abiertas</button>
+        <button type="button" class="tab" data-incident-tab="revision">En revision</button>
+        <button type="button" class="tab" data-incident-tab="resuelta">Resueltas</button>
+      </div>
+    </div>
+
+    <div class="incident-list" id="incident-list"></div>
+  </section>
+
+  <!-- ======================= VISTA: AJUSTES ======================= -->
+  <section class="view" data-view="ajustes" id="view-ajustes">
+    <div class="page-head">
+      <div>
+        <h1 class="t-h1">Ajustes</h1>
+        <p class="t-body-sm t-muted mt-2">Empresa, dispositivos NFC y notificaciones</p>
+      </div>
+    </div>
+
+    <div class="tabs" id="settings-tabs">
+      <button type="button" class="tab active" data-tab="empresa">Empresa</button>
+      <button type="button" class="tab" data-tab="dispositivos">Dispositivos NFC</button>
+      <button type="button" class="tab" data-tab="notificaciones">Notificaciones</button>
+      <button type="button" class="tab" data-tab="seguridad">Seguridad</button>
+    </div>
+
+    <div class="tab-panel active" data-panel="empresa" style="margin-top:var(--space-5);">
+      <div class="card card-pad-lg">
+        <form id="form-empresa">
+          <div class="flex gap-4 mb-6" style="align-items:flex-start;">
+            <div class="logo-drop">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+            </div>
+            <div class="flex-1">
+              <p class="t-body-sm" style="font-weight:600;">Logo de la empresa</p>
+              <p class="t-caption t-muted mt-2 mb-2">PNG o SVG, fondo transparente, minimo 256x256px</p>
+              <button type="button" class="btn btn-secondary btn-sm">Subir archivo</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Nombre de la empresa</label>
+              <input type="text" value="Restaurant Vora, S.L.">
+            </div>
+            <div class="field">
+              <label>CIF</label>
+              <input type="text" value="B67488521">
+            </div>
+          </div>
+          <div class="field">
+            <label>Direccion</label>
+            <input type="text" value="Carrer del Vi 12, Vilafranca del Penedes">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Zona horaria</label>
+              <select><option>Europe/Madrid (GMT+2)</option></select>
+            </div>
+            <div class="field">
+              <label>Convenio aplicable</label>
+              <select><option>Hosteleria — Catalunya</option></select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="dispositivos" style="margin-top:var(--space-5);">
+      <div class="card card-pad">
+        <div class="flex items-center justify-between mb-4">
+          <p class="t-body-sm t-muted">Terminales NFC emparejados con esta cuenta</p>
+          <button class="btn btn-secondary btn-sm" id="btn-add-device">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Anadir terminal
+          </button>
+        </div>
+        <div class="device-list" id="device-list"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="notificaciones" style="margin-top:var(--space-5);">
+      <div class="settings-grid">
+        <div class="card card-pad">
+          <p class="t-label mb-2">Alertas al administrador</p>
+          <div class="notif-row">
+            <div><p class="notif-label">Empleado sin fichar</p><p class="notif-desc">Aviso 30 min despues del inicio de turno</p></div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="notif-row">
+            <div><p class="notif-label">Terminal desconectado</p><p class="notif-desc">Aviso si un kiosco pierde conexion mas de 15 min</p></div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="notif-row">
+            <div><p class="notif-label">Horas extra acumuladas</p><p class="notif-desc">Resumen semanal por empleado</p></div>
+            <label class="switch"><input type="checkbox"><span class="switch-track"></span></label>
+          </div>
+        </div>
+        <div class="card card-pad">
+          <p class="t-label mb-2">Notificaciones al empleado</p>
+          <div class="notif-row">
+            <div><p class="notif-label">Recordatorio de turno</p><p class="notif-desc">Push 1 hora antes de empezar</p></div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="notif-row">
+            <div><p class="notif-label">Confirmacion de fichaje</p><p class="notif-desc">Push al fichar entrada y salida</p></div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="btn-save-notif">Guardar preferencias</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="seguridad" style="margin-top:var(--space-5);">
+      <div class="card card-pad">
+        <div class="notif-row">
+          <div><p class="notif-label">Verificacion en dos pasos</p><p class="notif-desc">Obligatoria para cuentas de administrador</p></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+        </div>
+        <div class="notif-row">
+          <div><p class="notif-label">Cierre de sesion automatico</p><p class="notif-desc">Tras 30 minutos de inactividad en el panel web</p></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+        </div>
+        <div class="notif-row">
+          <div><p class="notif-label">Registro de auditoria</p><p class="notif-desc">Guarda cada edicion manual de un fichaje durante 12 meses</p></div>
+          <label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==========================================================================
+     1. DATOS — 24 empleados de una plantilla de hosteleria (demo).
+     Cada objeto es la unica fuente de verdad: todas las vistas (Empleados,
+     Fichajes, Turnos, Reportes) leen de aqui en vez de tener su propio HTML
+     estatico, para que los numeros nunca se contradigan entre pestanas.
+     ========================================================================== */
+
+  var DIAS = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+
+  var EMPLOYEES = [
+    { id: 1,  ini: 'MP', nombre: 'Marta Puig',      area: 'Cocina',   email: 'marta.puig@vora.demo',      tel: '611 234 001', alta: '2023-03-14', horas: 162, obj: 160, entrada: '08:58', salida: '17:02', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 4,  tard: 0 },
+    { id: 2,  ini: 'DS', nombre: 'David Soler',      area: 'Sala',     email: 'david.soler@vora.demo',     tel: '611 234 002', alta: '2022-11-02', horas: 158, obj: 160, entrada: '09:12', salida: null,    statusHoy: 'pendiente', turnos: ['T','T','T','T','T','L','L'], extra: 1,  tard: 2 },
+    { id: 3,  ini: 'LF', nombre: 'Laia Ferrer',      area: 'Barra',    email: 'laia.ferrer@vora.demo',     tel: '611 234 003', alta: '2024-01-20', horas: 170, obj: 160, entrada: '09:31', salida: '17:45', statusHoy: 'tarde',     turnos: ['M','M','T','T','M','M','L'], extra: 10, tard: 3 },
+    { id: 4,  ini: 'OC', nombre: 'Oriol Camps',      area: 'Cocina',   email: 'oriol.camps@vora.demo',     tel: '611 234 004', alta: '2021-06-10', horas: 160, obj: 160, entrada: '08:45', salida: '16:50', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 0 },
+    { id: 5,  ini: 'NV', nombre: 'Nuria Vidal',      area: 'Barra',    email: 'nuria.vidal@vora.demo',     tel: '611 234 005', alta: '2023-09-05', horas: 140, obj: 160, entrada: null,    salida: null,    statusHoy: 'sinfichar', turnos: ['M','M','M','M','M','L','M'], extra: 0,  tard: 1 },
+    { id: 6,  ini: 'PR', nombre: 'Pol Reixach',      area: 'Sala',     email: 'pol.reixach@vora.demo',     tel: '611 234 006', alta: '2020-02-18', horas: 168, obj: 160, entrada: '08:59', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','T','T','M','L','L'], extra: 8,  tard: 0 },
+    { id: 7,  ini: 'BC', nombre: 'Berta Casals',     area: 'Sala',     email: 'berta.casals@vora.demo',    tel: '611 234 007', alta: '2019-05-01', horas: 0,   obj: 160, entrada: null,    salida: null,    statusHoy: 'baja',      turnos: ['B','B','B','B','B','B','B'], extra: 0,  tard: 0 },
+    { id: 8,  ini: 'JB', nombre: 'Jordi Bonet',      area: 'Cocina',   email: 'jordi.bonet@vora.demo',     tel: '611 234 008', alta: '2022-07-22', horas: 175, obj: 160, entrada: '08:50', salida: '18:10', statusHoy: 'ok',        turnos: ['M','M','M','M','M','T','L'], extra: 15, tard: 1 },
+    { id: 9,  ini: 'AR', nombre: 'Anna Roig',        area: 'Soporte',  email: 'anna.roig@vora.demo',       tel: '611 234 009', alta: '2023-01-11', horas: 160, obj: 160, entrada: '09:00', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 0 },
+    { id: 10, ini: 'MV', nombre: 'Marc Vila',        area: 'Cocina',   email: 'marc.vila@vora.demo',       tel: '611 234 010', alta: '2024-04-09', horas: 150, obj: 160, entrada: '09:20', salida: '17:15', statusHoy: 'tarde',     turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 4 },
+    { id: 11, ini: 'CS', nombre: 'Clara Serra',      area: 'Barra',    email: 'clara.serra@vora.demo',     tel: '611 234 011', alta: '2021-12-01', horas: 165, obj: 160, entrada: '08:55', salida: '17:05', statusHoy: 'ok',        turnos: ['T','T','T','T','T','T','L'], extra: 5,  tard: 0 },
+    { id: 12, ini: 'TP', nombre: 'Toni Prat',        area: 'Sala',     email: 'toni.prat@vora.demo',       tel: '611 234 012', alta: '2020-08-15', horas: 0,   obj: 160, entrada: null,    salida: null,    statusHoy: 'vacaciones',turnos: ['V','V','V','V','V','V','V'], extra: 0,  tard: 0 },
+    { id: 13, ini: 'EM', nombre: 'Elena Marti',      area: 'Cocina',   email: 'elena.marti@vora.demo',     tel: '611 234 013', alta: '2022-03-03', horas: 172, obj: 160, entrada: '08:40', salida: '17:50', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 12, tard: 0 },
+    { id: 14, ini: 'FC', nombre: 'Ferran Costa',     area: 'Soporte',  email: 'ferran.costa@vora.demo',    tel: '611 234 014', alta: '2023-05-25', horas: 158, obj: 160, entrada: '09:05', salida: '17:00', statusHoy: 'tarde',     turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 2 },
+    { id: 15, ini: 'JA', nombre: 'Judit Amat',       area: 'Barra',    email: 'judit.amat@vora.demo',      tel: '611 234 015', alta: '2024-02-14', horas: 140, obj: 160, entrada: '09:00', salida: null,    statusHoy: 'pendiente', turnos: ['T','T','T','T','T','L','L'], extra: 0,  tard: 1 },
+    { id: 16, ini: 'SF', nombre: 'Sergi Font',       area: 'Sala',     email: 'sergi.font@vora.demo',      tel: '611 234 016', alta: '2021-10-10', horas: 180, obj: 160, entrada: '08:30', salida: '18:00', statusHoy: 'ok',        turnos: ['M','M','M','N','M','L','L'], extra: 20, tard: 0 },
+    { id: 17, ini: 'MzP', nombre: 'Meritxell Puig',  area: 'Cocina',   email: 'meritxell.puig@vora.demo',  tel: '611 234 017', alta: '2023-07-19', horas: 160, obj: 160, entrada: '09:00', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 0 },
+    { id: 18, ini: 'XP', nombre: 'Xavier Pons',      area: 'Barra',    email: 'xavier.pons@vora.demo',     tel: '611 234 018', alta: '2022-09-09', horas: 155, obj: 160, entrada: '09:18', salida: '17:20', statusHoy: 'tarde',     turnos: ['T','T','T','T','T','L','L'], extra: 0,  tard: 5 },
+    { id: 19, ini: 'AlR', nombre: 'Alba Rius',       area: 'Sala',     email: 'alba.rius@vora.demo',       tel: '611 234 019', alta: '2024-06-01', horas: 145, obj: 160, entrada: '09:02', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 1 },
+    { id: 20, ini: 'RS', nombre: 'Ramon Sole',       area: 'Cocina',   email: 'ramon.sole@vora.demo',      tel: '611 234 020', alta: '2019-11-11', horas: 165, obj: 160, entrada: '08:45', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 6,  tard: 0 },
+    { id: 21, ini: 'CD', nombre: 'Carla Domenech',   area: 'Soporte',  email: 'carla.domenech@vora.demo',  tel: '611 234 021', alta: '2023-08-08', horas: 160, obj: 160, entrada: '09:00', salida: '17:00', statusHoy: 'ok',        turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 0 },
+    { id: 22, ini: 'BV', nombre: 'Bernat Vidal',     area: 'Barra',    email: 'bernat.vidal@vora.demo',    tel: '611 234 022', alta: '2021-04-04', horas: 168, obj: 160, entrada: '08:50', salida: '17:10', statusHoy: 'ok',        turnos: ['T','T','T','T','T','L','L'], extra: 8,  tard: 0 },
+    { id: 23, ini: 'IC', nombre: 'Irene Callis',     area: 'Sala',     email: 'irene.callis@vora.demo',    tel: '611 234 023', alta: '2022-12-12', horas: 150, obj: 160, entrada: '09:10', salida: '17:00', statusHoy: 'tarde',     turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 3 },
+    { id: 24, ini: 'MG', nombre: 'Marti Grau',       area: 'Cocina',   email: 'marti.grau@vora.demo',      tel: '611 234 024', alta: '2024-03-03', horas: 130, obj: 160, entrada: null,    salida: null,    statusHoy: 'sinfichar', turnos: ['M','M','M','M','M','L','L'], extra: 0,  tard: 2 }
+  ];
+
+  var INCIDENTS = [
+    { id: 1, tipo: 'ausencia',  titulo: 'Nuria Vidal no ha fichado hoy',              desc: 'Turno de manana en Barra empezaba a las 09:00 y no hay registro de entrada.',            empId: 5,  fecha: 'Hoy · 09:15', estado: 'abierta',   prioridad: 'alta' },
+    { id: 2, tipo: 'dispositivo', titulo: 'Kiosco Almacen sin conexion',              desc: 'El terminal NFC del almacen lleva mas de 3 horas sin sincronizar fichajes.',                empId: null, fecha: 'Hoy · 06:40', estado: 'abierta',   prioridad: 'alta' },
+    { id: 3, tipo: 'baja',      titulo: 'Berta Casals continua de baja',              desc: 'Sin fecha de reincorporacion registrada. Revisar parte medico con RRHH.',                    empId: 7,  fecha: 'Hace 6 dias', estado: 'revision',  prioridad: 'media' },
+    { id: 4, tipo: 'cobertura', titulo: 'Turno de manana del domingo con 1 persona',  desc: 'Solo Nuria Vidal cubre la manana del domingo. Considera reforzar el equipo de Barra.',       empId: null, fecha: 'Hoy',         estado: 'revision',  prioridad: 'baja' },
+    { id: 5, tipo: 'retraso',   titulo: 'Xavier Pons acumula 5 retrasos este mes',    desc: 'Media de 14 minutos de retraso en la entrada de Barra durante agosto.',                     empId: 18, fecha: 'Hace 2 dias', estado: 'resuelta',  prioridad: 'media' }
+  ];
+
+  var DEVICES = [
+    { id: 1, nombre: 'Entrada Principal', ubicacion: 'Puerta de sala', online: true,  bateria: 92, ultima: 'hace 2 min' },
+    { id: 2, nombre: 'Cocina',            ubicacion: 'Pasillo de cocina', online: true,  bateria: 78, ultima: 'hace 4 min' },
+    { id: 3, nombre: 'Almacen',           ubicacion: 'Zona de carga',    online: false, bateria: 41, ultima: 'hace 3h 12min' },
+    { id: 4, nombre: 'Terraza',           ubicacion: 'Acceso exterior',  online: true,  bateria: 55, ultima: 'hace 6 min' }
+  ];
+
+  var AREA_CLASS = { Cocina: 'cocina', Sala: 'sala', Barra: 'barra', Soporte: 'soporte' };
+  var AREA_COLOR = { Cocina: 'var(--brand)', Sala: 'var(--info)', Barra: 'var(--success-strong)', Soporte: 'var(--warning-strong)' };
+  var STATUS_LABEL = { ok: 'A tiempo', tarde: 'Tarde', pendiente: 'En curso', sinfichar: 'Sin fichar', baja: 'De baja', vacaciones: 'Vacaciones' };
+  var STATUS_BADGE = { ok: 'badge-ok', tarde: 'badge-late', pendiente: 'badge-pending', sinfichar: 'badge-incident', baja: 'badge-on-leave', vacaciones: 'badge-on-leave' };
+  var SHIFT_LABEL = { M: 'Manana', T: 'Tarde', N: 'Noche', L: 'Libranza', V: 'Vacaciones', B: 'Baja' };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function avatarClass(area) { return 'emp-avatar--' + AREA_CLASS[area]; }
+  function horas(v) { return v == null ? '—' : v + 'h'; }
+
+  function calcHoras(entrada, salida) {
+    if (!entrada || !salida) return '—';
+    var a = entrada.split(':').map(Number), b = salida.split(':').map(Number);
+    var min = (b[0] * 60 + b[1]) - (a[0] * 60 + a[1]);
+    if (min < 0) return '—';
+    return Math.floor(min / 60) + 'h ' + String(min % 60).padStart(2, '0') + 'm';
+  }
+
+  /* ==========================================================================
+     2. TOASTS
+     ========================================================================== */
+
+  function showToast(msg, type) {
+    var container = document.getElementById('toast-container');
+    var el = document.createElement('div');
+    el.className = 'toast toast-' + (type || 'info');
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(function () {
+      el.classList.add('toast-out');
+      setTimeout(function () { el.remove(); }, 320);
+    }, 3200);
+  }
+
+  /* ==========================================================================
+     3. DASHBOARD — KPIs calculados en vivo a partir de EMPLOYEES, no cifras
+     fijas en el HTML, para que nunca se desincronicen con el resto de vistas.
+     ========================================================================== */
+
+  var SPARK_PATHS = {
+    brand:   'M0,20 L14,17 L28,19 L42,10 L56,13 L70,6 L84,9 L98,2',
+    success: 'M0,16 L14,14 L28,16 L42,9 L56,11 L70,5 L84,7 L98,3',
+    danger:  'M0,4 L14,8 L28,6 L42,12 L56,9 L70,15 L84,11 L98,17',
+    info:    'M0,18 L14,15 L28,10 L42,12 L56,7 L70,9 L84,4 L98,6'
+  };
+
+  function sparkline(color) {
+    return '<svg class="kpi-spark" viewBox="0 0 98 24" preserveAspectRatio="none">' +
+      '<path d="' + SPARK_PATHS[color] + '" fill="none" stroke="var(--' + color + (color === 'success' ? '-strong' : '') + ')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>';
+  }
+
+  function renderKpis() {
+    var activos = EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; }).length;
+    var fichados = EMPLOYEES.filter(function (e) { return e.statusHoy === 'ok' || e.statusHoy === 'tarde' || e.statusHoy === 'pendiente'; }).length;
+    var incAbiertas = INCIDENTS.filter(function (i) { return i.estado !== 'resuelta'; }).length;
+    var horasSemana = Math.round(EMPLOYEES.reduce(function (s, e) { return s + e.horas; }, 0) / 4.33);
+    var mediaEmp = (horasSemana / EMPLOYEES.length).toFixed(1);
+
+    var cards = [
+      { icon: 'brand',   spark: 'brand',   label: 'Plantilla total',    value: EMPLOYEES.length, delta: activos + ' activos hoy', deltaClass: 't-muted',
+        path: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+      { icon: 'success', spark: 'success', label: 'Fichajes hoy',       value: fichados + ' <span class="t-caption t-muted">/ ' + EMPLOYEES.length + '</span>', delta: Math.round(fichados / EMPLOYEES.length * 100) + '% de la plantilla', deltaClass: 't-muted',
+        path: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' },
+      { icon: 'danger',  spark: 'danger',  label: 'Incidencias abiertas', value: incAbiertas, delta: incAbiertas > 0 ? 'requieren revision' : 'todo en orden', deltaClass: incAbiertas > 0 ? 't-danger' : 't-success',
+        path: '<path d="M10.3 3.9 2.6 18.1a1.6 1.6 0 0 0 1.4 2.4h16a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z"/><path d="M12 9.5v4M12 16.8v.1"/>' },
+      { icon: 'info',    spark: 'info',    label: 'Horas esta semana',  value: horasSemana + '<span class="t-caption t-muted">h</span>', delta: 'Media ' + mediaEmp + 'h/empleado', deltaClass: 't-muted',
+        path: '<path d="M3 21V9M10 21V3M17 21v-7"/>' }
+    ];
+
+    document.getElementById('kpi-grid').innerHTML = cards.map(function (c) {
+      return '<article class="card card-pad kpi-card">' +
+        '<div class="kpi-top">' +
+          '<div class="kpi-icon kpi-icon--' + c.icon + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + c.path + '</svg></div>' +
+          '<div><p class="t-label">' + c.label + '</p><p class="kpi-value tabular">' + c.value + '</p><p class="t-caption ' + c.deltaClass + ' kpi-delta">' + c.delta + '</p></div>' +
+        '</div>' + sparkline(c.spark) +
+      '</article>';
+    }).join('');
+  }
+
+  var ALERTS = [
+    { icon: 'danger',  titulo: 'Nuria Vidal no ha fichado hoy', sub: 'Barra · turno de manana empezaba a las 09:00', path: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>' },
+    { icon: 'warning', titulo: 'Berta Casals sigue de baja', sub: 'Sala · sin fecha de reincorporacion registrada', path: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>' },
+    { icon: 'danger',  titulo: 'Kiosco Almacen sin conexion', sub: 'Desconectado hace 3h 12min — revisar en Ajustes › NFC', path: '<rect x="2" y="7" width="16" height="13" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/>' },
+    { icon: 'info',    titulo: 'Turno de manana del domingo con 1 sola persona', sub: 'Considera reforzar la cobertura del domingo', path: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' }
+  ];
+
+  function renderAlerts() {
+    document.getElementById('dash-alert-count').textContent = ALERTS.length;
+    document.getElementById('dash-alerts').innerHTML = ALERTS.map(function (a) {
+      return '<div class="alert-item"><div class="alert-icon alert-icon--' + a.icon + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + a.path + '</svg></div>' +
+        '<div><p class="alert-title">' + esc(a.titulo) + '</p><p class="alert-sub">' + esc(a.sub) + '</p></div></div>';
+    }).join('');
+  }
+
+  function renderDashToday() {
+    var rows = EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; }).slice(0, 6);
+    document.getElementById('dash-today-tbody').innerHTML = rows.map(function (e) {
+      return '<tr><td><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span>' + esc(e.nombre) + '</div></td>' +
+        '<td class="tabular">' + (e.entrada || '—') + '</td>' +
+        '<td class="tabular">' + (e.salida || '—') + '</td>' +
+        '<td class="tabular">' + calcHoras(e.entrada, e.salida) + '</td>' +
+        '<td><span class="badge ' + STATUS_BADGE[e.statusHoy] + '">' + STATUS_LABEL[e.statusHoy] + '</span></td></tr>';
+    }).join('');
+  }
+
+  function renderDashCalendar() {
+    var counts = [
+      { m: 4, t: 3, n: 0 }, { m: 4, t: 3, n: 0 }, { m: 5, t: 2, n: 0 }, { m: 4, t: 3, n: 1 },
+      { m: 4, t: 4, n: 0 }, { m: 2, t: 0, n: 0 }, { m: 1, t: 0, n: 0 }
+    ];
+    var nums = [3, 4, 5, 6, 7, 8, 9];
+    document.getElementById('dash-calendar').innerHTML = DIAS.map(function (d, i) {
+      var c = counts[i];
+      var chips = '<span class="shift-chip shift-chip--morning">Manana · ' + c.m + '</span>';
+      if (c.t) chips += '<span class="shift-chip shift-chip--afternoon">Tarde · ' + c.t + '</span>';
+      if (c.n) chips += '<span class="shift-chip shift-chip--night">Noche · ' + c.n + '</span>';
+      var today = i === 6;
+      return '<div class="calendar-day' + (today ? ' is-today' : '') + '"><div class="calendar-day-head"><p class="t-label' + (today ? ' t-brand' : '') + '">' + d + '</p><p class="calendar-day-num">' + nums[i] + '</p></div>' + chips + '</div>';
+    }).join('');
+  }
+
+  /* ==========================================================================
+     4. EMPLEADOS — tabla y tarjetas comparten el mismo filtro.
+     ========================================================================== */
+
+  var empViewMode = 'tabla';
+
+  function renderEmpleados(query, area) {
+    var q = (query || '').toLowerCase().trim();
+    var list = EMPLOYEES.filter(function (e) {
+      var matchQ = !q || e.nombre.toLowerCase().indexOf(q) !== -1;
+      var matchA = !area || area === 'todos' || e.area === area;
+      return matchQ && matchA;
+    });
+
+    document.getElementById('emp-count-label').textContent = list.length + ' de ' + EMPLOYEES.length + ' personas en plantilla';
+    document.getElementById('nav-emp-count').textContent = EMPLOYEES.length;
+
+    if (!list.length) {
+      var empty = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><h4>Sin resultados</h4><p>Ningun empleado coincide con esa busqueda o filtro.</p></div>';
+      document.getElementById('emp-tbody').innerHTML = '<tr><td colspan="7" style="padding:0;">' + empty + '</td></tr>';
+      document.getElementById('emp-view-tarjetas').innerHTML = empty;
+      return;
+    }
+
+    document.getElementById('emp-tbody').innerHTML = list.map(function (e) {
+      var overClass = e.horas >= e.obj ? 'is-over' : '';
+      var pct = Math.min(100, Math.round(e.horas / e.obj * 100));
+      return '<tr>' +
+        '<td><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span><div class="emp-name-wrap"><span class="emp-name">' + esc(e.nombre) + '</span><span class="emp-sub">Desde ' + e.alta + '</span></div></div></td>' +
+        '<td><span class="dept-tag dept-' + AREA_CLASS[e.area] + '"><span class="dot" style="background:currentColor;"></span>' + e.area + '</span></td>' +
+        '<td><span class="t-caption t-muted">' + esc(e.email) + '</span></td>' +
+        '<td class="tabular">' + e.alta + '</td>' +
+        '<td><div class="hbar-wrap"><span class="tabular t-caption">' + e.horas + 'h</span><div class="hbar"><span class="' + overClass + '" style="width:' + pct + '%;"></span></div></div></td>' +
+        '<td><span class="badge ' + STATUS_BADGE[e.statusHoy] + '">' + STATUS_LABEL[e.statusHoy] + '</span></td>' +
+        '<td class="cell-actions"><button class="btn btn-icon btn-ghost btn-sm" aria-label="Editar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></td>' +
+      '</tr>';
+    }).join('');
+
+    document.getElementById('emp-view-tarjetas').innerHTML = list.map(function (e) {
+      return '<article class="card emp-tile">' +
+        '<div class="emp-tile-head"><span class="emp-avatar emp-avatar--lg ' + avatarClass(e.area) + '">' + e.ini + '</span>' +
+          '<div><p class="emp-tile-name">' + esc(e.nombre) + '</p><span class="dept-tag dept-' + AREA_CLASS[e.area] + '"><span class="dot" style="background:currentColor;"></span>' + e.area + '</span></div></div>' +
+        '<div class="emp-tile-contact">' +
+          '<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg><span>' + esc(e.email) + '</span></div>' +
+          '<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .7 3a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.2-1.3a2 2 0 0 1 2.1-.5c1 .4 2 .6 3 .7a2 2 0 0 1 1.7 2Z"/></svg><span>' + e.tel + '</span></div>' +
+        '</div>' +
+        '<div class="emp-tile-foot"><span class="badge ' + STATUS_BADGE[e.statusHoy] + '">' + STATUS_LABEL[e.statusHoy] + '</span><span class="t-caption t-muted tabular">' + e.horas + 'h / ' + e.obj + 'h</span></div>' +
+      '</article>';
+    }).join('');
+  }
+
+  /* ==========================================================================
+     5. FICHAJES — timeline generada a partir de entrada/salida de hoy.
+     ========================================================================== */
+
+  function renderFichajes(filter) {
+    var counts = { all: EMPLOYEES.length, ok: 0, tarde: 0, pendiente: 0, sinfichar: 0 };
+    EMPLOYEES.forEach(function (e) { if (counts[e.statusHoy] !== undefined) counts[e.statusHoy]++; });
+    Object.keys(counts).forEach(function (k) { var el = document.getElementById('cnt-' + k); if (el) el.textContent = counts[k]; });
+
+    var relevant = EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; });
+    var list = filter === 'all' ? relevant : relevant.filter(function (e) { return e.statusHoy === filter; });
+    list = list.slice().sort(function (a, b) { return (a.entrada || '99:99').localeCompare(b.entrada || '99:99'); });
+
+    if (!list.length) {
+      document.getElementById('fichaje-timeline').innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><h4>Nada que mostrar</h4><p>No hay fichajes que coincidan con este filtro hoy.</p></div>';
+      return;
+    }
+
+    document.getElementById('fichaje-timeline').innerHTML = list.map(function (e) {
+      var items = '';
+      if (e.entrada) {
+        items += '<div class="timeline-item"><div class="timeline-dot timeline-dot--in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>' +
+          '<div class="timeline-row"><div class="timeline-meta"><span class="timeline-time">' + e.entrada + '</span><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span><span class="emp-name">' + esc(e.nombre) + ' — entrada</span></div></div><span class="timeline-device">Terminal · ' + e.area + '</span></div></div>';
+      }
+      if (e.salida) {
+        items += '<div class="timeline-item"><div class="timeline-dot timeline-dot--out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>' +
+          '<div class="timeline-row"><div class="timeline-meta"><span class="timeline-time">' + e.salida + '</span><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span><span class="emp-name">' + esc(e.nombre) + ' — salida</span></div></div><span class="timeline-device">' + calcHoras(e.entrada, e.salida) + '</span></div></div>';
+      } else if (e.entrada) {
+        items += '<div class="timeline-item"><div class="timeline-dot timeline-dot--wait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>' +
+          '<div class="timeline-row"><div class="timeline-meta"><span class="timeline-time">ahora</span><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span><span class="emp-name">' + esc(e.nombre) + ' sigue en turno</span></div></div></div></div>';
+      } else {
+        items += '<div class="timeline-item"><div class="timeline-dot timeline-dot--off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></div>' +
+          '<div class="timeline-row"><div class="timeline-meta"><span class="timeline-time">—</span><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span><span class="emp-name">' + esc(e.nombre) + ' sin fichar</span></div></div></div></div>';
+      }
+      return items;
+    }).join('');
+  }
+
+  /* ==========================================================================
+     6. TURNOS — tabla semanal generada por area.
+     ========================================================================== */
+
+  function renderTurnos(area) {
+    var list = EMPLOYEES.filter(function (e) { return !area || area === 'todos' || e.area === area; });
+    document.getElementById('turnos-tbody').innerHTML = list.map(function (e) {
+      var cells = e.turnos.map(function (code) {
+        return '<td class="shift-cell"><span class="shift-abbr shift-abbr--' + code.toLowerCase() + '" title="' + SHIFT_LABEL[code] + '">' + code + '</span></td>';
+      }).join('');
+      return '<tr><td><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span>' + esc(e.nombre) + '</div></td>' + cells + '</tr>';
+    }).join('');
+  }
+
+  /* ==========================================================================
+     7. REPORTES — anillos de progreso, donut de plantilla, rankings y el
+     mapa de asistencia (heatmap tipo "contribuciones", 24 x 21 celdas).
+     ========================================================================== */
+
+  function renderRings() {
+    var total = EMPLOYEES.length;
+    var puntual = EMPLOYEES.filter(function (e) { return e.tard === 0 && e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; }).length;
+    var pctPuntual = Math.round(puntual / total * 100);
+    var ausentes = EMPLOYEES.filter(function (e) { return e.statusHoy === 'baja' || e.statusHoy === 'sinfichar'; }).length;
+    var pctAusentismo = Math.round(ausentes / total * 100);
+    var cobertura = Math.round(EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja'; }).length / total * 100);
+
+    var rings = [
+      { label: 'Puntualidad del mes', val: pctPuntual, color: 'var(--success)', sub: puntual + ' de ' + total + ' sin retrasos' },
+      { label: 'Absentismo del mes',  val: pctAusentismo, color: 'var(--danger)', sub: ausentes + ' ausencias sin planificar' },
+      { label: 'Cobertura de turnos', val: cobertura, color: 'var(--brand)', sub: 'plantilla disponible esta semana' }
+    ];
+
+    var r = 30, c = 2 * Math.PI * r;
+    document.getElementById('reportes-rings').innerHTML = rings.map(function (rg) {
+      var offset = c - (c * rg.val / 100);
+      return '<article class="card card-pad ring-card">' +
+        '<svg viewBox="0 0 72 72"><circle class="ring-track" cx="36" cy="36" r="' + r + '"/>' +
+        '<circle class="ring-value" cx="36" cy="36" r="' + r + '" stroke="' + rg.color + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + offset + '" transform="rotate(-90 36 36)"/>' +
+        '<text x="36" y="41" text-anchor="middle" class="ring-label-num">' + rg.val + '%</text></svg>' +
+        '<div><p class="t-label">' + rg.label + '</p><p class="t-caption t-muted mt-2">' + rg.sub + '</p></div>' +
+      '</article>';
+    }).join('');
+  }
+
+  function renderDonut(targetId) {
+    targetId = targetId || 'reportes-donut';
+    var byArea = {};
+    EMPLOYEES.forEach(function (e) { byArea[e.area] = (byArea[e.area] || 0) + 1; });
+    var areas = Object.keys(byArea);
+    var total = EMPLOYEES.length;
+    var r = 60, c = 2 * Math.PI * r, offset = 0;
+    var segs = areas.map(function (a) {
+      var pct = byArea[a] / total;
+      var len = c * pct;
+      var seg = '<circle cx="80" cy="80" r="' + r + '" fill="none" stroke="' + AREA_COLOR[a] + '" stroke-width="18" stroke-dasharray="' + len + ' ' + (c - len) + '" stroke-dashoffset="' + (-offset) + '" transform="rotate(-90 80 80)"/>';
+      offset += len;
+      return seg;
+    }).join('');
+
+    var svg = '<svg viewBox="0 0 160 160">' + segs + '<circle cx="80" cy="80" r="38" fill="var(--bg-surface)"/><text x="80" y="76" text-anchor="middle" class="ring-label-num">' + total + '</text><text x="80" y="92" text-anchor="middle" class="chart-axis-label">empleados</text></svg>';
+
+    var legend = areas.map(function (a) {
+      return '<div class="donut-legend-item"><span class="flex items-center gap-2"><span class="dot" style="background:' + AREA_COLOR[a] + ';width:9px;height:9px;"></span>' + a + '</span><span class="tabular t-muted">' + byArea[a] + '</span></div>';
+    }).join('');
+
+    document.getElementById(targetId).innerHTML = svg + '<div class="donut-legend">' + legend + '</div>';
+  }
+
+  function renderWeekProgress() {
+    var activos = EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; });
+    var horasSemana = Math.round(EMPLOYEES.reduce(function (s, e) { return s + e.horas; }, 0) / 4.33);
+    var objetivoSemana = Math.round(activos.reduce(function (s, e) { return s + e.obj; }, 0) / 4.33);
+    var pct = Math.min(100, Math.round(horasSemana / objetivoSemana * 100));
+
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-sub').textContent = horasSemana + 'h de ' + objetivoSemana + 'h objetivo esta semana';
+
+    var fill = document.getElementById('progress-fill');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { fill.style.width = pct + '%'; });
+    });
+  }
+
+  function renderRanks() {
+    var byExtra = EMPLOYEES.filter(function (e) { return e.extra > 0; }).slice().sort(function (a, b) { return b.extra - a.extra; }).slice(0, 5);
+    var maxExtra = byExtra.length ? byExtra[0].extra : 1;
+    document.getElementById('rank-extra').innerHTML = byExtra.map(function (e, i) {
+      return '<div class="rank-item"><span class="rank-pos">' + (i + 1) + '</span>' +
+        '<span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span>' +
+        '<div class="rank-bar-wrap"><span class="t-caption">' + esc(e.nombre) + '</span><div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + (e.extra / maxExtra * 100) + '%;background:var(--brand);"></div></div></div>' +
+        '<span class="rank-val">+' + e.extra + 'h</span></div>';
+    }).join('');
+
+    var byTard = EMPLOYEES.filter(function (e) { return e.tard > 0; }).slice().sort(function (a, b) { return b.tard - a.tard; }).slice(0, 5);
+    var maxTard = byTard.length ? byTard[0].tard : 1;
+    document.getElementById('rank-tarde').innerHTML = byTard.map(function (e, i) {
+      return '<div class="rank-item"><span class="rank-pos">' + (i + 1) + '</span>' +
+        '<span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span>' +
+        '<div class="rank-bar-wrap"><span class="t-caption">' + esc(e.nombre) + '</span><div class="rank-bar-track"><div class="rank-bar-fill" style="width:' + (e.tard / maxTard * 100) + '%;background:var(--danger);"></div></div></div>' +
+        '<span class="rank-val">' + e.tard + '×</span></div>';
+    }).join('');
+  }
+
+  function seededLevel(seed) {
+    var x = Math.sin(seed) * 10000;
+    var frac = x - Math.floor(x);
+    if (frac > 0.94) return 1;
+    if (frac > 0.86) return 2;
+    if (frac > 0.30) return 4;
+    return 3;
+  }
+
+  function renderHeatmap() {
+    var days = 21;
+    var rows = EMPLOYEES.map(function (e) {
+      var cells;
+      if (e.statusHoy === 'baja') {
+        cells = new Array(days).fill(0).map(function () { return '<span class="heatmap-cell" data-lvl="1"></span>'; }).join('');
+      } else if (e.statusHoy === 'vacaciones') {
+        cells = new Array(days).fill(0).map(function () { return '<span class="heatmap-cell" data-lvl="5"></span>'; }).join('');
+      } else {
+        cells = new Array(days).fill(0).map(function (_, d) {
+          var isWeekend = d % 7 >= 5;
+          var lvl = isWeekend ? (seededLevel(e.id * 3.1 + d) === 4 ? 5 : 4) : seededLevel(e.id * 1.7 + d * 2.3);
+          return '<span class="heatmap-cell" data-lvl="' + lvl + '"></span>';
+        }).join('');
+      }
+      return '<div class="heatmap-row"><span class="heatmap-name">' + esc(e.nombre) + '</span><div class="heatmap-cells">' + cells + '</div></div>';
+    }).join('');
+    document.getElementById('heatmap').innerHTML = rows;
+  }
+
+  /* ==========================================================================
+     8. INCIDENCIAS
+     ========================================================================== */
+
+  var INCIDENT_ICON = {
+    ausencia: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
+    dispositivo: '<rect x="2" y="7" width="16" height="13" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/>',
+    baja: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
+    cobertura: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+    retraso: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>'
+  };
+  var INCIDENT_ESTADO_LABEL = { abierta: 'Abierta', revision: 'En revision', resuelta: 'Resuelta' };
+  var INCIDENT_ESTADO_BADGE = { abierta: 'badge-incident', revision: 'badge-review', resuelta: 'badge-ok' };
+  var incidentTab = 'todas';
+
+  function renderIncidencias() {
+    var abiertas = INCIDENTS.filter(function (i) { return i.estado !== 'resuelta'; }).length;
+    document.getElementById('nav-incident-count').textContent = abiertas;
+    document.getElementById('incident-summary').textContent = INCIDENTS.length + ' incidencias registradas · ' + abiertas + ' sin resolver';
+
+    var list = incidentTab === 'todas' ? INCIDENTS : INCIDENTS.filter(function (i) { return i.estado === incidentTab; });
+
+    if (!list.length) {
+      document.getElementById('incident-list').innerHTML = '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div><h4>Nada por aqui</h4><p>No hay incidencias en este filtro.</p></div>';
+      return;
+    }
+
+    document.getElementById('incident-list').innerHTML = list.map(function (inc) {
+      var emp = EMPLOYEES.filter(function (e) { return e.id === inc.empId; })[0];
+      var resolved = inc.estado === 'resuelta';
+      return '<article class="card incident-card' + (resolved ? ' is-resolved' : '') + '">' +
+        '<div class="incident-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + INCIDENT_ICON[inc.tipo] + '</svg></div>' +
+        '<div class="incident-body"><div class="incident-top"><p class="incident-title">' + esc(inc.titulo) + '</p><span class="badge ' + INCIDENT_ESTADO_BADGE[inc.estado] + '">' + INCIDENT_ESTADO_LABEL[inc.estado] + '</span></div>' +
+        '<p class="incident-desc">' + esc(inc.desc) + '</p>' +
+        '<div class="incident-meta"><span>' + inc.fecha + '</span>' + (emp ? '<span>' + esc(emp.nombre) + ' · ' + emp.area + '</span>' : '') + '</div>' +
+        (resolved ? '' : '<div class="incident-actions"><button class="btn btn-secondary btn-sm">Ver detalle</button><button class="btn btn-primary btn-sm" data-resolve="' + inc.id + '">Marcar resuelta</button></div>') +
+        '</div></article>';
+    }).join('');
+  }
+
+  /* ==========================================================================
+     9. AJUSTES — dispositivos NFC
+     ========================================================================== */
+
+  function renderDevices() {
+    document.getElementById('device-list').innerHTML = DEVICES.map(function (d) {
+      var bars = '';
+      for (var i = 1; i <= 4; i++) bars += '<i class="' + (d.online && i <= Math.ceil(d.bateria / 25) ? 'on' : '') + '"></i>';
+      return '<div class="device-card">' +
+        '<div class="device-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="13" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2"/></svg></div>' +
+        '<div class="device-info"><p class="device-name">' + d.nombre + '</p><p class="device-meta">' + d.ubicacion + ' · ' + (d.online ? 'activo ' + d.ultima : 'desconectado ' + d.ultima) + '</p></div>' +
+        '<div class="device-signal is-' + (d.online ? 'on' : 'off') + '">' + bars + '</div>' +
+        '<span class="presence' + (d.online ? '' : ' is-offline') + '"><span class="dot"></span>' + (d.online ? 'Online' : 'Offline') + '</span>' +
+        '<button class="btn btn-icon btn-ghost btn-sm" aria-label="Configurar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ==========================================================================
+     10. FECHA DEL DASHBOARD
+     ========================================================================== */
+
+  function renderDate() {
+    var d = new Date();
+    var fmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+    document.getElementById('dash-date').textContent = fmt.charAt(0).toUpperCase() + fmt.slice(1);
+  }
+
+  /* ==========================================================================
+     11. NAVEGACION ENTRE VISTAS — con skeleton de carga la primera vez.
+     ========================================================================== */
+
+  var SKELETON_HTML = '<div class="view-skeleton">' +
+    '<div class="skeleton skeleton-line skeleton-w-40" style="height:22px;"></div>' +
+    '<div class="card card-pad">' +
+      '<div class="skel-row"><div class="skeleton skel-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line skeleton-w-60"></div><div class="skeleton skeleton-line skeleton-w-40"></div></div></div>' +
+      '<div class="skel-row"><div class="skeleton skel-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line skeleton-w-80"></div><div class="skeleton skeleton-line skeleton-w-40"></div></div></div>' +
+      '<div class="skel-row"><div class="skeleton skel-avatar"></div><div style="flex:1;"><div class="skeleton skeleton-line skeleton-w-60"></div><div class="skeleton skeleton-line skeleton-w-40"></div></div></div>' +
+    '</div></div>';
+
+  var viewLoaded = { dashboard: true };
+
+  var VIEW_RENDERERS = {
+    empleados:   function () { renderEmpleados('', 'todos'); },
+    fichajes:    function () { renderFichajes('all'); },
+    turnos:      function () { renderTurnos('todos'); },
+    reportes:    function () { renderRings(); renderDonut(); renderRanks(); renderHeatmap(); },
+    incidencias: function () { renderIncidencias(); },
+    ajustes:     function () { renderDevices(); }
+  };
+
+  function switchView(name) {
+    document.querySelectorAll('.view').forEach(function (v) {
+      v.classList.toggle('is-active', v.getAttribute('data-view') === name);
+    });
+    document.querySelectorAll('#nav-list .nav-item').forEach(function (btn) {
+      var active = btn.getAttribute('data-view') === name;
+      btn.classList.toggle('active', active);
+      if (active) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+    });
+
+    if (!viewLoaded[name]) {
+      var section = document.getElementById('view-' + name);
+      var real = section.innerHTML;
+      section.innerHTML = section.querySelector('.page-head').outerHTML + SKELETON_HTML;
+      setTimeout(function () {
+        section.innerHTML = real;
+        if (VIEW_RENDERERS[name]) VIEW_RENDERERS[name]();
+        attachViewHandlers(name);
+      }, 380);
+      viewLoaded[name] = true;
+    }
+
+    closeSidebar();
+  }
+
+  /* ==========================================================================
+     12. EVENTOS por vista — busqueda, filtros, tabs, formularios.
+     ========================================================================== */
+
+  function attachViewHandlers(name) {
+    if (name === 'empleados') {
+      var search = document.getElementById('emp-search');
+      var areaSel = document.getElementById('emp-filter-area');
+      search.addEventListener('input', function () { renderEmpleados(search.value, areaSel.value); });
+      areaSel.addEventListener('change', function () { renderEmpleados(search.value, areaSel.value); });
+      document.querySelectorAll('#emp-view-toggle button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          empViewMode = btn.getAttribute('data-emp-view');
+          document.querySelectorAll('#emp-view-toggle button').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          document.getElementById('emp-view-tabla').classList.toggle('hidden-view', empViewMode !== 'tabla');
+          document.getElementById('emp-view-tarjetas').classList.toggle('hidden-view', empViewMode !== 'tarjetas');
+        });
+      });
+    }
+
+    if (name === 'fichajes') {
+      document.querySelectorAll('#fichaje-filters .chip-filter').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          document.querySelectorAll('#fichaje-filters .chip-filter').forEach(function (c) { c.classList.remove('active'); });
+          chip.classList.add('active');
+          renderFichajes(chip.getAttribute('data-filter'));
+        });
+      });
+    }
+
+    if (name === 'turnos') {
+      var turnoSel = document.getElementById('turno-filter-area');
+      turnoSel.addEventListener('change', function () { renderTurnos(turnoSel.value); });
+    }
+
+    if (name === 'incidencias') {
+      document.querySelectorAll('#incident-tabs .tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('#incident-tabs .tab').forEach(function (t) { t.classList.remove('active'); });
+          tab.classList.add('active');
+          incidentTab = tab.getAttribute('data-incident-tab');
+          renderIncidencias();
+        });
+      });
+      document.getElementById('incident-list').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-resolve]');
+        if (!btn) return;
+        var id = Number(btn.getAttribute('data-resolve'));
+        var inc = INCIDENTS.filter(function (i) { return i.id === id; })[0];
+        if (inc) {
+          inc.estado = 'resuelta';
+          renderIncidencias();
+          renderKpis();
+          showToast('Incidencia marcada como resuelta', 'success');
+        }
+      });
+    }
+
+    if (name === 'ajustes') {
+      document.querySelectorAll('#settings-tabs .tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          document.querySelectorAll('#settings-tabs .tab').forEach(function (t) { t.classList.remove('active'); });
+          tab.classList.add('active');
+          var target = tab.getAttribute('data-tab');
+          document.querySelectorAll('.tab-panel').forEach(function (p) {
+            p.classList.toggle('active', p.getAttribute('data-panel') === target);
+          });
+        });
+      });
+
+      document.getElementById('form-empresa').addEventListener('submit', function (e) {
+        e.preventDefault();
+        showToast('Datos de la empresa guardados', 'success');
+      });
+
+      document.getElementById('btn-add-device').addEventListener('click', function () {
+        showToast('Pon el terminal en modo emparejamiento y pulsa "Buscar"', 'info');
+      });
+
+      var notifBtn = document.getElementById('btn-save-notif');
+      if (notifBtn) notifBtn.addEventListener('click', function () { showToast('Preferencias de notificaciones guardadas', 'success'); });
+    }
+  }
+
+  /* ==========================================================================
+     13. SIDEBAR MOVIL Y ARRANQUE
+     ========================================================================== */
+
+  var toggle = document.getElementById('sidebar-toggle');
+  var sidebar = document.getElementById('sidebar');
+  var scrim = document.getElementById('sidebar-scrim');
+
+  function closeSidebar() {
+    sidebar.classList.remove('is-open');
+    scrim.classList.add('hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  function openSidebar() {
+    sidebar.classList.add('is-open');
+    scrim.classList.remove('hidden');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  toggle.addEventListener('click', function () {
+    sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+  });
+  scrim.addEventListener('click', closeSidebar);
+  window.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSidebar(); });
+
+  document.querySelectorAll('#nav-list .nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () { switchView(btn.getAttribute('data-view')); });
+  });
+  document.querySelectorAll('[data-goto]').forEach(function (btn) {
+    btn.addEventListener('click', function () { switchView(btn.getAttribute('data-goto')); });
+  });
+
+  renderDate();
+  renderKpis();
+  renderAlerts();
+  renderDashToday();
+  renderDashCalendar();
+  renderDonut('dash-donut');
+  renderWeekProgress();
+  renderIncidencias();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Precios</title>
+<meta name="description" content="Precios de TalentUP Fichaje. Tres planes para hostelería: Starter 29€/mes, Pro 99€/mes, Enterprise 499€/mes. Fichaje NFC, geolocalización, incidencias y exportación.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://talentup.es/pricing.html">
+<link rel="alternate" hreflang="es" href="https://talentup.es/pricing.html">
+<link rel="alternate" hreflang="x-default" href="https://talentup.es/pricing.html">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalentUP Fichaje — Precios">
+<meta property="og:description" content="Tres planes para hostelería. Starter 29€, Pro 99€, Enterprise 499€. Sin permanencia, sin coste de configuración.">
+<meta property="og:url" content="https://talentup.es/pricing.html">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="TalentUP Fichaje">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalentUP Fichaje — Precios">
+<meta name="twitter:description" content="Tres planes para hostelería. Starter 29€, Pro 99€, Enterprise 499€.">
+
+<!-- Design System -->
+<link rel="stylesheet" href="design_system.css">
+
+<style>
+  /* ========================================================================
+     Page-specific layout — Pricing
+     Tokens y componentes base vienen de design_system.css.
+     Aqui solo la composicion de la pagina.
+     ======================================================================== */
+
+  /* Navbar — mismo patron que resto de landing */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-navbar);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 var(--space-8); height: var(--navbar-h);
+    background: rgba(255, 255, 255, 0.80);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+  }
+  .navbar-logo {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-weight: 600; font-size: var(--text-h2);
+    letter-spacing: var(--tracking-normal); color: var(--text-primary);
+  }
+  .navbar-logo svg { display: block; }
+  .navbar-links { display: flex; align-items: center; gap: var(--space-7); }
+  .navbar-links a {
+    font-size: var(--text-caption); font-weight: 500; color: var(--text-secondary);
+    letter-spacing: var(--tracking-caption); transition: color var(--dur-base) var(--ease-out);
+  }
+  .navbar-links a:hover { color: var(--text-primary); }
+  .navbar-links a.active { color: var(--brand); }
+  .navbar-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 34px; padding: 0 var(--space-5);
+    background: var(--brand); color: var(--text-on-brand);
+    font-size: var(--text-caption); font-weight: 600;
+    border-radius: var(--radius-pill); letter-spacing: var(--tracking-caption);
+    transition: background var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .navbar-cta:hover { background: var(--brand-hover); transform: scale(1.02); color: var(--text-on-brand); }
+
+  /* Hero */
+  .pricing-hero {
+    padding: 130px var(--space-6) var(--space-12);
+    text-align: center;
+    background: linear-gradient(180deg, var(--bg-sunken) 0%, var(--bg-app) 100%);
+  }
+  .page-label {
+    font-size: var(--text-caption); font-weight: 600;
+    letter-spacing: var(--tracking-label); text-transform: uppercase;
+    color: var(--brand); margin-bottom: var(--space-3);
+  }
+  .pricing-hero h1 {
+    font-size: var(--text-hero); font-weight: 600;
+    letter-spacing: var(--tracking-tight); line-height: var(--leading-tight);
+    margin-bottom: var(--space-4);
+  }
+  .pricing-hero p {
+    font-size: var(--text-lead); color: var(--text-secondary);
+    max-width: 560px; margin: 0 auto;
+  }
+
+  /* Billing toggle */
+  .billing-toggle {
+    display: flex; justify-content: center; margin-top: var(--space-8);
+  }
+  .billing-toggle .segmented button {
+    padding: var(--space-2) var(--space-5);
+    font-size: var(--text-caption); font-weight: 500;
+  }
+  .billing-toggle .save-badge {
+    display: inline-flex; align-items: center;
+    margin-left: var(--space-2);
+    padding: 2px var(--space-2);
+    background: var(--brand-tint-12); color: var(--brand);
+    border-radius: var(--radius-xs);
+    font-size: var(--text-micro); font-weight: 600;
+    text-transform: uppercase; letter-spacing: var(--tracking-wide);
+  }
+
+  /* Pricing cards */
+  .plans-section { padding: var(--space-6) var(--space-6) var(--space-16); }
+  .plans-grid {
+    max-width: var(--container); margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);
+    align-items: start;
+  }
+
+  .plan-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--border);
+    padding: var(--space-7) var(--space-6);
+    display: flex; flex-direction: column;
+    transition: box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  }
+  .plan-card:hover { box-shadow: var(--shadow-card); }
+
+  .plan-card--featured {
+    border: 2px solid var(--brand);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    transform: translateY(-8px);
+  }
+  .plan-card--featured:hover { box-shadow: var(--shadow-float); }
+
+  .plan-badge {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    padding: var(--space-1) var(--space-4);
+    background: var(--brand); color: var(--text-on-brand);
+    border-radius: var(--radius-pill);
+    font-size: var(--text-micro); font-weight: 600;
+    text-transform: uppercase; letter-spacing: var(--tracking-wide);
+    white-space: nowrap;
+    box-shadow: var(--shadow-raised);
+  }
+
+  .plan-name {
+    font-size: var(--text-h2); font-weight: 600;
+    letter-spacing: var(--tracking-normal); color: var(--text-primary);
+  }
+  .plan-desc {
+    font-size: var(--text-body-sm); color: var(--text-secondary);
+    margin-top: var(--space-2); min-height: 40px;
+  }
+
+  .plan-price {
+    display: flex; align-items: baseline; gap: var(--space-1);
+    margin-top: var(--space-5);
+  }
+  .plan-price .amount {
+    font-size: 2.5rem; font-weight: 600;
+    letter-spacing: var(--tracking-tight); color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .plan-price .currency {
+    font-size: var(--text-h2); font-weight: 500; color: var(--text-secondary);
+  }
+  .plan-price .period {
+    font-size: var(--text-body-sm); color: var(--text-secondary);
+    margin-left: var(--space-1);
+  }
+  .plan-billing-note {
+    font-size: var(--text-caption); color: var(--text-tertiary);
+    margin-top: var(--space-1); min-height: 18px;
+  }
+
+  .plan-cta { margin-top: var(--space-6); }
+  .plan-card .btn-block { width: 100%; }
+
+  .plan-features {
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: var(--space-3);
+  }
+  .plan-feature {
+    display: flex; align-items: flex-start; gap: var(--space-2);
+    font-size: var(--text-body-sm); color: var(--text-primary);
+    line-height: var(--leading-normal);
+  }
+  .plan-feature svg {
+    flex-shrink: 0; margin-top: 2px;
+    color: var(--success-strong);
+  }
+  .plan-feature--muted { color: var(--text-secondary); }
+  .plan-feature--muted svg { color: var(--text-tertiary); }
+
+  /* Comparison table */
+  .compare-section {
+    padding: var(--space-12) var(--space-6) var(--space-16);
+    background: var(--bg-sunken);
+  }
+  .compare-inner { max-width: var(--container); margin: 0 auto; }
+  .compare-header {
+    text-align: center; margin-bottom: var(--space-10);
+  }
+  .compare-header h2 {
+    font-size: var(--text-section); font-weight: 600;
+    letter-spacing: var(--tracking-tight); color: var(--text-primary);
+  }
+  .compare-header p {
+    font-size: var(--text-lead); color: var(--text-secondary);
+    margin-top: var(--space-3);
+  }
+
+  .compare-table-wrap {
+    background: var(--bg-surface);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow-hairline);
+  }
+  .compare-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  .compare-table {
+    width: 100%; border-collapse: collapse;
+    min-width: 720px;
+  }
+  .compare-table thead th {
+    padding: var(--space-5) var(--space-4);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface);
+    vertical-align: bottom;
+  }
+  .compare-table thead th:first-child {
+    text-align: left;
+    width: 34%;
+  }
+  .compare-table thead .plan-col-name {
+    font-size: var(--text-body); font-weight: 600;
+    letter-spacing: var(--tracking-normal); color: var(--text-primary);
+    text-transform: none;
+  }
+  .compare-table thead .plan-col-price {
+    font-size: var(--text-caption); font-weight: 500;
+    color: var(--text-secondary); margin-top: var(--space-1);
+    text-transform: none; letter-spacing: var(--tracking-normal);
+  }
+  .compare-table thead th.is-featured {
+    background: var(--brand-tint-06);
+  }
+  .compare-table thead th.is-featured .plan-col-name { color: var(--brand); }
+
+  .compare-table tbody td {
+    padding: var(--space-4);
+    text-align: center;
+    font-size: var(--text-body-sm);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-hairline);
+    vertical-align: middle;
+  }
+  .compare-table tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .compare-table tbody td.is-featured {
+    background: var(--brand-tint-06);
+  }
+  .compare-table tbody tr:last-child td { border-bottom: none; }
+  .compare-table tbody tr:hover td { background: rgba(0, 0, 0, 0.02); }
+  .compare-table tbody tr:hover td.is-featured { background: var(--brand-tint-08); }
+
+  .compare-group-row td {
+    background: var(--bg-sunken);
+    font-size: var(--text-micro); font-weight: 600;
+    text-transform: uppercase; letter-spacing: var(--tracking-label);
+    color: var(--text-secondary);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-group-row td.is-featured { background: var(--brand-tint-06); }
+
+  .check-icon { color: var(--success-strong); display: inline-flex; }
+  .x-icon { color: var(--text-tertiary); display: inline-flex; }
+  .cell-text { font-variant-numeric: tabular-nums; }
+
+  /* FAQ */
+  .faq-section { padding: var(--space-12) var(--space-6) var(--space-16); }
+  .faq-inner { max-width: 720px; margin: 0 auto; }
+  .faq-header {
+    text-align: center; margin-bottom: var(--space-8);
+  }
+  .faq-header h2 {
+    font-size: var(--text-section); font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+  }
+  .faq-item summary {
+    padding: var(--space-5) 0;
+    font-size: var(--text-body); font-weight: 500;
+    color: var(--text-primary); cursor: pointer;
+    list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-4);
+    transition: color var(--dur-base) var(--ease-out);
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: ''; flex-shrink: 0;
+    width: 20px; height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8L10 12L14 8' stroke='%236e6e73' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .faq-item[open] summary::after { transform: rotate(180deg); }
+  .faq-item summary:hover { color: var(--brand); }
+  .faq-item .faq-answer {
+    padding: 0 0 var(--space-5);
+    font-size: var(--text-body-sm); color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* CTA band */
+  .cta-band {
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+  }
+  .cta-band h2 {
+    font-size: var(--text-section); font-weight: 600;
+    letter-spacing: var(--tracking-tight); margin-bottom: var(--space-3);
+  }
+  .cta-band p {
+    font-size: var(--text-lead); color: var(--text-secondary);
+    max-width: 500px; margin: 0 auto var(--space-6);
+  }
+
+  /* Footer */
+  footer { padding: var(--space-12) var(--space-6) var(--space-8); border-top: 1px solid var(--border); }
+  .footer-inner { max-width: var(--container); margin: 0 auto; }
+  .footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-8); }
+  .footer-brand { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; font-size: var(--text-h2); letter-spacing: var(--tracking-normal); color: var(--text-primary); }
+  .footer-links { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+  .footer-links a { font-size: var(--text-caption); color: var(--text-secondary); }
+  .footer-links a:hover { color: var(--brand); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4); padding-top: var(--space-6); border-top: 1px solid var(--border); }
+  .footer-copy { font-size: var(--text-caption); color: var(--text-secondary); }
+  .footer-legal { display: flex; gap: var(--space-5); flex-wrap: wrap; }
+  .footer-legal a { font-size: var(--text-caption); color: var(--text-secondary); }
+  .footer-legal a:hover { color: var(--brand); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .plans-grid { grid-template-columns: 1fr; max-width: 440px; }
+    .plan-card--featured { transform: none; order: -1; }
+  }
+  @media (max-width: 768px) {
+    .navbar-links { display: none; }
+    .navbar { padding: 0 var(--space-4); }
+    .pricing-hero { padding: 110px var(--space-4) var(--space-10); }
+    .pricing-hero h1 { font-size: 2rem; }
+    .plans-section { padding: var(--space-4) var(--space-4) var(--space-12); }
+    .compare-section { padding: var(--space-10) var(--space-4) var(--space-12); }
+    .faq-section { padding: var(--space-10) var(--space-4) var(--space-12); }
+    .cta-band { padding: var(--space-10) var(--space-4); }
+    .footer-top { flex-direction: column; gap: var(--space-5); }
+    .footer-bottom { flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Skip link -->
+<a href="#plans" class="skip-link">Saltar a los planes</a>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="landing.html" class="navbar-logo" style="color:inherit">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="24" height="24" rx="6" stroke="#FF6B35" stroke-width="1.5"/>
+      <path d="M8 14L12 18L20 10" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    TalentUP
+  </a>
+  <div class="navbar-links">
+    <a href="landing.html#features">Características</a>
+    <a href="pricing.html" class="active">Precios</a>
+    <a href="landing.html#faq">FAQ</a>
+    <a href="terminos.html">Términos</a>
+    <a href="contacto.html">Contacto</a>
+  </div>
+  <a href="https://talentup.es/" class="navbar-cta" target="_blank" rel="noopener">Acceder</a>
+</nav>
+
+<!-- Hero -->
+<section class="pricing-hero">
+  <div class="page-label">Precios</div>
+  <h1>Elige tu plan</h1>
+  <p>Sin permanencia. Sin coste de configuración. Empieza hoy y cancela cuando quieras.</p>
+
+  <div class="billing-toggle">
+    <div class="segmented" role="tablist" aria-label="Periodo de facturación">
+      <button class="active" data-billing="monthly" role="tab" aria-selected="true">Mensual</button>
+      <button data-billing="annual" role="tab" aria-selected="false">Anual <span class="save-badge">−20%</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- Plans -->
+<section id="plans" class="plans-section">
+  <div class="plans-grid">
+
+    <!-- Starter -->
+    <div class="plan-card" data-plan="starter">
+      <div class="plan-name">Starter</div>
+      <div class="plan-desc">Para pequeños equipos que necesitan fichaje básico.</div>
+
+      <div class="plan-price">
+        <span class="currency">€</span>
+        <span class="amount" data-amount>29</span>
+        <span class="period">/ mes</span>
+      </div>
+      <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+
+      <div class="plan-cta">
+        <a href="contacto.html" class="btn btn-secondary btn-lg btn-block">Empezar gratis</a>
+      </div>
+
+      <ul class="plan-features">
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Hasta 5 empleados
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Fichaje NFC y QR
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          App móvil PWA
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Exportación CSV mensual
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Soporte por email
+        </li>
+        <li class="plan-feature plan-feature--muted">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          1 sede
+        </li>
+      </ul>
+    </div>
+
+    <!-- Pro (Featured) -->
+    <div class="plan-card plan-card--featured" data-plan="pro">
+      <div class="plan-badge">Más popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-desc">Para hostelería en crecimiento con varias sedes.</div>
+
+      <div class="plan-price">
+        <span class="currency">€</span>
+        <span class="amount" data-amount>99</span>
+        <span class="period">/ mes</span>
+      </div>
+      <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+
+      <div class="plan-cta">
+        <a href="contacto.html" class="btn btn-primary btn-lg btn-block">Probar 14 días gratis</a>
+      </div>
+
+      <ul class="plan-features">
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Hasta 50 empleados
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Fichaje NFC, QR y geolocalización
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Gestión de incidencias
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Hasta 5 sedes
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Exportación PDF y Excel
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Soporte prioritario (chat + email)
+        </li>
+      </ul>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="plan-card" data-plan="enterprise">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-desc">Para cadenas y grupos con necesidades avanzadas.</div>
+
+      <div class="plan-price">
+        <span class="currency">€</span>
+        <span class="amount" data-amount>499</span>
+        <span class="period">/ mes</span>
+      </div>
+      <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+
+      <div class="plan-cta">
+        <a href="contacto.html" class="btn btn-secondary btn-lg btn-block">Hablar con ventas</a>
+      </div>
+
+      <ul class="plan-features">
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Empleados ilimitados
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sedes ilimitadas
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          API y integraciones personalizadas
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Single Sign-On (SSO)
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          SLA 99,9% y gestor de cuenta
+        </li>
+        <li class="plan-feature">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Auditoría y logs de cumplimiento
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- Comparison table -->
+<section class="compare-section">
+  <div class="compare-inner">
+    <div class="compare-header">
+      <h2>Compara los planes</h2>
+      <p>Todo lo que incluye cada plan, lado a lado.</p>
+    </div>
+
+    <div class="compare-table-wrap">
+      <div class="compare-table-scroll">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th scope="col">Característica</th>
+              <th scope="col">
+                <div class="plan-col-name">Starter</div>
+                <div class="plan-col-price">29€ / mes</div>
+              </th>
+              <th scope="col" class="is-featured">
+                <div class="plan-col-name">Pro</div>
+                <div class="plan-col-price">99€ / mes</div>
+              </th>
+              <th scope="col">
+                <div class="plan-col-name">Enterprise</div>
+                <div class="plan-col-price">499€ / mes</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Fichaje -->
+            <tr class="compare-group-row"><td>Fichaje</td><td class="is-featured"></td><td></td><td></td></tr>
+            <tr>
+              <td>Fichaje NFC</td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Fichaje QR</td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Geolocalización</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Modo kiosco (terminal compartido)</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+
+            <!-- Gestión -->
+            <tr class="compare-group-row"><td>Gestión</td><td class="is-featured"></td><td></td><td></td></tr>
+            <tr>
+              <td>Empleados</td>
+              <td class="cell-text">Hasta 5</td>
+              <td class="is-featured cell-text">Hasta 50</td>
+              <td class="cell-text">Ilimitados</td>
+            </tr>
+            <tr>
+              <td>Sedes</td>
+              <td class="cell-text">1</td>
+              <td class="is-featured cell-text">Hasta 5</td>
+              <td class="cell-text">Ilimitadas</td>
+            </tr>
+            <tr>
+              <td>Gestión de incidencias</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Dashboard en tiempo real</td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+
+            <!-- Exportación -->
+            <tr class="compare-group-row"><td>Exportación e informes</td><td class="is-featured"></td><td></td><td></td></tr>
+            <tr>
+              <td>Exportación CSV</td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Exportación PDF y Excel</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Informes programados automáticos</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+
+            <!-- Integración -->
+            <tr class="compare-group-row"><td>Integración y seguridad</td><td class="is-featured"></td><td></td><td></td></tr>
+            <tr>
+              <td>API REST</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Single Sign-On (SSO)</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Auditoría y logs de cumplimiento</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+
+            <!-- Soporte -->
+            <tr class="compare-group-row"><td>Soporte</td><td class="is-featured"></td><td></td><td></td></tr>
+            <tr>
+              <td>Soporte por email</td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Soporte prioritario (chat + email)</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>Gestor de cuenta dedicado</td>
+              <td><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td class="is-featured"><span class="x-icon" aria-label="No"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5L13 13M13 5L5 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></td>
+              <td><span class="check-icon" aria-label="Sí"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3.5 9.5L7 13L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td>
+            </tr>
+            <tr>
+              <td>SLA de disponibilidad</td>
+              <td class="cell-text">—</td>
+              <td class="is-featured cell-text">99,5%</td>
+              <td class="cell-text">99,9%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <h2>Preguntas frecuentes</h2>
+    </div>
+
+    <details class="faq-item">
+      <summary>¿Hay permanencia o contrato mínimo?</summary>
+      <div class="faq-answer">No. Todos los planes se pagan mes a mes y puedes cancelar en cualquier momento desde el panel de administración. Sin penalizaciones, sin letra pequeña.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Puedo cambiar de plan cuando quiera?</summary>
+      <div class="faq-answer">Sí. Puedes subir o bajar de plan desde el dashboard en cualquier momento. El cambio se aplica inmediatamente y el importe se prorratea automáticamente en la siguiente factura.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Qué cuenta como un empleado?</summary>
+      <div class="faq-answer">Un empleado es cualquier persona con acceso a la app para fichar. Los gerentes y administradores que solo usan el dashboard también cuentan dentro del límite del plan.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Necesito hardware especial para el NFC?</summary>
+      <div class="faq-answer">No. TalentUP funciona con etiquetas NFC estándar (NTAG213 o similares) que cuestan menos de 1€ por unidad. Puedes pedirlas a través de TalentUP o comprarlas por tu cuenta.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿El plan Starter es realmente gratuito?</summary>
+      <div class="faq-answer">El Starter cuesta 29€/mes. Ofrecemos 14 días de prueba gratuita en todos los planes, sin tarjeta de crédito, para que pruebes antes de pagar.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Ofrecéis descuento anual?</summary>
+      <div class="faq-answer">Sí. Si pagas anualmente recibes un 20% de descuento sobre el precio mensual. Usa el interruptor de la parte superior para ver los precios anuales.</div>
+    </details>
+
+    <details class="faq-item">
+      <summary>¿Mis datos están seguros?</summary>
+      <div class="faq-answer">Sí. Los datos se cifran en tránsito (TLS 1.3) y en reposo. Cumplimos con el RGPD y los servidores están en la Unión Europea. El plan Enterprise incluye copias de seguridad diarias y logs de auditoría.</div>
+    </details>
+  </div>
+</section>
+
+<!-- CTA band -->
+<section class="cta-band">
+  <h2>¿Listo para empezar?</h2>
+  <p>Prueba TalentUP Fichaje 14 días gratis. Sin tarjeta, sin permanencia.</p>
+  <a href="contacto.html" class="btn btn-primary btn-xl">Crear cuenta gratis</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="24" height="24" rx="6" stroke="#FF6B35" stroke-width="1.5"/>
+          <path d="M8 14L12 18L20 10" stroke="#FF6B35" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        TalentUP
+      </div>
+      <div class="footer-links">
+        <a href="landing.html#features">Características</a>
+        <a href="pricing.html">Precios</a>
+        <a href="landing.html#faq">FAQ</a>
+        <a href="terminos.html">Términos</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 TalentUP. Todos los derechos reservados.</div>
+      <div class="footer-legal">
+        <a href="landing.html#">Privacidad</a>
+        <a href="landing.html#">DPA</a>
+        <a href="terminos.html">Términos</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Billing toggle: monthly / annual (−20%)
+  (function() {
+    var PRICES = { starter: { monthly: 29, annual: 23 }, pro: { monthly: 99, annual: 79 }, enterprise: { monthly: 499, annual: 399 } };
+    var NOTES = {
+      monthly: 'Ilimitado durante 14 días',
+      annual: 'Facturado anualmente · ahorra 20%'
+    };
+    var buttons = document.querySelectorAll('.billing-toggle .segmented button');
+    var amounts = document.querySelectorAll('[data-amount]');
+    var notes = document.querySelectorAll('[data-note]');
+
+    function update(billing) {
+      var plans = ['starter', 'pro', 'enterprise'];
+      amounts.forEach(function(el, i) {
+        el.textContent = PRICES[plans[i]][billing];
+      });
+      notes.forEach(function(el) {
+        el.textContent = NOTES[billing];
+      });
+    }
+
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var billing = btn.getAttribute('data-billing');
+        buttons.forEach(function(b) {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        update(billing);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

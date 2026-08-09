@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>TalentUP — Sitemap v2 (estructura visual)</title>
+<style>
+  :root{--bg:#0f1115;--card:#181b22;--ink:#e6e8ee;--muted:#8a90a0;--brand:#FF6B35;--brand2:#FF8C5A;--line:#262a33;--ok:#3ddc84;--lock:#ffb454}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:32px}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 22px;font-size:13px}
+  .legend{display:flex;gap:16px;margin-bottom:18px;font-size:12px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+  .tree{list-style:none;padding:0;margin:0}
+  .node{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+  .badge{font:600 11px/1 ui-monospace,monospace;color:var(--brand);background:rgba(255,107,53,.12);
+    border:1px solid rgba(255,107,53,.3);padding:4px 7px;border-radius:6px;white-space:nowrap}
+  .node.priv .badge{color:var(--lock);background:rgba(255,180,84,.12);border-color:rgba(255,180,84,.3)}
+  .name{font-weight:600}.url{color:var(--muted);font:12px ui-monospace,monospace;word-break:break-all}
+  .pri{font:700 13px ui-monospace,monospace;color:var(--ok)}
+  .node.priv .pri{color:var(--lock)}
+  .meta{font-size:11px;color:var(--muted);margin-top:3px}
+  .desc{grid-column:1/-1;color:var(--muted);font-size:13px;margin-top:2px}
+  .root-tag{color:var(--muted);font-size:12px}
+  footer{margin-top:24px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TalentUP Fichaje — Sitemap v2</h1>
+  <p class="sub">Estructura visual del sitio · 6 páginas · dominio talentup.es · actualizado 2026-08-09</p>
+
+  <div class="legend">
+    <span><i style="background:var(--brand)"></i>Pública (indexable)</span>
+    <span><i style="background:var(--lock)"></i>Privada (auth-gated / noindex)</span>
+    <span><i style="background:var(--ok)"></i>Prioridad SEO</span>
+  </div>
+
+  <ol class="tree">
+
+    <li class="node">
+      <span class="badge">01 · /</span>
+      <div><div class="name">Landing</div><div class="url">https://talentup.es/</div>
+        <div class="meta">changefreq: weekly · PWA instalable · inicio</div></div>
+      <span class="pri">1.0</span>
+      <div class="desc">Página de inicio con propuesta de valor, demos y CTA a pricing. PWA con manifest y service worker (offline).</div>
+    </li>
+
+    <li class="node">
+      <span class="badge">02 · html</span>
+      <div><div class="name">Pricing</div><div class="url">https://talentup.es/pricing.html</div>
+        <div class="meta">changefreq: monthly · planes y tarifas</div></div>
+      <span class="pri">0.9</span>
+      <div class="desc">Tabla de planes (gratuito y de pago) con comparativa de funcionalidades NFC, PIN y offline.</div>
+    </li>
+
+    <li class="node">
+      <span class="badge">03 · html</span>
+      <div><div class="name">Contacto</div><div class="url">https://talentup.es/contacto.html</div>
+        <div class="meta">changefreq: monthly · formulario + datos</div></div>
+      <span class="pri">0.7</span>
+      <div class="desc">Formulario de contacto, email hola@talentup.es y enlaces a términos y privacidad.</div>
+    </li>
+
+    <li class="node priv">
+      <span class="badge">04 · app</span>
+      <div><div class="name">Dashboard <span class="root-tag">(auth)</span></div>
+        <div class="url">https://talentup.es/dashboard.html</div>
+        <div class="meta">changefreq: weekly · noindex · Disallow /dashboard</div></div>
+      <span class="pri">0.1</span>
+      <div class="desc">App autenticada con 9 gráficos: KPIs, donut, calendario, alertas, empleados, fichajes e incidencias. Excluida de indexación.</div>
+    </li>
+
+    <li class="node">
+      <span class="badge">05 · html</span>
+      <div><div class="name">Términos</div><div class="url">https://talentup.es/terminos.html</div>
+        <div class="meta">changefreq: yearly · legal</div></div>
+      <span class="pri">0.3</span>
+      <div class="desc">Términos de servicio y condiciones de uso. Contiene la sección de privacidad (#privacidad).</div>
+    </li>
+
+    <li class="node">
+      <span class="badge">06 · html</span>
+      <div><div class="name">Privacidad</div><div class="url">https://talentup.es/privacidad.html</div>
+        <div class="meta">changefreq: yearly · RGPD · LOPDGDD</div></div>
+      <span class="pri">0.3</span>
+      <div class="desc">Política de privacidad y tratamiento de datos. URL canónica propia (contenido actual: terminos.html#privacidad).</div>
+    </li>
+
+  </ol>
+
+  <footer>6 URLs · 5 públicas indexables · 1 privada (noindex) · sitemap_v2.xml · robots.txt</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="TalentUP">
+  <!-- apple-touch-icon: iOS anade sus propias esquinas redondeadas; usar fondo plano lleno. -->
+  <rect width="180" height="180" fill="#FF6B35"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" transform="translate(18,18) scale(0.80)">
+    <circle cx="78" cy="100" r="42"/>
+    <path d="M58 100 L74 116 L100 86"/>
+    <path d="M128 64 A40 40 0 0 1 128 136" opacity="0.95"/>
+    <path d="M146 50 A60 60 0 0 1 146 150" opacity="0.55"/>
+  </g>
+</svg>

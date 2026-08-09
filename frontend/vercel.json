@@ -1,8 +1,33 @@
 {
   "version": 2,
+  "domains": [
+    "talentup.es",
+    "www.talentup.es"
+  ],
+  "redirects": [
+    {
+      "source": "/www.talentup.es/(.*)",
+      "destination": "https://talentup.es/$1",
+      "permanent": true
+    },
+    {
+      "source": "/landing.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/landing_new.html",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "builds": [
     {
       "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/**",
       "use": "@vercel/static"
     }
   ],
@@ -15,8 +40,37 @@
       }
     },
     {
+      "src": "/robots.txt",
+      "dest": "/public/robots.txt",
+      "headers": {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "public, max-age=86400"
+      }
+    },
+    {
+      "src": "/sitemap.xml",
+      "dest": "/public/sitemap.xml",
+      "headers": {
+        "Content-Type": "application/xml; charset=utf-8",
+        "Cache-Control": "public, max-age=86400"
+      }
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json",
+      "headers": {
+        "Content-Type": "application/manifest+json; charset=utf-8"
+      }
+    },
+    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Robots-Tag": "index, follow"
+      }
     }
   ]
 }

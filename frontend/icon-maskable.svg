@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="TalentUP">
+  <!-- Icon maskable: zona segura central al 80% (recomendacion Material/Apple).
+       El fondo llena todo el cuadrado; el glifo vive en el area segura
+       para que ningun recorte del SO lo trunque. -->
+  <rect width="512" height="512" fill="#FF6B35"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" transform="translate(40,40) scale(0.84)">
+    <circle cx="208" cy="267" r="112"/>
+    <path d="M155 267 L198 310 L267 230"/>
+    <path d="M342 171 A107 107 0 0 1 342 363" opacity="0.95"/>
+    <path d="M390 133 A160 160 0 0 1 390 401" opacity="0.55"/>
+  </g>
+</svg>

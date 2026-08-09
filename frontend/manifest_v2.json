@@ -1,0 +1,162 @@
+{
+  "id": "/?source=pwa-manifest-v2",
+  "name": "TalentUP Fichaje",
+  "short_name": "TalentUP",
+  "description": "Fichaje digital y gestion de tiempos para hosteleria. Registra entradas, salidas y pausas desde el movil o el terminal NFC, con cola offline y sincronizacion automatica.",
+  "lang": "es",
+  "dir": "ltr",
+  "theme_color": "#FF6B35",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "start_url": "./index.html?utm_source=pwa&utm_medium=installed&utm_campaign=manifest_v2",
+  "scope": "./",
+  "orientation": "portrait-primary",
+  "categories": [
+    "productivity",
+    "business",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icon-16.svg",
+      "sizes": "16x16",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-32.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Hoy",
+      "description": "Resumen del dia: fichajes, activos e incidencias.",
+      "url": "./index.html#page-dashboard&utm_source=shortcut&utm_medium=pwa",
+      "icons": [
+        {
+          "src": "shortcut-dashboard.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Fichajes",
+      "short_name": "Fichajes",
+      "description": "Historico y filtrado de todos los fichajes.",
+      "url": "./index.html#page-fichajes&utm_source=shortcut&utm_medium=pwa",
+      "icons": [
+        {
+          "src": "shortcut-fichajes.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Empleados",
+      "short_name": "Equipo",
+      "description": "Lista de empleados, estado y turno actual.",
+      "url": "./index.html#page-empleados&utm_source=shortcut&utm_medium=pwa",
+      "icons": [
+        {
+          "src": "shortcut-empleados.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Incidencias",
+      "short_name": "Alertas",
+      "description": "Incidencias pendientes de revisar.",
+      "url": "./index.html#page-incidencias&utm_source=shortcut&utm_medium=pwa",
+      "icons": [
+        {
+          "src": "shortcut-incidencias.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-mobile-dashboard.svg",
+      "sizes": "1080x1920",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Dashboard del empleado en movil"
+    },
+    {
+      "src": "screenshot-desktop-dashboard.svg",
+      "sizes": "1280x800",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Panel de gestion en escritorio"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "launch_handler": {
+    "client_mode": "navigate-existing",
+    "target_uri": "/"
+  },
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "i18n": true,
+  "_meta": {
+    "version": "2.0.0",
+    "design_system": "design_system.css",
+    "vision_doc": "talentup_design_vision.md",
+    "tokens": {
+      "brand": "#FF6B35",
+      "brand_hover": "#E55A2B",
+      "bg_surface": "#FFFFFF",
+      "bg_app": "#f5f5f7",
+      "text_primary": "#1d1d1f",
+      "success": "#34C759",
+      "danger": "#FF3B30",
+      "warning": "#FF9500"
+    },
+    "note": "theme_color usa --brand como acento de barra del SO (no superficie grande), respetando el principio 1 del design system. No hay dark mode en PWA (sec 9.2)."
+  }
+}

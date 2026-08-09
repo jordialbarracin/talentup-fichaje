@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP — Pitch Deck</title>
+<style>
+:root{--orange:#FF6B35;--orange-dark:#E55A2B;--orange-light:#FFF3EB;--orange-tint:#FFE8D9;--bg:#FFF;--bg2:#F5F5F7;--text:#1D1D1F;--ts:#6E6E73;--tt:#86868B;--border:#D2D2D7;--green:#34C759;--red:#FF3B30;--sh:0 4px 12px rgba(0,0,0,0.06),0 2px 4px rgba(0,0,0,0.04);--r:16px;--rs:10px;--rx:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Plus Jakarta Sans","Inter","Helvetica Neue",sans-serif;background:var(--bg2);color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+.deck{width:100vw;height:100vh;position:relative;overflow:hidden}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;padding:56px 72px 48px;background:var(--bg);animation:sIn .4s cubic-bezier(0.16,1,0.3,1)}
+.slide.active{display:flex}
+@keyframes sIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.title{font-size:42px;font-weight:600;letter-spacing:-.8px;line-height:1.1;margin-bottom:6px}
+.sub{font-size:20px;color:var(--ts);margin-bottom:20px}
+.al{width:48px;height:4px;background:var(--orange);border-radius:2px;margin-bottom:28px}
+.content{flex:1;display:flex;flex-direction:column;min-height:0}
+.foot{display:flex;justify-content:space-between;padding-top:16px;font-size:12px;color:var(--tt);font-weight:500}
+.pg{font-variant-numeric:tabular-nums}
+.tbar{position:absolute;top:0;left:0;width:100%;height:5px;background:linear-gradient(90deg,var(--orange),var(--orange-dark))}
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:100px;padding:8px 16px;box-shadow:0 12px 32px rgba(0,0,0,.08);z-index:100}
+.nb{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text);padding:4px 10px;border-radius:100px;font-weight:500}
+.nb:hover{background:var(--bg2)}
+.nc{font-size:14px;font-weight:600;color:var(--ts);font-variant-numeric:tabular-nums;padding:0 8px;min-width:56px;text-align:center}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh)}
+.co{background:var(--orange-light);border:1px solid var(--orange-tint)}
+.sb{font-size:52px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;line-height:1;font-variant-numeric:tabular-nums}
+.sl{font-size:14px;font-weight:600;margin-top:8px}
+.sd{font-size:13px;color:var(--ts);margin-top:6px;line-height:1.4}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.fr{display:flex;align-items:center;gap:12px}
+/* Cover */
+.cover{justify-content:center;align-items:flex-start;padding:72px 80px}
+.clogo{font-size:64px;font-weight:700;letter-spacing:-2px}
+.clogo .dot{color:var(--orange)}
+.ctag{font-size:26px;font-weight:400;color:var(--ts);margin-top:12px;max-width:640px;line-height:1.3}
+.cmeta{margin-top:auto;display:flex;justify-content:space-between;width:100%;align-items:flex-end}
+.cmi{font-size:14px;color:var(--tt);font-weight:500}
+.cbadge{display:inline-flex;align-items:center;gap:6px;background:var(--orange-light);color:var(--orange-dark);font-size:13px;font-weight:600;padding:6px 14px;border-radius:100px;margin-top:24px}
+/* Solución */
+.shero{font-size:32px;font-weight:600;line-height:1.2;letter-spacing:-.5px;max-width:800px}
+.shero .hl{color:var(--orange)}
+.sfeat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+.fitem{display:flex;flex-direction:column;gap:6px}
+.ficon{width:36px;height:36px;background:var(--orange-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:4px}
+.ft{font-size:15px;font-weight:600}
+.fd{font-size:13px;color:var(--ts);line-height:1.4}
+/* Producto */
+.pm{flex:1;display:flex;gap:24px;align-items:stretch}
+.ms{flex:1;background:var(--bg2);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--border)}
+.mh{display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.md{width:8px;height:8px;border-radius:50%}
+.mr{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:var(--rx);font-size:13px}
+.mr .name{font-weight:600;flex:1}
+.mr .time{color:var(--ts);font-variant-numeric:tabular-nums}
+.bg{font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px}
+.bin{background:#E8F5E9;color:#2E7D32}.bout{background:#FFEBEE;color:#C62828}.bp{background:#FFF3E0;color:#E65100}
+.pst{width:280px;display:flex;flex-direction:column;gap:10px}
+.si{background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:12px 16px;display:flex;flex-direction:column;gap:2px}
+.slbl{font-size:12px;font-weight:600;color:var(--orange-dark);text-transform:uppercase;letter-spacing:.5px}
+.sval{font-size:13px;color:var(--ts)}
+/* Mercado */
+.mf{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.fr2{display:flex;align-items:center;gap:16px}
+.fb{height:48px;border-radius:var(--rx);display:flex;align-items:center;padding:0 20px;font-weight:600;font-size:15px;color:#fff}
+.fb.tam{background:var(--orange)}.fb.sam{background:var(--orange-dark)}.fb.som{background:#C4421A}
+.fl{width:80px;font-size:14px;font-weight:600}
+.fd2{flex:1;font-size:13px;color:var(--ts)}
+.mst{display:flex;gap:32px;margin-top:24px;padding:20px 24px;background:var(--bg2);border-radius:var(--r)}
+/* Tracción */
+.tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex:1}
+.tc{background:var(--bg2);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--border)}
+.tc.hl{background:var(--orange-light);border-color:var(--orange-tint)}
+.ts2{display:flex;align-items:baseline;gap:4px}
+.ts2 .num{font-size:40px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums}
+.ts2 .den{font-size:20px;color:var(--tt);font-weight:600}
+.tbc{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:8px}
+.tbf{height:100%;background:var(--orange);border-radius:100px}
+/* Pricing */
+.pp{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex:1}
+.plan{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:28px 24px;display:flex;flex-direction:column;position:relative}
+.plan.pop{background:var(--orange-light);border:2px solid var(--orange)}
+.plbd{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-size:11px;font-weight:600;padding:4px 14px;border-radius:100px}
+.pn{font-size:20px;font-weight:600}
+.ppr{display:flex;align-items:baseline;gap:4px;margin:12px 0 4px}
+.ppr .amt{font-size:40px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums}
+.ppr .unt{font-size:14px;color:var(--ts)}
+.pfl{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.pfl li{font-size:13px;color:var(--ts);display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.pfl li::before{content:"✓";color:var(--orange);font-weight:700;flex-shrink:0}
+.bm{display:flex;gap:24px;margin-top:20px;padding:16px 24px;background:var(--bg2);border-radius:var(--r)}
+/* Equipo */
+.teg{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1}
+.tec{display:flex;gap:20px;align-items:flex-start;background:var(--bg2);border-radius:var(--r);padding:24px;border:1px solid var(--border)}
+.tav{width:72px;height:72px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0}
+.tnm{font-size:20px;font-weight:600}
+.tr{font-size:14px;color:var(--orange-dark);font-weight:600;margin-top:2px}
+.tbio{font-size:13px;color:var(--ts);margin-top:10px;line-height:1.5}
+.th{display:flex;flex-direction:column;gap:10px}
+.hrl{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg);border:1px dashed var(--border);border-radius:var(--rs);font-size:14px}
+.pri{font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px}
+.pc{background:#FFEBEE;color:#C62828}.ph{background:#FFF3E0;color:#E65100}
+/* Competencia */
+.ctab{width:100%;border-collapse:collapse;font-size:14px;flex:1}
+.ctab th{text-align:left;padding:14px 16px;font-size:13px;font-weight:600;color:var(--ts);border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.5px}
+.ctab th.tcol{color:var(--orange)}
+.ctab td{padding:14px 16px;border-bottom:1px solid var(--border)}
+.ctab td.lbl{font-weight:600}
+.ctab td.tup{background:var(--orange-light);font-weight:600}
+.ck{color:var(--green);font-weight:700}.cx{color:var(--red);font-weight:700}.cp{color:var(--tt);font-weight:700}
+/* Finanzas */
+.fch{flex:1;display:flex;align-items:flex-end;gap:20px;padding:20px 0;border-bottom:2px solid var(--border)}
+.fbg{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.fbar{width:100%;max-width:80px;background:var(--orange);border-radius:8px 8px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:8px}
+.fbar.cost{background:var(--tt)}
+.fbl{font-size:12px;font-weight:700;color:#fff}
+.fxl{font-size:13px;font-weight:600;color:var(--ts)}
+.fmg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+.fm{text-align:center;padding:16px;background:var(--bg2);border-radius:var(--rs)}
+.fm .val{font-size:28px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums}
+.fm .lab{font-size:12px;color:var(--ts);margin-top:4px}
+/* Ask */
+.aamt{font-size:72px;font-weight:700;color:var(--orange);letter-spacing:-2px;line-height:1}
+.apur{font-size:22px;color:var(--ts);max-width:600px;line-height:1.4}
+.abd{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:800px}
+.ai2{display:flex;flex-direction:column;gap:4px}
+.ai2 .pct{font-size:36px;font-weight:700;color:var(--orange);font-variant-numeric:tabular-nums}
+.ac{display:flex;gap:24px;margin-top:8px;font-size:15px;color:var(--ts)}
+.ac a{color:var(--orange-dark);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 — COVER -->
+<section class="slide active cover" data-slide="1">
+<div class="tbar"></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;width:100%">
+<div class="clogo">Talent<span class="dot">UP</span></div>
+<div class="ctag">Fichaje digital con terminal físico NFC para hostelería. Plug &amp; play, sin instalaciones, cumple RD-ley 8/2019.</div>
+<div class="cbadge">● Pitch Deck · Inversores · 2026</div>
+</div>
+<div class="cmeta">
+<div><div class="cmi">Jordi Albarracín · Founder &amp; CEO</div><div class="cmi" style="margin-top:4px">talentup.es</div></div>
+<div class="cmi">Agosto 2026</div>
+</div>
+</section>
+
+<!-- SLIDE 2 — PROBLEMA -->
+<section class="slide" data-slide="2">
+<div class="tbar"></div>
+<div class="eyebrow">El Problema</div>
+<h1 class="title">El fichaje en España sigue siendo papel, Excel y multas</h1>
+<div class="al"></div>
+<div class="content">
+<div class="g3" style="flex:1;align-items:stretch">
+<div class="card"><div class="sb" style="font-size:48px">40%</div><div class="sl">No cumple el RD-ley 8/2019</div><div class="sd">Sanciones desde 625 € hasta 187.515 € por incidente. Inspección de trabajo activa.</div></div>
+<div class="card"><div class="sb" style="font-size:48px">80%</div><div class="sl">PYMEs usan papel o Excel</div><div class="sd">Errores manuales, pérdida de datos, cero escalabilidad. Imposible auditar.</div></div>
+<div class="card"><div class="sb" style="font-size:48px">€200+</div><div class="sl">/mes con Factorial (50 emp.)</div><div class="sd">Pricing por empleado. Implementación compleja. Requiere comprar tablets aparte.</div></div>
+</div>
+<div class="card co" style="margin-top:20px;padding:20px 24px">
+<div class="fr" style="gap:16px">
+<div style="font-size:40px">⚠</div>
+<div><div style="font-size:16px;font-weight:600">330.000 establecimientos hosteleros en España</div><div style="font-size:14px;color:var(--ts);margin-top:4px">El 95% son pymes con menos de 50 empleados. Alta rotación, personal eventual, turnos irregulares. Obligación legal de registrar jornada desde 2019.</div></div>
+</div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">02 / 10</span></div>
+</section>
+
+<!-- SLIDE 3 — SOLUCIÓN -->
+<section class="slide" data-slide="3">
+<div class="tbar"></div>
+<div class="eyebrow">La Solución</div>
+<h1 class="title">Fichaje físico con NFC. Sin apps, sin móviles, sin complicaciones.</h1>
+<div class="al"></div>
+<div class="content">
+<div class="shero">Una <span class="hl">caja en la pared</span> + tarjetas NFC. El empleado acerca la tarjeta y ficha. El gestor ve todo en tiempo real. <span class="hl">Plug &amp; play</span>, cero instalación.</div>
+<div class="sfeat">
+<div class="fitem"><div class="ficon">📱</div><div class="ft">NFC + QR + PIN</div><div class="fd">Tres métodos de fichaje. Tarjeta NFC física, QR dinámico o PIN numérico. Cero fricción.</div></div>
+<div class="fitem"><div class="ficon">🔌</div><div class="ft">Plug &amp; Play</div><div class="fd">Conecta la caja, escanea un QR de activación y funciona. Sin instalación física ni técnicos.</div></div>
+<div class="fitem"><div class="ficon">📡</div><div class="ft">Offline-first</div><div class="fd">Funciona sin WiFi. Cola offline en ESP32 con LittleFS. Sincronización automática al recuperar red.</div></div>
+<div class="fitem"><div class="ficon">⚖️</div><div class="ft">Cumple RD-ley 8/2019</div><div class="fd">Registro de jornada conforme art. 34.9 ET. Conservación 4 años. Exportación PDF inmutable.</div></div>
+<div class="fitem"><div class="ficon">🏢</div><div class="ft">Multi-tenant SaaS</div><div class="fd">Cada empresa aislada con Row-Level Security en PostgreSQL. Escalable a miles de establecimientos.</div></div>
+<div class="fitem"><div class="ficon">🔄</div><div class="ft">OTA + Auto-update</div><div class="fd">Actualización remota del firmware. El hardware siempre actualizado sin intervención manual.</div></div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">03 / 10</span></div>
+</section>
+
+<!-- SLIDE 4 — PRODUCTO -->
+<section class="slide" data-slide="4">
+<div class="tbar"></div>
+<div class="eyebrow">El Producto</div>
+<h1 class="title">Software + Hardware. Todo en uno.</h1>
+<div class="al"></div>
+<div class="content">
+<div class="pm">
+<div class="ms">
+<div class="mh"><div class="md" style="background:var(--orange)"></div><div class="md" style="background:#FFB088"></div><div class="md" style="background:var(--border)"></div><span style="font-weight:600;font-size:14px;margin-left:8px">Dashboard · TalentUP</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:22px;font-weight:700;color:var(--orange)">12</div><div style="font-size:11px;color:var(--ts)">Activos hoy</div></div>
+<div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:22px;font-weight:700;color:var(--text)">3</div><div style="font-size:11px;color:var(--ts)">Incidencias</div></div>
+<div style="background:var(--bg);padding:10px;border-radius:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:22px;font-weight:700;color:var(--text)">98%</div><div style="font-size:11px;color:var(--ts)">Cumplimiento</div></div>
+</div>
+<div class="mr"><span class="name">María García</span><span class="bg bin">ENTRADA</span><span class="time">08:02</span></div>
+<div class="mr"><span class="name">Carlos Ruiz</span><span class="bg bin">ENTRADA</span><span class="time">08:05</span></div>
+<div class="mr"><span class="name">Ana López</span><span class="bg bp">PAUSA</span><span class="time">12:30</span></div>
+<div class="mr"><span class="name">Jordi Vidal</span><span class="bg bout">SALIDA</span><span class="time">16:00</span></div>
+<div class="mr"><span class="name">Laura Sena</span><span class="bg bin">ENTRADA</span><span class="time">17:00</span></div>
+<div style="margin-top:auto;font-size:11px;color:var(--tt);text-align:center">Panel del gestor · Tiempo real</div>
+</div>
+<div class="pst">
+<div class="si"><div class="slbl">Backend</div><div class="sval">FastAPI async · 21 routers · 23 modelos</div></div>
+<div class="si"><div class="slbl">Base de datos</div><div class="sval">PostgreSQL 16 + RLS · Alembic</div></div>
+<div class="si"><div class="slbl">Frontend</div><div class="sval">SPA vanilla JS · PWA offline</div></div>
+<div class="si"><div class="slbl">Hardware</div><div class="sval">ESP32 CYD + PN532 NFC · TFT 2.8"</div></div>
+<div class="si"><div class="slbl">Seguridad</div><div class="sval">JWT · bcrypt · Rate limiting · CSP</div></div>
+<div class="si"><div class="slbl">Infra</div><div class="sval">Railway · Vercel · Neon · Stripe</div></div>
+<div class="si"><div class="slbl">Features</div><div class="sval">Turnos, incidencias, vacaciones, nóminas, reportes PDF/Excel, i18n ES/CA/EN</div></div>
+</div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">04 / 10</span></div>
+</section>
+
+<!-- SLIDE 5 — MERCADO -->
+<section class="slide" data-slide="5">
+<div class="tbar"></div>
+<div class="eyebrow">Mercado</div>
+<h1 class="title">330.000 establecimientos. Un mercado sin solución adecuada.</h1>
+<div class="al"></div>
+<div class="content">
+<div class="mf">
+<div class="fr2"><div class="fl">TAM</div><div class="fb tam" style="width:100%">€1.200M</div><div class="fd2">Mercado total RR.HH. + fichaje en España (todos los sectores)</div></div>
+<div class="fr2"><div class="fl">SAM</div><div class="fb sam" style="width:62%">€420M</div><div class="fd2">Hostelería española · 330.000 establecimientos · 95% pymes &lt;50 emp.</div></div>
+<div class="fr2"><div class="fl">SOM</div><div class="fb som" style="width:25%">€42M</div><div class="fd2">Capturable en 3 años · 10.000 establecimientos · ARPA €350/año</div></div>
+</div>
+<div class="mst">
+<div><div class="sb" style="font-size:36px">330K</div><div class="sd">Establecimientos hosteleros</div></div>
+<div><div class="sb" style="font-size:36px">95%</div><div class="sd">Son pymes con &lt;50 empleados</div></div>
+<div><div class="sb" style="font-size:36px">€60-120</div><div class="sd">CAC estimado por cliente</div></div>
+<div><div class="sb" style="font-size:36px">2019</div><div class="sd">RD-ley obliga a registrar jornada</div></div>
+</div>
+<div class="card co" style="margin-top:20px;padding:16px 24px">
+<div style="font-size:15px;font-weight:600">Elasticidad-precio alta en el segmento pyme</div>
+<div style="font-size:13px;color:var(--ts);margin-top:4px">Un 10% de subida de precio puede causar 12-18% de churn en clientes &lt;10 empleados. El precio de entrada debe ser agresivo; el valor recurrente se genera por upsell y anclaje de datos.</div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">05 / 10</span></div>
+</section>
+
+<!-- SLIDE 6 — TRACCIÓN -->
+<section class="slide" data-slide="6">
+<div class="tbar"></div>
+<div class="eyebrow">Tracción</div>
+<h1 class="title">MVP construido al 70%. Score de auditoría 84/100.</h1>
+<div class="al"></div>
+<div class="content">
+<div class="tg">
+<div class="tc hl">
+<div><div class="ts2"><span class="num">84</span><span class="den">/100</span></div><div class="sl" style="margin-top:4px">Score técnico global</div></div>
+<div class="tbc"><div class="tbf" style="width:84%"></div></div>
+<div class="sd">Subido desde 62/100 tras 52 rondas de auditoría con 3 auditores independientes</div>
+</div>
+<div class="tc">
+<div><div class="ts2"><span class="num">64</span></div><div class="sl" style="margin-top:4px">Tests backend</div></div>
+<div class="tbc"><div class="tbf" style="width:90%"></div></div>
+<div class="sd">Auth, empleados, fichajes, vacaciones, nóminas, reportes, billing</div>
+</div>
+<div class="tc">
+<div><div class="ts2"><span class="num">21</span></div><div class="sl" style="margin-top:4px">Routers API</div></div>
+<div class="tbc"><div class="tbf" style="width:75%"></div></div>
+<div class="sd">23 modelos SQLAlchemy · 87+ endpoints · multi-tenant con RLS</div>
+</div>
+<div class="tc">
+<div><div class="ts2"><span class="num">5/5</span></div><div class="sl" style="margin-top:4px">Tests E2E Playwright</div></div>
+<div class="tbc"><div class="tbf" style="width:100%"></div></div>
+<div class="sd">Login, dashboard, crear empleado, logout, landing</div>
+</div>
+<div class="tc">
+<div><div class="ts2"><span class="num">16</span></div><div class="sl" style="margin-top:4px">Tests de seguridad</div></div>
+<div class="tbc"><div class="tbf" style="width:85%"></div></div>
+<div class="sd">XSS, SQLi, JWT, CORS, rate limiting, WebSocket, Stripe webhook</div>
+</div>
+<div class="tc">
+<div><div class="ts2"><span class="num">6</span><span class="den">sem</span></div><div class="sl" style="margin-top:4px">Para v1.0 vendible</div></div>
+<div class="tbc"><div class="tbf" style="width:70%"></div></div>
+<div class="sd">33 tareas · camino crítico: dashboard → API real → signup → 3 clientes beta</div>
+</div>
+</div>
+<div class="card" style="margin-top:16px;padding:16px 24px;display:flex;gap:32px;align-items:center">
+<div><div style="font-size:14px;font-weight:600">Landing publicada</div><div style="font-size:13px;color:var(--ts)">talentup.es · SEO + JSON-LD · pricing visible</div></div>
+<div><div style="font-size:14px;font-weight:600">CI/CD activo</div><div style="font-size:13px;color:var(--ts)">GitHub Actions · 121/121 tests passing</div></div>
+<div><div style="font-size:14px;font-weight:600">Hardware</div><div style="font-size:13px;color:var(--ts)">Firmware ESP32 CYD completo · OTA · compila en CI</div></div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">06 / 10</span></div>
+</section>
+
+<!-- SLIDE 7 — MODELO DE NEGOCIO -->
+<section class="slide" data-slide="7">
+<div class="tbar"></div>
+<div class="eyebrow">Modelo de Negocio</div>
+<h1 class="title">SaaS B2B con Stripe · suscripción por empleado + hardware</h1>
+<div class="al"></div>
+<div class="content">
+<div class="pp">
+<div class="plan">
+<div class="pn">Free</div>
+<div class="ppr"><span class="amt">0€</span><span class="unt">/mes</span></div>
+<div style="font-size:13px;color:var(--ts)">Hasta 5 empleados</div>
+<ul class="pfl"><li>Fichaje por app móvil (GPS + QR)</li><li>Cumple RD-ley 8/2019</li><li>Exportación PDF/Excel básica</li><li>1 usuario administrador</li></ul>
+</div>
+<div class="plan pop">
+<div class="plbd">MÁS POPULAR</div>
+<div class="pn">Pro</div>
+<div class="ppr"><span class="amt">4,50€</span><span class="unt">/empleado/mes</span></div>
+<div style="font-size:13px;color:var(--ts)">Empleados ilimitados · 3,83€ anual (-15%)</div>
+<ul class="pfl"><li>Terminal NFC físico (caja + tarjetas)</li><li>Gestión de turnos y plantillas</li><li>Alertas de incidencias y absentismo</li><li>Multi-sede · Soporte prioritario</li><li>Integración calendarios</li></ul>
+</div>
+<div class="plan">
+<div class="pn">Plus</div>
+<div class="ppr"><span class="amt">6,50€</span><span class="unt">/empleado/mes</span></div>
+<div style="font-size:13px;color:var(--ts)">Todo Pro + RR.HH. · 5,53€ anual (-15%)</div>
+<ul class="pfl"><li>Vacaciones y documentos firmados</li><li>Evaluación de desempeño</li><li>API e integraciones avanzadas</li><li>Gestor de cuenta asignado</li><li>Cumplimiento convenio hostelero</li></ul>
+</div>
+</div>
+<div class="bm">
+<div><div class="sb" style="font-size:28px">€45-60</div><div class="sd">ARPA objetivo /mes</div></div>
+<div><div class="sb" style="font-size:28px">&lt;8 mes</div><div class="sd">Payback CAC</div></div>
+<div><div class="sb" style="font-size:28px">&lt;4%</div><div class="sd">Churn mensual año 1</div></div>
+<div><div class="sb" style="font-size:28px">18%</div><div class="sd">Conversión Free→Pro (12m)</div></div>
+<div><div class="sb" style="font-size:28px">15%</div><div class="sd">Descuento anual (2 meses)</div></div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">07 / 10</span></div>
+</section>
+
+<!-- SLIDE 8 — EQUIPO -->
+<section class="slide" data-slide="8">
+<div class="tbar"></div>
+<div class="eyebrow">Equipo</div>
+<h1 class="title">Founder con problema real. Capacidad de ejecución demostrada.</h1>
+<div class="al"></div>
+<div class="content">
+<div class="teg">
+<div class="tec">
+<div class="tav">JA</div>
+<div>
+<div class="tnm">Jordi Albarracín</div>
+<div class="tr">Founder &amp; CEO</div>
+<div class="tbio">CEO de Grupo RAS. Implementó Factorial en su empresa y vivió el problema: caro, difícil, y tuvo que comprar tablets aparte para que los trabajadores no ficharan desde casa. Decidió construir la solución. Desarrollo asistido por IA (vibe coding) con modelos GLM-5.2 + agentes. 52 rondas de auditoría técnica automática.</div>
+</div>
+</div>
+<div class="tec">
+<div class="tav" style="background:var(--ts)">AI</div>
+<div>
+<div class="tnm">AI Agent Pipeline</div>
+<div class="tr">Desarrollo asistido</div>
+<div class="tbio">Pipeline de modelos de IA (GLM-5.2, Ollama Cloud) que ha construido el 70% del producto: backend FastAPI, frontend SPA, firmware ESP32, tests, auditorías. 121 tests, 21 routers, 23 modelos. Capacidad de iteración extrema: de idea a MVP en semanas.</div>
+</div>
+</div>
+</div>
+<div style="margin-top:24px">
+<div class="eyebrow" style="margin-bottom:12px">Buscando (use of funds)</div>
+<div class="th">
+<div class="hrl"><span class="pri pc">CRÍTICO</span><span style="font-weight:600">Backend Senior</span><span style="font-size:13px;color:var(--ts)">— Python/FastAPI/PostgreSQL · 100% · 6-8 semanas</span></div>
+<div class="hrl"><span class="pri pc">CRÍTICO</span><span style="font-weight:600">DevOps / SRE</span><span style="font-size:13px;color:var(--ts)">— CI/CD, monitoring, infra distribuida · 50% · 4 semanas</span></div>
+<div class="hrl"><span class="pri ph">ALTA</span><span style="font-weight:600">Frontend Developer</span><span style="font-size:13px;color:var(--ts)">— Modularizar PWA, build step · 100% · 6-8 semanas</span></div>
+</div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">08 / 10</span></div>
+</section>
+
+<!-- SLIDE 9 — COMPETENCIA -->
+<section class="slide" data-slide="9">
+<div class="tbar"></div>
+<div class="eyebrow">Competencia</div>
+<h1 class="title">Vertical hostelería + hardware propio = ventaja defensible</h1>
+<div class="al"></div>
+<div class="content">
+<table class="ctab">
+<thead><tr><th></th><th class="tcol">TalentUP</th><th>Factorial</th><th>Sesame</th><th>Kenjo</th></tr></thead>
+<tbody>
+<tr><td class="lbl">Foco</td><td class="tup">Hostelería vertical</td><td>RR.HH. generalista</td><td>Fichaje + RR.HH.</td><td>RR.HH. premium</td></tr>
+<tr><td class="lbl">Precio base</td><td class="tup">4,50-6,50€/emp</td><td>4,75-8,95€/emp</td><td>3,99-9,99€/emp</td><td>5,00-9,00€/emp</td></tr>
+<tr><td class="lbl">Hardware propio</td><td class="tup"><span class="ck">✓</span> ESP32 + NFC</td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td><td><span class="cx">✗</span></td></tr>
+<tr><td class="lbl">Fichaje físico sin móvil</td><td class="tup"><span class="ck">✓</span> Caja pared + NFC</td><td><span class="cx">✗</span> App móvil</td><td><span class="cp">~</span> App/tablet</td><td><span class="cx">✗</span> App móvil</td></tr>
+<tr><td class="lbl">Offline-first</td><td class="tup"><span class="ck">✓</span> Cola ESP32</td><td><span class="cx">✗</span></td><td><span class="cp">~</span> Parcial</td><td><span class="cx">✗</span></td></tr>
+<tr><td class="lbl">Especialización hostelería</td><td class="tup"><span class="ck">✓</span> Turnos, convenio</td><td><span class="cx">✗</span> Baja</td><td><span class="cp">~</span> Media</td><td><span class="cx">✗</span> Baja</td></tr>
+<tr><td class="lbl">Kiosk mode</td><td class="tup"><span class="ck">✓</span> Terminal pared</td><td><span class="cx">✗</span></td><td><span class="cp">~</span> Parcial</td><td><span class="cx">✗</span></td></tr>
+<tr><td class="lbl">Plug &amp; play</td><td class="tup"><span class="ck">✓</span> Sin técnicos</td><td><span class="cx">✗</span> Setup complejo</td><td><span class="cp">~</span></td><td><span class="cx">✗</span></td></tr>
+</tbody>
+</table>
+<div class="card co" style="margin-top:16px;padding:16px 24px">
+<div style="font-size:14px;font-weight:600">Nuestra ventaja: producto + negocio, no tecnología</div>
+<div style="font-size:13px;color:var(--ts);margin-top:4px">Factorial y Sesame son superiores en RR.HH. general, pero más caros por empleado y sin foco en kiosk/offline. TalentUP tiene un nicho claro: hostelería española, fichaje físico, precio asequible, plug &amp; play.</div>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">09 / 10</span></div>
+</section>
+
+<!-- SLIDE 10 — FINANZAS + ASK -->
+<section class="slide" data-slide="10">
+<div class="tbar"></div>
+<div class="eyebrow">Finanzas &amp; Ask</div>
+<h1 class="title">€150K para llegar a v1.0 y los primeros 50 clientes</h1>
+<div class="al"></div>
+<div class="content">
+<div style="flex:1;display:flex;flex-direction:column">
+<div class="eyebrow" style="margin-bottom:8px">Proyección de ingresos (MRR)</div>
+<div class="fch">
+<div class="fbg"><div class="fbar" style="height:20%"><span class="fbl">€3K</span></div><div class="fxl">Q4 26</div></div>
+<div class="fbg"><div class="fbar" style="height:35%"><span class="fbl">€12K</span></div><div class="fxl">Q1 27</div></div>
+<div class="fbg"><div class="fbar" style="height:55%"><span class="fbl">€28K</span></div><div class="fxl">Q2 27</div></div>
+<div class="fbg"><div class="fbar" style="height:75%"><span class="fbl">€58K</span></div><div class="fxl">Q3 27</div></div>
+<div class="fbg"><div class="fbar" style="height:95%"><span class="fbl">€95K</span></div><div class="fxl">Q4 27</div></div>
+</div>
+<div class="fmg">
+<div class="fm"><div class="val">€1,14M</div><div class="lab">ARR Q4 27</div></div>
+<div class="fm"><div class="val">500€</div><div class="lab">Coste infra/mes</div></div>
+<div class="fm"><div class="val">€5.500</div><div class="lab">LTV cliente</div></div>
+<div class="fm"><div class="val">6:1</div><div class="lab">LTV:CAC ratio</div></div>
+</div>
+</div>
+<div style="margin-top:24px;display:flex;gap:32px;align-items:center">
+<div>
+<div class="aamt">€150K</div>
+<div class="apur">Pre-Seed para 12 meses de runway. Llegar a v1.0, firmar 50 clientes piloto y validar unit economics.</div>
+</div>
+<div class="abd">
+<div class="ai2"><div class="pct">50%</div><div style="font-size:14px;color:var(--ts);font-weight:500">Equipo técnico senior<br>(Backend + DevOps + Frontend)</div></div>
+<div class="ai2"><div class="pct">30%</div><div style="font-size:14px;color:var(--ts);font-weight:500">Go-to-market<br>(ventas, Google Ads, demos)</div></div>
+<div class="ai2"><div class="pct">20%</div><div style="font-size:14px;color:var(--ts);font-weight:500">Hardware + infra<br>(kits NFC, Railway, Neon)</div></div>
+</div>
+</div>
+<div class="ac">
+<span>Jordi Albarracín · </span><a href="mailto:hola@talentup.es">hola@talentup.es</a><span> · </span><a href="https://talentup.es">talentup.es</a>
+</div>
+</div>
+<div class="foot"><span>TalentUP · Pitch Deck 2026</span><span class="pg">10 / 10</span></div>
+</section>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav">
+<button class="nb" onclick="prev()">‹</button>
+<span class="nc" id="counter">1 / 10</span>
+<button class="nb" onclick="next()">›</button>
+</div>
+
+<script>
+let cs=1;const ts=10;
+function show(n){document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));const sl=document.querySelector(`[data-slide="${n}"]`);if(sl)sl.classList.add('active');document.getElementById('counter').textContent=`${n} / ${ts}`;cs=n}
+function next(){if(cs<ts)show(cs+1)}
+function prev(){if(cs>1)show(cs-1)}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')next();if(e.key==='ArrowLeft')prev()});
+</script>
+</body>
+</html>

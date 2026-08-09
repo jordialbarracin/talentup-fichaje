@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TalentUP Fichaje — Sitemap
+     Fichaje digital NFC, PIN y offline para hostelería
+     Última actualización: 2026-08-08 -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Landing principal -->
+  <url>
+    <loc>https://talentup.es/</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Página de contacto -->
+  <url>
+    <loc>https://talentup.es/contacto.html</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Términos de servicio / Legal -->
+  <url>
+    <loc>https://talentup.es/terminos.html</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Privacidad (enlace externo a documento estático) -->
+  <url>
+    <loc>https://talentup.es/PRIVACY.md</loc>
+    <lastmod>2026-08-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

@@ -1,4 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="TalentUP">
+  <!-- Fondo del app icon: brand como acento, no protagonista. Radio iOS-style 44/192 ~= 22.9% -->
   <rect width="192" height="192" rx="44" fill="#FF6B35"/>
-  <path d="M58 96 L84 122 L138 68" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Glifo Direccion A: manecilla de reloj + arco NFC + check integrado.
+       Mismo stroke-width grueso y linecap round del checkmark original (evolucion, no ruptura). -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Circulo de reloj simplificado (solo el borde, sin numeros) -->
+    <circle cx="78" cy="100" r="42"/>
+    <!-- Manecilla que termina en check (fichaje = tarea confirmada) -->
+    <path d="M58 100 L74 116 L100 86"/>
+    <!-- Arcos de onda NFC: gesto de "acercar la tarjeta/telefono" -->
+    <path d="M128 64 A40 40 0 0 1 128 136" opacity="0.95"/>
+    <path d="M146 50 A60 60 0 0 1 146 150" opacity="0.55"/>
+  </g>
 </svg>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Política de Privacidad y Cookies</title>
+<meta name="description" content="Política de Privacidad y Cookies de TalentUP Fichaje. RGPD, LOPDGDD, derechos ARCO-PLO, encargado del tratamiento, conservación y medidas de seguridad.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#FF6B35">
+<link rel="canonical" href="https://talentup.es/privacidad.html">
+<link rel="alternate" hreflang="es" href="https://talentup.es/privacidad.html">
+<link rel="alternate" hreflang="x-default" href="https://talentup.es/privacidad.html">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest_v2.json">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalentUP Fichaje — Política de Privacidad y Cookies">
+<meta property="og:description" content="Política de Privacidad y Cookies de TalentUP Fichaje. RGPD, LOPDGDD, derechos ARCO-PLO.">
+<meta property="og:url" content="https://talentup.es/privacidad.html">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="TalentUP Fichaje">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalentUP Fichaje — Política de Privacidad y Cookies">
+<meta name="twitter:description" content="Política de Privacidad y Cookies de TalentUP Fichaje. RGPD, LOPDGDD, derechos ARCO-PLO.">
+
+<link rel="stylesheet" href="design_system.css">
+<style>
+/* ============================================================================
+   TalentUP Fichaje — Política de Privacidad y Cookies
+   Consume design_system.css. Todo color y tipo referencia un token; este
+   archivo solo aporta composicion, nunca valores sueltos.
+   ========================================================================== */
+body { background: var(--bg-surface); }
+.container { max-width: var(--container); margin: 0 auto; padding-inline: var(--space-6); }
+section[id] { scroll-margin-top: calc(var(--navbar-h) + var(--space-4)); }
+
+/* --- Navbar local (reutiliza el patrón de contacto.html) ---------------- */
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-navbar);
+  height: var(--navbar-h);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding-inline: var(--space-8);
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-links { display: flex; align-items: center; gap: var(--space-7); }
+.nav-links a {
+  font-size: var(--text-body-sm); font-weight: 500;
+  color: var(--text-secondary); letter-spacing: var(--tracking-caption);
+  white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a.active { color: var(--brand); }
+.nav-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* --- Hero --------------------------------------------------------------- */
+.legal-hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-8); text-align: center; }
+.page-label {
+  font-size: var(--text-micro); font-weight: 600;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--brand); margin-bottom: var(--space-3);
+}
+.legal-hero h1 {
+  font-size: var(--text-hero); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: 1.06;
+  margin-bottom: var(--space-4);
+}
+.legal-hero .meta {
+  font-size: var(--text-body-sm); color: var(--text-secondary);
+  letter-spacing: var(--tracking-caption);
+}
+
+/* --- Layout ------------------------------------------------------------- */
+.legal-section { padding-block: var(--space-6) var(--space-20); }
+.legal-inner { max-width: 760px; margin: 0 auto; }
+
+.legal-intro {
+  font-size: var(--text-lead); color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-8); padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- TOC ---------------------------------------------------------------- */
+.toc {
+  background: var(--bg-sunken); border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-7); margin-bottom: var(--space-12);
+  border: 1px solid var(--border-hairline);
+}
+.toc-title {
+  font-size: var(--text-micro); font-weight: 600;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: var(--space-4);
+}
+.toc-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-6); }
+.toc-list a {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  font-size: var(--text-body-sm); font-weight: 500; color: var(--text-primary);
+  padding: var(--space-1) 0; border-radius: var(--radius-sm);
+}
+.toc-list a:hover { color: var(--brand); }
+.toc-num { color: var(--brand); font-weight: 600; min-width: 1.5em; }
+
+/* --- Sections ----------------------------------------------------------- */
+.term-section { margin-bottom: var(--space-12); }
+.term-section h2 {
+  font-size: var(--text-section); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: 1.15;
+  margin-bottom: var(--space-4); color: var(--text-primary);
+}
+.term-section h3 {
+  font-size: var(--text-h2); font-weight: 600;
+  letter-spacing: var(--tracking-normal);
+  margin-top: var(--space-6); margin-bottom: var(--space-3);
+  color: var(--text-primary);
+}
+.term-section p {
+  font-size: var(--text-body); color: #424245;
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-4);
+}
+.term-section ul {
+  list-style: none; margin: 0 0 var(--space-4) 0;
+}
+.term-section ul li {
+  position: relative; padding-left: var(--space-5);
+  font-size: var(--text-body); color: #424245;
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-2);
+}
+.term-section ul li::before {
+  content: ''; position: absolute; left: var(--space-1); top: 0.65em;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--brand);
+}
+.term-section strong { color: var(--text-primary); font-weight: 600; }
+
+/* --- Tabla de tratamientos --------------------------------------------- */
+.treatments {
+  width: 100%; border-collapse: collapse;
+  margin: var(--space-4) 0 var(--space-6);
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-hairline);
+}
+.treatments th, .treatments td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-body-sm);
+  border-bottom: 1px solid var(--border-hairline);
+  vertical-align: top;
+}
+.treatments thead th {
+  font-size: var(--text-micro); font-weight: 600;
+  text-transform: uppercase; letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+}
+.treatments tbody tr:last-child td { border-bottom: none; }
+.treatments td:first-child { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.treatments-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* --- Tarjeta de derechos ------------------------------------------------ */
+.rights-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3); margin: var(--space-4) 0 var(--space-6);
+}
+.right-card {
+  background: var(--bg-sunken); border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border-hairline);
+}
+.right-card h4 {
+  font-size: var(--text-body); font-weight: 600;
+  color: var(--brand); margin-bottom: var(--space-1);
+  letter-spacing: var(--tracking-normal);
+}
+.right-card p {
+  font-size: var(--text-body-sm); color: var(--text-secondary);
+  line-height: var(--leading-normal); margin: 0;
+}
+
+/* --- Caja de contacto DPO ---------------------------------------------- */
+.dpo-box {
+  background: var(--brand-tint-06); border-radius: var(--radius-xl);
+  padding: var(--space-6) var(--space-7); margin: var(--space-4) 0 var(--space-6);
+  border: 1px solid var(--brand-tint-12);
+}
+.dpo-box h4 {
+  font-size: var(--text-h2); font-weight: 600;
+  color: var(--text-primary); margin-bottom: var(--space-3);
+  letter-spacing: var(--tracking-normal);
+}
+.dpo-box p {
+  font-size: var(--text-body-sm); color: var(--text-secondary);
+  line-height: var(--leading-relaxed); margin-bottom: var(--space-2);
+}
+.dpo-box a { font-size: var(--text-body-sm); font-weight: 500; }
+
+/* --- Tabla de cookies --------------------------------------------------- */
+.cookies-table {
+  width: 100%; border-collapse: collapse;
+  margin: var(--space-4) 0 var(--space-6);
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-hairline);
+}
+.cookies-table th, .cookies-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-body-sm);
+  border-bottom: 1px solid var(--border-hairline);
+  vertical-align: top;
+}
+.cookies-table thead th {
+  font-size: var(--text-micro); font-weight: 600;
+  text-transform: uppercase; letter-spacing: var(--tracking-label);
+  color: var(--text-secondary);
+  background: var(--bg-sunken);
+  border-bottom: 1px solid var(--border);
+}
+.cookies-table tbody tr:last-child td { border-bottom: none; }
+.cookie-cat {
+  display: inline-flex; align-items: center;
+  font-size: var(--text-micro); font-weight: 600;
+  text-transform: uppercase; letter-spacing: var(--tracking-wide);
+  padding: 2px var(--space-2); border-radius: var(--radius-xs);
+}
+.cookie-cat--nec   { background: var(--success-tint); color: var(--success-strong); }
+.cookie-cat--pref  { background: var(--info-tint); color: var(--info); }
+.cookie-cat--stat  { background: var(--brand-tint-12); color: var(--brand); }
+.cookie-cat--mark  { background: var(--warning-tint); color: var(--warning-strong); }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  margin-top: var(--space-4); font-size: var(--text-body-sm); font-weight: 500;
+}
+.back-link svg { flex-shrink: 0; }
+
+/* --- Footer ------------------------------------------------------------- */
+.footer { padding-block: var(--space-12) var(--space-8); border-top: 1px solid var(--border); }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-8); }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.footer-links a { font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-links a:hover { color: var(--brand); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4); padding-top: var(--space-6); border-top: 1px solid var(--border); font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-legal { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.footer-legal a { font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-legal a:hover { color: var(--brand); }
+
+/* --- Responsive --------------------------------------------------------- */
+@media (max-width: 980px) {
+  .nav-links { display: none; }
+  .rights-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .nav { padding-inline: var(--space-4); }
+  .legal-hero { padding-block: calc(var(--navbar-h) + var(--space-10)) var(--space-6); }
+  .legal-section { padding-block: var(--space-4) var(--space-16); }
+  .toc-list { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<!-- ===== SIMBOLOS SVG ===================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="tu-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="12" r="6.5"/>
+    <path d="M5.9 12.1 8.1 14.3 12.4 9.6"/>
+    <path d="M15.5 6.5A8.5 8.5 0 0 1 15.5 17.5"/>
+    <path class="tu-mark-arc-outer" d="M18.3 6.2A11 11 0 0 1 18.3 17.8"/>
+  </symbol>
+</svg>
+
+<!-- ===== NAVBAR ========================================================== -->
+<nav class="nav">
+  <a href="landing_new.html" class="tu-lockup" aria-label="TalentUP Fichaje, inicio">
+    <svg class="tu-mark" width="26" height="26" aria-hidden="true"><use href="#tu-mark"/></svg>
+    <span class="tu-wordmark">Talent<em>UP</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="landing_new.html#producto">Producto</a>
+    <a href="landing_new.html#precios">Precios</a>
+    <a href="landing_new.html#faq">Preguntas</a>
+    <a href="terminos.html">Términos</a>
+    <a href="contacto.html">Contacto</a>
+  </div>
+  <div class="nav-actions">
+    <a href="index.html" class="btn btn-primary">Probar gratis</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ===== HERO ============================================================ -->
+<section class="legal-hero">
+  <div class="container">
+    <div class="page-label">Legal</div>
+    <h1>Política de Privacidad y Cookies</h1>
+    <div class="meta">Última actualización: 9 de agosto de 2026</div>
+  </div>
+</section>
+
+<!-- ===== CONTENIDO ======================================================== -->
+<section class="legal-section">
+  <div class="container">
+    <div class="legal-inner">
+
+      <p class="legal-intro">
+        TalentUP Fichaje («el Proveedor», «nosotros») trata los datos personales de los
+        usuarios del Servicio con la máxima confidencialidad y de conformidad con el
+        Reglamento (UE) 2016/679, General de Protección de Datos (RGPD), la Ley Orgánica
+        3/2018 de Protección de Datos Personales y garantía de los derechos digitales
+        (LOPDGDD) y el resto de normativa europea y española de aplicación. Esta política
+        explica qué datos tratamos, con qué finalidad, durante cuánto tiempo y qué
+        derechos te asisten.
+      </p>
+
+      <!-- TOC -->
+      <nav class="toc" aria-label="Tabla de contenidos">
+        <div class="toc-title">Contenido</div>
+        <div class="toc-list">
+          <a href="#s1"><span class="toc-num">1</span>Responsable del tratamiento</a>
+          <a href="#s2"><span class="toc-num">2</span>Datos que tratamos</a>
+          <a href="#s3"><span class="toc-num">3</span>Finalidad y base legal</a>
+          <a href="#s4"><span class="toc-num">4</span>Destinatarios y transferencias</a>
+          <a href="#s5"><span class="toc-num">5</span>Conservación de datos</a>
+          <a href="#s6"><span class="toc-num">6</span>Derechos de los usuarios</a>
+          <a href="#s7"><span class="toc-num">7</span>Medidas de seguridad</a>
+          <a href="#s8"><span class="toc-num">8</span>Encargado del tratamiento (DPA)</a>
+          <a href="#s9"><span class="toc-num">9</span>Política de cookies</a>
+          <a href="#s10"><span class="toc-num">10</span>Cambios y contacto</a>
+        </div>
+      </nav>
+
+      <!-- 1 -->
+      <section class="term-section" id="s1">
+        <h2>1. Responsable del tratamiento</h2>
+        <p>
+          El responsable del tratamiento de los datos personales recogidos a través del
+          Servicio es:
+        </p>
+        <ul>
+          <li><strong>Responsable:</strong> TalentUP (en adelante, «el Proveedor»).</li>
+          <li><strong>Domicilio:</strong> España (Catalunya).</li>
+          <li><strong>Correo de contacto:</strong> hola@talentup.es</li>
+          <li><strong>Correo del DPO:</strong> dpo@talentup.es</li>
+        </ul>
+        <p>
+          Para el ejercicio de derechos puede dirigirse a cualquiera de los correos
+          indicados. El CIF y la dirección postal completa se facilitan a los clientes
+          en el acuerdo de prestación de servicios y, a petición, a cualquier interesado.
+        </p>
+      </section>
+
+      <!-- 2 -->
+      <section class="term-section" id="s2">
+        <h2>2. Datos que tratamos</h2>
+        <p>
+          TalentUP Fichaje es un servicio B2B de control horario. Tratamos datos de dos
+          categorías de interesados:
+        </p>
+        <h3>2.1 Datos del cliente (empresa)</h3>
+        <ul>
+          <li><strong>Identificación de empresa:</strong> razón social, CIF/NIF, domicilio fiscal, persona de contacto, email corporativo y teléfono.</li>
+          <li><strong>Datos de facturación:</strong> datos bancarios para el cobro de la suscripción (gestionados por un proveedor de pagos; no los almacenamos directamente).</li>
+          <li><strong>Credenciales de acceso:</strong> email y contraseña cifrada para autenticación en la plataforma.</li>
+        </ul>
+        <h3>2.2 Datos de los trabajadores del cliente</h3>
+        <ul>
+          <li><strong>Identificación:</strong> nombre y apellidos, DNI/NIE, foto (opcional) y datos de contacto.</li>
+          <li><strong>Datos laborales:</strong> categoría profesional, centro de trabajo, turno, calendario, contrato y fecha de alta.</li>
+          <li><strong>Datos de fichaje:</strong> hora, fecha, ubicación, dispositivo y método (NFC, PIN, QR) de cada entrada y salida.</li>
+          <li><strong>Datos biométricos:</strong> en caso de activar PIN de acceso no se trata huella ni reconocimiento facial. El Servicio no utiliza datos biométricos identificativos.</li>
+        </ul>
+        <p>
+          El tratamiento de los datos de los trabajadores del cliente es responsabilidad
+          del cliente, que actúa como responsable del tratamiento. TalentUP actúa como
+          encargado del tratamiento (ver sección 8).
+        </p>
+      </section>
+
+      <!-- 3 -->
+      <section class="term-section" id="s3">
+        <h2>3. Finalidad y base legal</h2>
+        <p>
+          Tratamos los datos para las siguientes finalidades, cada una amparada en una
+          base de legitimación distinta conforme al artículo 6 del RGPD:
+        </p>
+        <div class="treatments-wrap">
+          <table class="treatments">
+            <thead>
+              <tr>
+                <th>Finalidad</th>
+                <th>Base legal</th>
+                <th>Datos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prestación del Servicio SaaS</td>
+                <td>Ejecución de contrato (art. 6.1.b)</td>
+                <td>Identificación de empresa, credenciales</td>
+              </tr>
+              <tr>
+                <td>Gestión de fichaje y control horario</td>
+                <td>Ejecución de contrato (art. 6.1.b)</td>
+                <td>Datos de trabajadores del cliente</td>
+              </tr>
+              <tr>
+                <td>Facturación y cobro</td>
+                <td>Ejecución de contrato (art. 6.1.b)</td>
+                <td>Datos de facturación</td>
+              </tr>
+              <tr>
+                <td>Atención al cliente y soporte</td>
+                <td>Consentimiento (art. 6.1.a)</td>
+                <td>Email, contenido de la consulta</td>
+              </tr>
+              <tr>
+                <td>Información comercial</td>
+                <td>Consentimiento (art. 6.1.a)</td>
+                <td>Email</td>
+              </tr>
+              <tr>
+                <td>Cumplimiento de obligaciones legales</td>
+                <td>Obligación legal (art. 6.1.c)</td>
+                <td>Datos de facturación y fiscales</td>
+              </tr>
+              <tr>
+                <td>Conservación de logs de seguridad</td>
+                <td>Interés legítimo (art. 6.1.f)</td>
+                <td>Direcciones IP, eventos de acceso</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          El cliente declara haber informado a sus trabajadores del tratamiento de sus
+          datos de fichaje por parte de TalentUP como encargado del tratamiento, y haber
+          obtenido el consentimiento o la base de legitimación pertinente cuando proceda.
+        </p>
+      </section>
+
+      <!-- 4 -->
+      <section class="term-section" id="s4">
+        <h2>4. Destinatarios y transferencias</h2>
+        <p>
+          No vendemos ni cedemos tus datos personales a terceros. Los datos pueden
+          comunicarse a los siguientes destinatarios, bajo las garantías exigidas por
+          el RGPD:
+        </p>
+        <ul>
+          <li><strong>Proveedores de servicios de hosting y cloud:</strong> alojamientos situados en la Unión Europea, encargados del tratamiento, con contrato de encargado firmado.</li>
+          <li><strong>Proveedores de pasarelas de pago:</strong> para el cobro de la suscripción. Solo reciben los datos estrictamente necesarios para la operación.</li>
+          <li><strong>Proveedores de correo transaccional y soporte:</strong> para el envío de notificaciones y la gestión de incidencias.</li>
+          <li><strong>Administraciones públicas:</strong> cuando exista obligación legal de comunicación.</li>
+        </ul>
+        <p>
+          <strong>No se realizan transferencias internacionales</strong> de datos a países
+          terceros no adecuados, salvo cuando un proveedor lo requiera, en cuyo caso se
+          aplican las cláusulas contractuales tipo aprobadas por la Comisión Europea y
+          se realiza la evaluación de impacto correspondiente.
+        </p>
+      </section>
+
+      <!-- 5 -->
+      <section class="term-section" id="s5">
+        <h2>5. Conservación de datos</h2>
+        <p>
+          Los datos se conservan durante el tiempo necesario para cumplir la finalidad
+          para la que fueron recogidos y, en su caso, durante los plazos legales
+          aplicables:
+        </p>
+        <ul>
+          <li><strong>Datos de fichaje de los trabajadores:</strong> el cliente determina el plazo de conservación conforme a sus obligaciones laborales (RD-ley 8/2019). TalentUP los conserva mientras el cliente mantenga el contrato y, tras la cancelación, 30 días para permitir su exportación, procediendo luego a su supresión.</li>
+          <li><strong>Datos de cuenta y facturación:</strong> durante la vigencia del contrato y, tras su finalización, durante los plazos de prescripción de obligaciones fiscales y mercantiles (hasta 6 años).</li>
+          <li><strong>Logs de seguridad:</strong> 12 meses, conforme a la LOPDGDD.</li>
+          <li><strong>Datos de consultas y soporte:</strong> 2 años desde la última interacción.</li>
+          <li><strong>Datos de marketing:</strong> hasta la retirada del consentimiento.</li>
+        </ul>
+        <p>
+          Una vez transcurridos los plazos, los datos se suprimen o se anonimizan, salvo
+          obligación legal de conservación.
+        </p>
+      </section>
+
+      <!-- 6 -->
+      <section class="term-section" id="s6">
+        <h2>6. Derechos de los usuarios</h2>
+        <p>
+          Cualquier interesado, o su representante, puede ejercer los siguientes derechos
+          reconocidos por el RGPD y la LOPDGDD:
+        </p>
+        <div class="rights-grid">
+          <div class="right-card">
+            <h4>Acceso</h4>
+            <p>Conocer qué datos tuyos tratamos y para qué.</p>
+          </div>
+          <div class="right-card">
+            <h4>Rectificación</h4>
+            <p>Corregir datos inexactos o incompletos.</p>
+          </div>
+          <div class="right-card">
+            <h4>Supresión</h4>
+            <p>Solicitar la baja de datos cuando ya no sean necesarios.</p>
+          </div>
+          <div class="right-card">
+            <h4>Limitación</h4>
+            <p>Bloquear el tratamiento mientras se verifica una oposición o reclamación.</p>
+          </div>
+          <div class="right-card">
+            <h4>Portabilidad</h4>
+            <p>Recibir tus datos en formato estructurado para llevarlos a otro proveedor.</p>
+          </div>
+          <div class="right-card">
+            <h4>Oposición</h4>
+            <p>Oponerte al tratamiento por motivos relacionados con tu situación particular.</p>
+          </div>
+        </div>
+        <p>
+          Puedes ejercerlos escribiendo a <a href="mailto:dpo@talentup.es">dpo@talentup.es</a>
+          o <a href="mailto:hola@talentup.es">hola@talentup.es</a>, adjuntando copia de un
+          documento identificativo. Responderemos en el plazo máximo de un mes, prorrogable
+          a tres meses cuando sea necesario por la complejidad o el número de solicitudes.
+        </p>
+        <p>
+          Asimismo, tienes derecho a retirar el consentimiento prestado en cualquier
+          momento, sin que ello afecte a la licitud del tratamiento anterior. También
+          puedes presentar una reclamación ante la <strong>Agencia Española de Protección
+          de Datos (AEPD)</strong> (www.aepd.es) si consideras que tus derechos no han
+          sido respetados.
+        </p>
+      </section>
+
+      <!-- 7 -->
+      <section class="term-section" id="s7">
+        <h2>7. Medidas de seguridad</h2>
+        <p>
+          TalentUP aplica las medidas técnicas y organizativas apropiadas para garantizar
+          un nivel de seguridad adecuado al riesgo, conforme al artículo 32 del RGPD:
+        </p>
+        <ul>
+          <li><strong>Cifrado en tránsito:</strong> TLS 1.3 para toda la comunicación entre cliente y servidor.</li>
+          <li><strong>Cifrado en reposo:</strong> AES-256 para el almacenamiento de datos.</li>
+          <li><strong>Control de accesos:</strong> autenticación con contraseña cifrada (bcrypt), rotación de credenciales y principio de mínimo privilegio.</li>
+          <li><strong>Registro de actividad:</strong> logs de acceso y operaciones relevantes conservados durante 12 meses.</li>
+          <li><strong>Backups cifrados:</strong> copias de seguridad periódicas con cifrado y plan de recuperación.</li>
+          <li><strong>Revisión periódica:</strong> evaluaciones de impacto y auditorías según el riesgo del tratamiento.</li>
+        </ul>
+        <p>
+          En caso de brecha de seguridad que pueda suponer un riesgo para los derechos y
+          libertades de las personas, TalentUP notificará a la autoridad competente en
+          un plazo no superior a 72 horas, conforme al artículo 33 del RGPD, y comunicará
+          a los interesados cuando el riesgo sea elevado.
+        </p>
+      </section>
+
+      <!-- 8 -->
+      <section class="term-section" id="s8">
+        <h2>8. Encargado del tratamiento (DPA)</h2>
+        <p>
+          En su relación con los clientes, TalentUP actúa como <strong>encargado del
+          tratamiento</strong> de los datos de los trabajadores del cliente, conforme al
+          artículo 28 del RGPD. Esta relación se formaliza mediante un Acuerdo de
+          Protección de Datos (DPA) firmado entre las partes en el momento de la
+          contratación del Servicio.
+        </p>
+        <p>
+          Como encargado del tratamiento, TalentUP se compromete a:
+        </p>
+        <ul>
+          <li>Tratar los datos únicamente por cuenta e instrucciones documentadas del cliente.</li>
+          <li>No comunicar los datos a terceros salvo autorización del cliente o por obligación legal.</li>
+          <li>Garantizar que el personal con acceso está sujeto a un compromiso de confidencialidad.</li>
+          <li>Aplicar las medidas de seguridad del artículo 32 del RGPD.</li>
+          <li>Asistir al cliente en el cumplimiento de sus obligaciones, incluidas las evaluaciones de impacto y la notificación de brechas.</li>
+          <li>Suprimir o devolver los datos al cliente al finalizar la prestación del Servicio.</li>
+        </ul>
+        <div class="dpo-box">
+          <h4>Delegado de Protección de Datos (DPO)</h4>
+          <p>
+            TalentUP dispone de un Delegado de Protección de Datos para supervisar el
+            cumplimiento del RGPD y actuar como punto de contacto con la AEPD. Cualquier
+            comunicación relativa a la protección de datos puede dirigirse a:
+          </p>
+          <p><a href="mailto:dpo@talentup.es">dpo@talentup.es</a></p>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section class="term-section" id="s9">
+        <h2>9. Política de cookies</h2>
+        <p>
+          TalentUP Fichaje utiliza cookies y tecnologías similares para el correcto
+          funcionamiento del Servicio y, en su caso, para mejorar la experiencia del
+          usuario y obtener estadísticas de uso. Una cookie es un fichero de texto que
+          el navegador almacena en el dispositivo del usuario y que permite reconocerlo
+          en visitas posteriores.
+        </p>
+        <h3>9.1 Tipos de cookies</h3>
+        <div class="treatments-wrap">
+          <table class="cookies-table">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Finalidad</th>
+                <th>Conservación</th>
+                <th>Consentimiento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cookie-cat cookie-cat--nec">Necesarias</span></td>
+                <td>Autenticación, sesión, seguridad y preferencias básicas. Sin ellas el Servicio no funciona.</td>
+                <td>Sesión / hasta 12 meses</td>
+                <td>No requerido (RGPD art. 6.1.b/c)</td>
+              </tr>
+              <tr>
+                <td><span class="cookie-cat cookie-cat--pref">Preferencias</span></td>
+                <td>Recordar idioma, tema y configuración de la interfaz.</td>
+                <td>12 meses</td>
+                <td>Requerido (consentimiento)</td>
+              </tr>
+              <tr>
+                <td><span class="cookie-cat cookie-cat--stat">Estadísticas</span></td>
+                <td>Medición anónima del uso del Servicio para mejorar el producto.</td>
+                <td>24 meses</td>
+                <td>Requerido (consentimiento)</td>
+              </tr>
+              <tr>
+                <td><span class="cookie-cat cookie-cat--mark">Marketing</span></td>
+                <td>Personalización de campañas y medición de conversión. TalentUP no utiliza cookies de marketing de terceros en el Servicio.</td>
+                <td>—</td>
+                <td>Requerido (consentimiento)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>9.2 Gestión del consentimiento</h3>
+        <p>
+          Al acceder por primera vez al Servicio, se muestra un banner informativo que
+          permite al usuario aceptar, rechazar o configurar las cookies no necesarias.
+          El consentimiento se registra y puede retirarse en cualquier momento desde la
+          configuración de cookies disponible en el pie de la aplicación.
+        </p>
+        <p>
+          Las cookies <strong>necesarias</strong> no requieren consentimiento, pues son
+          imprescindibles para el funcionamiento del Servicio y se amparan en la
+          ejecución del contrato o en obligaciones legales. Las cookies de
+          <strong>preferencias</strong>, <strong>estadísticas</strong> y
+          <strong>marketing</strong> requieren el consentimiento expreso del usuario,
+          conforme a la LSSI-CE y el RGPD.
+        </p>
+        <h3>9.3 Desactivación en el navegador</h3>
+        <p>
+          El usuario puede gestionar y desactivar las cookies directamente desde la
+          configuración de su navegador. Los siguientes enlaces explican cómo hacerlo
+          en los navegadores más habituales:
+        </p>
+        <ul>
+          <li><a href="https://support.google.com/chrome/answer/95647" rel="noopener" target="_blank">Google Chrome</a></li>
+          <li><a href="https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" rel="noopener" target="_blank">Mozilla Firefox</a></li>
+          <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" rel="noopener" target="_blank">Safari (macOS)</a></li>
+          <li><a href="https://support.microsoft.com/es-es/microsoft-edge/suprimir-las-cookies-en-microsoft-edge-63947406-40ac-c7b2-7eb8-7671d57b1f0e" rel="noopener" target="_blank">Microsoft Edge</a></li>
+        </ul>
+        <p>
+          La desactivación de cookies necesarias puede impedir el correcto funcionamiento
+          del Servicio y la autenticación del usuario.
+        </p>
+      </section>
+
+      <!-- 10 -->
+      <section class="term-section" id="s10">
+        <h2>10. Cambios y contacto</h2>
+        <p>
+          TalentUP podrá actualizar esta política de privacidad cuando sea necesario por
+          cambios normativos, jurisprudenciales, técnicos o de la actividad. Las
+          modificaciones se publicarán en esta página y se comunicarán a los clientes por
+          email con al menos 30 días de antelación a su entrada en vigor, salvo cambios
+          menores o puramente aclaratorios que podrán aplicarse de forma inmediata.
+        </p>
+        <p>
+          El uso continuado del Servicio tras la entrada en vigor de las modificaciones
+          implica la aceptación de la política actualizada. Si tienes cualquier duda
+          sobre el tratamiento de tus datos, puedes contactar con nosotros a través de:
+        </p>
+        <div class="dpo-box">
+          <h4>Contacto en materia de privacidad</h4>
+          <p><strong>DPO:</strong> <a href="mailto:dpo@talentup.es">dpo@talentup.es</a></p>
+          <p><strong>General:</strong> <a href="mailto:hola@talentup.es">hola@talentup.es</a></p>
+          <p><strong>Soporte:</strong> <a href="mailto:soporte@talentup.es">soporte@talentup.es</a></p>
+        </div>
+      </section>
+
+      <a href="landing_new.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 12L6 8L10 4"/>
+        </svg>
+        Volver a la página principal
+      </a>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ========================================================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <a href="landing_new.html" class="tu-lockup" aria-label="TalentUP Fichaje, inicio">
+        <svg class="tu-mark" width="24" height="24" aria-hidden="true"><use href="#tu-mark"/></svg>
+        <span class="tu-wordmark">Talent<em>UP</em></span>
+      </a>
+      <nav class="footer-links" aria-label="Secciones">
+        <a href="landing_new.html#producto">Producto</a>
+        <a href="landing_new.html#precios">Precios</a>
+        <a href="landing_new.html#faq">Preguntas</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 TalentUP. Hecho en Catalunya.</span>
+      <nav class="footer-legal" aria-label="Legal">
+        <a href="terminos.html">Términos</a>
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html#dpa">DPA</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B35">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TalentUP">
+
+<!-- Design system. Este archivo no declara estilos: solo estructura y componentes.
+     Claude Opus estilizara a las 22:00 sobre esta base. -->
+<link rel="stylesheet" href="design_system.css">
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<a class="skip-link" href="#page-dashboard">Saltar al contenido</a>
+
+<!-- ===== SIMBOLOS SVG (iconos reutilizables) ============================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="tu-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="12" r="6.5"/>
+    <path d="M5.9 12.1 8.1 14.3 12.4 9.6"/>
+    <path d="M15.5 6.5A8.5 8.5 0 0 1 15.5 17.5"/>
+    <path d="M18.3 6.2A11 11 0 0 1 18.3 17.8"/>
+  </symbol>
+  <symbol id="i-empty-people" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+  </symbol>
+  <symbol id="i-empty-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>
+  </symbol>
+  <symbol id="i-empty-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/>
+  </symbol>
+</svg>
+
+<!-- ===== APP SHELL ======================================================= -->
+<div id="app">
+
+  <!-- ===== SIDEBAR ====================================================== -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <svg class="tu-mark" width="24" height="24" aria-hidden="true"><use href="#tu-mark"/></svg>
+      <span class="tu-wordmark">Talent<em>UP</em></span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Secciones del panel">
+      <div class="nav-item active" data-page="dashboard" role="button" tabindex="0" title="Dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </div>
+
+      <div class="sidebar-section">Equipo</div>
+      <div class="nav-item" data-page="empleados" role="button" tabindex="0" title="Empleados">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        <span class="nav-label">Empleados</span>
+      </div>
+      <div class="nav-item" data-page="fichajes" role="button" tabindex="0" title="Fichajes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+        <span class="nav-label">Fichajes</span>
+      </div>
+      <div class="nav-item" data-page="turnos" role="button" tabindex="0" title="Turnos">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 1-6.4 2.6"/><path d="M12 7v5l3 2"/><path d="M3 4v4h4"/></svg>
+        <span class="nav-label">Turnos</span>
+      </div>
+
+      <div class="sidebar-section">Gestion</div>
+      <div class="nav-item" data-page="reportes" role="button" tabindex="0" title="Reportes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg>
+        <span class="nav-label">Reportes</span>
+      </div>
+      <div class="nav-item" data-page="incidencias" role="button" tabindex="0" title="Incidencias">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span class="nav-label">Incidencias</span>
+      </div>
+
+      <div class="sidebar-section">Sistema</div>
+      <div class="nav-item" data-page="ajustes" role="button" tabindex="0" title="Ajustes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7.3 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 13.4H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.5 6.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 2.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.8 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.8H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1.1z"/></svg>
+        <span class="nav-label">Ajustes</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="nav-item" role="button" tabindex="0" title="Cerrar sesion">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span class="nav-label">Cerrar sesion</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ========================================================= -->
+  <div id="main">
+
+    <!-- ===== HEADER / NAVBAR =========================================== -->
+    <header id="navbar">
+      <div class="navbar-left">
+        <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <span class="navbar-title">Restaurante La Marina</span>
+      </div>
+      <div class="navbar-right">
+        <!-- Notificaciones -->
+        <button class="btn btn-ghost btn-icon" aria-label="Notificaciones">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="badge badge-incident" aria-label="3 notificaciones">3</span>
+        </button>
+        <!-- Avatar usuario -->
+        <div class="navbar-user">
+          <div class="navbar-avatar">MR</div>
+          <span class="truncate">Marta Ruiz</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== VISTA: DASHBOARD ========================================== -->
+    <main class="page-content" id="page-dashboard" role="main">
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="dashboard-date">Sabado, 8 de agosto de 2026</p>
+        </div>
+        <button class="btn btn-ghost">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+          Actualizar
+        </button>
+      </div>
+
+      <!-- KPIs -->
+      <section class="stats-grid" aria-label="Indicadores clave">
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon orange">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">12</div>
+          <div class="stat-card-label">Empleados activos</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">47</div>
+          <div class="stat-card-label">Fichajes hoy</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">3</div>
+          <div class="stat-card-label">Incidencias</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">426</div>
+          <div class="stat-card-label">Horas esta semana</div>
+        </article>
+      </section>
+
+      <!-- Grafico de fichajes + lista de ultimos fichajes -->
+      <section class="dashboard-grid" aria-label="Actividad de hoy">
+        <!-- Grafico de fichajes (placeholder de estructura) -->
+        <article class="card card-pad">
+          <div class="card-header">
+            <h3>Fichajes por hora</h3>
+          </div>
+          <div class="card-body">
+            <!-- Contenedor del grafico. La libreria (Chart.js / SVG) lo rellenara. -->
+            <div class="chart-container" data-chart="fichajes-hora" aria-label="Grafico de fichajes por hora">
+              <svg viewBox="0 0 600 240" role="img" aria-label="Grafico de barras: fichajes por hora del dia">
+                <g class="chart-axis-y"></g>
+                <g class="chart-bars"></g>
+                <g class="chart-axis-x"></g>
+              </svg>
+            </div>
+          </div>
+        </article>
+
+        <!-- Lista de ultimos fichajes -->
+        <article class="card card-pad">
+          <div class="card-header">
+            <h3>Ultimos fichajes</h3>
+            <a href="#page-fichajes" class="t-micro">Ver todos</a>
+          </div>
+          <div class="card-body">
+            <ul class="recent-clocks">
+              <li class="recent-clock-item">
+                <div class="person">
+                  <span class="person-avatar">JR</span>
+                  <div>
+                    <div class="person-name">Jordi Alba</div>
+                    <div class="person-meta">Entrada</div>
+                  </div>
+                </div>
+                <div class="recent-clock-time">
+                  <span class="tabular">08:02</span>
+                  <span class="badge badge-ok">NFC</span>
+                </div>
+              </li>
+              <li class="recent-clock-item">
+                <div class="person">
+                  <span class="person-avatar">MR</span>
+                  <div>
+                    <div class="person-name">Marta Ruiz</div>
+                    <div class="person-meta">Entrada</div>
+                  </div>
+                </div>
+                <div class="recent-clock-time">
+                  <span class="tabular">09:15</span>
+                  <span class="badge badge-late">Retraso</span>
+                </div>
+              </li>
+              <li class="recent-clock-item">
+                <div class="person">
+                  <span class="person-avatar">CP</span>
+                  <div>
+                    <div class="person-name">Carla Pou</div>
+                    <div class="person-meta">Pausa</div>
+                  </div>
+                </div>
+                <div class="recent-clock-time">
+                  <span class="tabular">12:30</span>
+                  <span class="badge badge-ok">PIN</span>
+                </div>
+              </li>
+              <li class="recent-clock-item">
+                <div class="person">
+                  <span class="person-avatar">JL</span>
+                  <div>
+                    <div class="person-name">Joan Lopez</div>
+                    <div class="person-meta">Salida</div>
+                  </div>
+                </div>
+                <div class="recent-clock-time">
+                  <span class="tabular">16:45</span>
+                  <span class="badge badge-ok">NFC</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <!-- Calendario de turnos (mini, vista de hoy) -->
+      <section aria-label="Turnos de hoy">
+        <article class="card card-pad">
+          <div class="card-header">
+            <h3>Turnos de hoy</h3>
+            <a href="#page-turnos" class="t-micro">Ver calendario</a>
+          </div>
+          <div class="card-body">
+            <div class="shifts-grid">
+              <div class="shift-card">
+                <div class="shift-card-name">Manana</div>
+                <div class="shift-card-time">06:00 — 14:00</div>
+                <div class="shift-card-meta">Jordi Alba, Carla Pou</div>
+              </div>
+              <div class="shift-card shift-tarde">
+                <div class="shift-card-name">Tarde</div>
+                <div class="shift-card-time">14:00 — 22:00</div>
+                <div class="shift-card-meta">Marta Ruiz, Joan Lopez</div>
+              </div>
+              <div class="shift-card shift-noche">
+                <div class="shift-card-name">Noche</div>
+                <div class="shift-card-time">22:00 — 06:00</div>
+                <div class="shift-card-meta">Sin asignar</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: EMPLEADOS =========================================== -->
+    <main class="page-content hidden" id="page-empleados" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Empleados</h1>
+          <p>Plantilla, DNI, turno y ultimo fichaje</p>
+        </div>
+        <button class="btn btn-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Anadir empleado
+        </button>
+      </div>
+
+      <section class="table-card">
+        <div class="table-card-header">
+          <div class="filters">
+            <input type="search" placeholder="Buscar por nombre o DNI" aria-label="Buscar empleado">
+            <select aria-label="Estado">
+              <option value="">Todos los estados</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+              <option value="on_leave">De baja</option>
+            </select>
+            <select aria-label="Turno">
+              <option value="">Todos los turnos</option>
+              <option>Manana</option>
+              <option>Tarde</option>
+              <option>Noche</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">DNI</th>
+                <th scope="col">Turno</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Ultimo fichaje</th>
+                <th scope="col"><span class="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">JA</span>
+                    <span class="person-name">Jordi Alba</span>
+                  </div>
+                </td>
+                <td class="tabular">12345678A</td>
+                <td>Manana</td>
+                <td><span class="badge badge-active">Activo</span></td>
+                <td class="tabular">Hoy 08:02</td>
+                <td>
+                  <button class="btn btn-ghost btn-icon" aria-label="Editar Jordi Alba">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">MR</span>
+                    <span class="person-name">Marta Ruiz</span>
+                  </div>
+                </td>
+                <td class="tabular">87654321B</td>
+                <td>Tarde</td>
+                <td><span class="badge badge-active">Activo</span></td>
+                <td class="tabular">Hoy 09:15</td>
+                <td>
+                  <button class="btn btn-ghost btn-icon" aria-label="Editar Marta Ruiz">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">CP</span>
+                    <span class="person-name">Carla Pou</span>
+                  </div>
+                </td>
+                <td class="tabular">11223344C</td>
+                <td>Manana</td>
+                <td><span class="badge badge-on-leave">De baja</span></td>
+                <td class="tabular">Ayer 17:00</td>
+                <td>
+                  <button class="btn btn-ghost btn-icon" aria-label="Editar Carla Pou">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">JL</span>
+                    <span class="person-name">Joan Lopez</span>
+                  </div>
+                </td>
+                <td class="tabular">99887766D</td>
+                <td>Tarde</td>
+                <td><span class="badge badge-inactive">Inactivo</span></td>
+                <td class="tabular">—</td>
+                <td>
+                  <button class="btn btn-ghost btn-icon" aria-label="Editar Joan Lopez">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: FICHAJES ============================================= -->
+    <main class="page-content hidden" id="page-fichajes" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Fichajes</h1>
+          <p>Registro diario. Se conserva cuatro anos.</p>
+        </div>
+        <button class="btn btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>
+          Exportar
+        </button>
+      </div>
+
+      <section class="table-card">
+        <div class="table-card-header">
+          <div class="filters">
+            <input type="date" aria-label="Fecha">
+            <select aria-label="Empleado"><option value="">Todo el equipo</option></select>
+            <select aria-label="Tipo">
+              <option value="">Todos los tipos</option>
+              <option value="in">Entrada</option>
+              <option value="out">Salida</option>
+              <option value="break">Pausa</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Hora</th>
+                <th scope="col">Empleado</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Metodo</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="tabular">08:02</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">JA</span>
+                    <span class="person-name">Jordi Alba</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Entrada</span></td>
+                <td>NFC</td>
+                <td><span class="badge badge-approved">Correcto</span></td>
+              </tr>
+              <tr>
+                <td class="tabular">09:15</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">MR</span>
+                    <span class="person-name">Marta Ruiz</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Entrada</span></td>
+                <td>PIN</td>
+                <td><span class="badge badge-late">Retraso</span></td>
+              </tr>
+              <tr>
+                <td class="tabular">12:30</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">CP</span>
+                    <span class="person-name">Carla Pou</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-pending">Pausa</span></td>
+                <td>NFC</td>
+                <td><span class="badge badge-approved">Correcto</span></td>
+              </tr>
+              <tr>
+                <td class="tabular">13:15</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">CP</span>
+                    <span class="person-name">Carla Pou</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Salida pausa</span></td>
+                <td>NFC</td>
+                <td><span class="badge badge-approved">Correcto</span></td>
+              </tr>
+              <tr>
+                <td class="tabular">16:45</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">JL</span>
+                    <span class="person-name">Joan Lopez</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-ok">Salida</span></td>
+                <td>NFC</td>
+                <td><span class="badge badge-approved">Correcto</span></td>
+              </tr>
+              <tr>
+                <td class="tabular">18:20</td>
+                <td>
+                  <div class="person">
+                    <span class="person-avatar">MR</span>
+                    <span class="person-name">Marta Ruiz</span>
+                  </div>
+                </td>
+                <td><span class="badge badge-incident">Salida</span></td>
+                <td>PIN</td>
+                <td><span class="badge badge-incident">Incidencia</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: TURNOS (calendario semanal) ========================= -->
+    <main class="page-content hidden" id="page-turnos" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Turnos</h1>
+          <p>Calendario semanal con turnos asignados</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-icon" aria-label="Semana anterior">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm">Esta semana</button>
+          <button class="btn btn-ghost btn-icon" aria-label="Semana siguiente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendario semanal: 7 columnas (Lun-Dom) x franjas horarias -->
+      <section class="week-calendar" aria-label="Calendario semanal de turnos">
+        <div class="week-grid" role="grid">
+          <!-- Cabecera de dias -->
+          <div class="week-head" role="row">
+            <div class="week-head-cell" role="columnheader">Franja</div>
+            <div class="week-head-cell" role="columnheader">Lun<br><span class="t-micro t-faint">4</span></div>
+            <div class="week-head-cell" role="columnheader">Mar<br><span class="t-micro t-faint">5</span></div>
+            <div class="week-head-cell" role="columnheader">Mie<br><span class="t-micro t-faint">6</span></div>
+            <div class="week-head-cell is-today" role="columnheader">Jue<br><span class="t-micro">7</span></div>
+            <div class="week-head-cell" role="columnheader">Vie<br><span class="t-micro t-faint">8</span></div>
+            <div class="week-head-cell" role="columnheader">Sab<br><span class="t-micro t-faint">9</span></div>
+            <div class="week-head-cell" role="columnheader">Dom<br><span class="t-micro t-faint">10</span></div>
+          </div>
+          <!-- Franja Manana -->
+          <div class="week-row" role="row">
+            <div class="week-row-label" role="rowheader">Manana<br><span class="t-micro t-faint">06:00 — 14:00</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip">Jordi A.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip">Jordi A.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip">Carla P.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip">Jordi A.</span><span class="shift-chip">Carla P.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip">Jordi A.</span></div>
+            <div class="week-cell is-off" role="gridcell"><span class="t-micro t-faint">Cerrado</span></div>
+            <div class="week-cell is-off" role="gridcell"><span class="t-micro t-faint">Cerrado</span></div>
+          </div>
+          <!-- Franja Tarde -->
+          <div class="week-row" role="row">
+            <div class="week-row-label" role="rowheader">Tarde<br><span class="t-micro t-faint">14:00 — 22:00</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Marta R.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Marta R.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Marta R.</span><span class="shift-chip shift-chip-tarde">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-tarde">Marta R.</span></div>
+            <div class="week-cell is-off" role="gridcell"><span class="t-micro t-faint">Cerrado</span></div>
+          </div>
+          <!-- Franja Noche -->
+          <div class="week-row" role="row">
+            <div class="week-row-label" role="rowheader">Noche<br><span class="t-micro t-faint">22:00 — 06:00</span></div>
+            <div class="week-cell" role="gridcell"><span class="t-micro t-faint">Sin asignar</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-noche">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="t-micro t-faint">Sin asignar</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-noche">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-noche">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-noche">Joan L.</span></div>
+            <div class="week-cell" role="gridcell"><span class="shift-chip shift-chip-noche">Joan L.</span></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i style="background:var(--brand)"></i> Manana</span>
+          <span><i style="background:var(--warning)"></i> Tarde</span>
+          <span><i style="background:var(--info)"></i> Noche</span>
+          <span><i style="background:var(--border-strong)"></i> Cerrado</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: REPORTES =========================================== -->
+    <main class="page-content hidden" id="page-reportes" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Reportes</h1>
+          <p>Resumen de horas, overtime y absentismo</p>
+        </div>
+      </div>
+
+      <!-- Filtros de rango -->
+      <section class="card card-pad">
+        <div class="report-filters">
+          <div class="field">
+            <label for="report-start">Desde</label>
+            <input type="date" id="report-start">
+          </div>
+          <div class="field">
+            <label for="report-end">Hasta</label>
+            <input type="date" id="report-end">
+          </div>
+          <div class="report-actions">
+            <button class="btn btn-primary">Generar</button>
+            <button class="btn btn-secondary">PDF</button>
+            <button class="btn btn-secondary">Excel</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPIs de reporte -->
+      <section class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">1.704</div>
+          <div class="stat-card-label">Horas trabajadas (semana)</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">36</div>
+          <div class="stat-card-label">Horas extra (overtime)</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-card-header">
+            <div class="stat-card-icon red">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card-value">2</div>
+          <div class="stat-card-label">Absentismo</div>
+        </article>
+      </section>
+
+      <!-- Tabla resumen por empleado -->
+      <section class="table-card">
+        <div class="table-card-header">
+          <h3>Resumen por empleado</h3>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Empleado</th>
+                <th scope="col">Horas teoricas</th>
+                <th scope="col">Horas reales</th>
+                <th scope="col">Overtime</th>
+                <th scope="col">Ausencias</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="person"><span class="person-avatar">JA</span><span class="person-name">Jordi Alba</span></div></td>
+                <td class="tabular">40</td>
+                <td class="tabular">42</td>
+                <td class="tabular">2</td>
+                <td class="tabular">0</td>
+                <td><span class="badge badge-approved">Al dia</span></td>
+              </tr>
+              <tr>
+                <td><div class="person"><span class="person-avatar">MR</span><span class="person-name">Marta Ruiz</span></div></td>
+                <td class="tabular">40</td>
+                <td class="tabular">38</td>
+                <td class="tabular">0</td>
+                <td class="tabular">0</td>
+                <td><span class="badge badge-approved">Al dia</span></td>
+              </tr>
+              <tr>
+                <td><div class="person"><span class="person-avatar">CP</span><span class="person-name">Carla Pou</span></div></td>
+                <td class="tabular">40</td>
+                <td class="tabular">20</td>
+                <td class="tabular">0</td>
+                <td class="tabular">2</td>
+                <td><span class="badge badge-pending">Baja</span></td>
+              </tr>
+              <tr>
+                <td><div class="person"><span class="person-avatar">JL</span><span class="person-name">Joan Lopez</span></div></td>
+                <td class="tabular">40</td>
+                <td class="tabular">46</td>
+                <td class="tabular">6</td>
+                <td class="tabular">0</td>
+                <td><span class="badge badge-late">Overtime alto</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: INCIDENCIAS ======================================== -->
+    <main class="page-content hidden" id="page-incidencias" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Incidencias</h1>
+          <p>Fichajes con errores, retrasos o pendientes de revision</p>
+        </div>
+      </div>
+
+      <section class="table-card">
+        <div class="table-card-header">
+          <div class="filters">
+            <select aria-label="Estado">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendientes</option>
+              <option value="resolved">Resueltas</option>
+              <option value="dismissed">Descartadas</option>
+            </select>
+            <select aria-label="Tipo">
+              <option value="">Todos los tipos</option>
+              <option value="late">Retraso</option>
+              <option value="missing">Fichaje ausente</option>
+              <option value="mismatch">Salida sin entrada</option>
+              <option value="offline">Sin sincronizar</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Empleado</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Detalle</th>
+                <th scope="col">Estado</th>
+                <th scope="col"><span class="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="person"><span class="person-avatar">MR</span><span class="person-name">Marta Ruiz</span></div></td>
+                <td><span class="badge badge-late">Retraso</span></td>
+                <td class="tabular">08/08/2026</td>
+                <td>Entrada 09:15 (turno 09:00)</td>
+                <td><span class="badge badge-pending">Pendiente</span></td>
+                <td><button class="btn btn-ghost btn-sm">Revisar</button></td>
+              </tr>
+              <tr>
+                <td><div class="person"><span class="person-avatar">JL</span><span class="person-name">Joan Lopez</span></div></td>
+                <td><span class="badge badge-incident">Fichaje ausente</span></td>
+                <td class="tabular">07/08/2026</td>
+                <td>Sin salida registrada</td>
+                <td><span class="badge badge-pending">Pendiente</span></td>
+                <td><button class="btn btn-ghost btn-sm">Revisar</button></td>
+              </tr>
+              <tr>
+                <td><div class="person"><span class="person-avatar">MR</span><span class="person-name">Marta Ruiz</span></div></td>
+                <td><span class="badge badge-incident">Salida sin entrada</span></td>
+                <td class="tabular">08/08/2026</td>
+                <td>Salida 18:20 sin entrada previa</td>
+                <td><span class="badge badge-pending">Pendiente</span></td>
+                <td><button class="btn btn-ghost btn-sm">Revisar</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== VISTA: AJUSTES =========================================== -->
+    <main class="page-content hidden" id="page-ajustes" role="main" aria-hidden="true">
+      <div class="page-header">
+        <div>
+          <h1>Ajustes</h1>
+          <p>Configuracion de empresa, NFC y notificaciones</p>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" aria-selected="true" data-tab="empresa">Empresa</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="nfc">NFC</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="notificaciones">Notificaciones</button>
+      </div>
+
+      <!-- Tab: Empresa -->
+      <section class="tab-panel active" role="tabpanel" data-panel="empresa">
+        <article class="settings-card">
+          <h2>Datos de la empresa</h2>
+          <p>Aparecen en los informes y en los contratos que genera el sistema.</p>
+          <div class="field">
+            <label for="cfg-nombre">Nombre</label>
+            <input type="text" id="cfg-nombre" class="input" value="Restaurante La Marina">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="cfg-cif">CIF</label>
+              <input type="text" id="cfg-cif" class="input" value="B12345678">
+            </div>
+            <div class="field">
+              <label for="cfg-telefono">Telefono</label>
+              <input type="tel" id="cfg-telefono" class="input" value="+34 93 123 45 67">
+            </div>
+          </div>
+          <div class="field">
+            <label for="cfg-direccion">Direccion</label>
+            <input type="text" id="cfg-direccion" class="input" value="Carrer Major 12, Vilafranca del Penedes">
+          </div>
+          <div class="field">
+            <label for="cfg-email">Correo de contacto</label>
+            <input type="email" id="cfg-email" class="input" value="admin@lamarina.com">
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </article>
+      </section>
+
+      <!-- Tab: NFC -->
+      <section class="tab-panel" role="tabpanel" data-panel="nfc">
+        <article class="settings-card">
+          <h2>Configuracion NFC</h2>
+          <p>Dispositivos y credenciales NFC para el fichaje por tarjeta.</p>
+          <div class="switch-row">
+            <div>
+              <div class="label">Fichaje por NFC activado</div>
+              <div class="hint">Permite a los empleados fichar acercando su tarjeta.</div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span><span class="sr-only">Fichaje NFC</span></label>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div class="label">Modo offline NFC</div>
+              <div class="hint">Registra fichajes sin conexion y los sincroniza al recuperar la red.</div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span><span class="sr-only">Modo offline</span></label>
+          </div>
+          <div class="field">
+            <label for="cfg-nfc-reader">Lector NFC principal</label>
+            <select id="cfg-nfc-reader">
+              <option>ACR122U (mostrador)</option>
+              <option>ACP-R39 (cocina)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="cfg-pin-fallback">PIN de respaldo</label>
+            <input type="text" id="cfg-pin-fallback" class="input" placeholder="4 digitos">
+            <span class="field-hint">Para empleados sin tarjeta NFC asignada.</span>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </article>
+      </section>
+
+      <!-- Tab: Notificaciones -->
+      <section class="tab-panel" role="tabpanel" data-panel="notificaciones">
+        <article class="settings-card">
+          <h2>Notificaciones</h2>
+          <p>Que te avisamos y por donde. Nada se envia a tus empleados sin que lo actives.</p>
+          <div class="switch-row">
+            <div>
+              <div class="label">Resumen diario por correo</div>
+              <div class="hint">Cada manana a las 08:00, con lo del dia anterior.</div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span><span class="sr-only">Resumen diario</span></label>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div class="label">Alguien no ha fichado</div>
+              <div class="hint">Aviso 30 minutos despues de la hora de entrada de su turno.</div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span><span class="sr-only">Fichaje pendiente</span></label>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div class="label">Nueva incidencia</div>
+              <div class="hint">En cuanto se detecta un fichaje con error o retraso.</div>
+            </div>
+            <label class="switch"><input type="checkbox" checked><span class="switch-track"></span><span class="sr-only">Nueva incidencia</span></label>
+          </div>
+          <div class="switch-row">
+            <div>
+              <div class="label">Resumen semanal de horas</div>
+              <div class="hint">Los lunes con el total de horas y overtime de la semana previa.</div>
+            </div>
+            <label class="switch"><input type="checkbox"><span class="switch-track"></span><span class="sr-only">Resumen semanal</span></label>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-primary">Guardar cambios</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+  </div><!-- /#main -->
+</div><!-- /#app -->
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" role="img" aria-label="Panel de gestion en escritorio">
+  <rect width="1280" height="800" fill="#f5f5f7"/>
+  <rect x="0" y="0" width="224" height="800" fill="#ffffff"/>
+  <rect x="24" y="24" width="32" height="32" rx="7" fill="#FF6B35"/>
+  <text x="72" y="48" font-family="-apple-system,system-ui,sans-serif" font-size="28" font-weight="600" fill="#1d1d1f">Talent<tspan fill="#FF6B35">UP</tspan></text>
+  <rect x="16" y="96" width="192" height="48" rx="8" fill="rgba(255,107,53,0.08)"/>
+  <text x="48" y="126" font-family="-apple-system,system-ui,sans-serif" font-size="24" font-weight="500" fill="#FF6B35">Dashboard</text>
+  <text x="48" y="190" font-family="-apple-system,system-ui,sans-serif" font-size="24" fill="#1d1d1f">Empleados</text>
+  <text x="48" y="238" font-family="-apple-system,system-ui,sans-serif" font-size="24" fill="#1d1d1f">Fichajes</text>
+  <text x="48" y="286" font-family="-apple-system,system-ui,sans-serif" font-size="24" fill="#1d1d1f">Turnos</text>
+  <text x="48" y="334" font-family="-apple-system,system-ui,sans-serif" font-size="24" fill="#1d1d1f">Reportes</text>
+  <text x="48" y="382" font-family="-apple-system,system-ui,sans-serif" font-size="24" fill="#1d1d1f">Incidencias</text>
+  <text x="280" y="80" font-family="-apple-system,system-ui,sans-serif" font-size="40" font-weight="600" fill="#1d1d1f">Dashboard</text>
+  <rect x="280" y="120" width="300" height="120" rx="12" fill="#ffffff"/>
+  <rect x="280" y="260" width="300" height="120" rx="12" fill="#ffffff"/>
+  <rect x="620" y="120" width="300" height="120" rx="12" fill="#ffffff"/>
+  <rect x="960" y="120" width="96" height="120" rx="12" fill="#ffffff"/>
+  <rect x="280" y="420" width="700" height="340" rx="12" fill="#ffffff"/>
+  <rect x="1010" y="420" width="46" height="340" rx="12" fill="#ffffff"/>
+  <text x="640" y="780" text-anchor="middle" font-family="-apple-system,system-ui,sans-serif" font-size="20" fill="rgba(0,0,0,0.32)">PWA placeholder — captura real generada por el cron de Opus</text>
+</svg>

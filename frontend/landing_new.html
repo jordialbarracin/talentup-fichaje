@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Control horario NFC para hostelería</title>
+
+<!-- SEO -->
+<meta name="description" content="Control horario NFC, PIN y offline para restaurantes y tiendas. Nóminas automáticas, turnos y cumplimiento del RD-ley 8/2019 y RGPD. 14 días de prueba, sin permanencia.">
+<meta name="keywords" content="fichaje digital, control horario, NFC, hostelería, restaurante, nóminas automáticas, RD-ley 8/2019, RGPD, control de presencia, gestión de turnos">
+<meta name="author" content="TalentUP">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#FF6B35">
+<link rel="canonical" href="https://talentup.es/">
+<link rel="alternate" hreflang="es" href="https://talentup.es/">
+<link rel="alternate" hreflang="x-default" href="https://talentup.es/">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest_v2.json">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalentUP Fichaje — Control horario NFC para hostelería">
+<meta property="og:description" content="Fichaje NFC, PIN y offline. Nóminas automáticas y gestión de turnos. Cumple RGPD y RD-ley 8/2019.">
+<meta property="og:image" content="https://talentup.es/og-image.png">
+<meta property="og:url" content="https://talentup.es/">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="TalentUP Fichaje">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TalentUP Fichaje — Control horario NFC para hostelería">
+<meta name="twitter:description" content="Fichaje NFC, PIN y offline. Nóminas automáticas y gestión de turnos. Cumple RGPD y RD-ley 8/2019.">
+<meta name="twitter:image" content="https://talentup.es/og-image.png">
+
+<!-- Datos estructurados.
+     Nota: se ha retirado el bloque aggregateRating (4.8 / 120 valoraciones) que
+     contenia la version anterior. No hay valoraciones reales todavia y Google
+     penaliza el rich snippet fabricado. Se reincorpora cuando existan reviews
+     verificables. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "TalentUP Fichaje",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web, Android, iOS",
+  "description": "Control horario NFC, PIN y offline para hostelería. Nóminas automáticas, gestión de turnos y cumplimiento del RGPD y del RD-ley 8/2019.",
+  "url": "https://talentup.es/",
+  "inLanguage": "es-ES",
+  "offers": [
+    { "@type": "Offer", "name": "Starter",    "price": "29",  "priceCurrency": "EUR", "description": "Hasta 15 empleados" },
+    { "@type": "Offer", "name": "Pro",        "price": "99",  "priceCurrency": "EUR", "description": "Hasta 50 empleados, nóminas automáticas" },
+    { "@type": "Offer", "name": "Enterprise", "price": "499", "priceCurrency": "EUR", "description": "Multi-empresa, empleados ilimitados" }
+  ],
+  "publisher": { "@type": "Organization", "name": "TalentUP" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "¿Cumple TalentUP Fichaje con el RGPD?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Los datos se cifran, se alojan en servidores de la UE y firmamos un DPA con cada cliente. El registro horario cumple el RD-ley 8/2019." } },
+    { "@type": "Question", "name": "¿Qué hardware necesito para empezar?", "acceptedAnswer": { "@type": "Answer", "text": "Ninguno obligatorio. Puedes empezar con PIN o QR desde el móvil. El kit de fichaje con lector NFC y 10 tarjetas cuesta 49 € una sola vez." } },
+    { "@type": "Question", "name": "¿Qué pasa si se cae el wifi en pleno servicio?", "acceptedAnswer": { "@type": "Answer", "text": "El fichaje se guarda en el dispositivo y se sincroniza solo cuando vuelve la conexión. El empleado ve la confirmación igual, y el fichaje queda marcado como pendiente hasta que sube." } },
+    { "@type": "Question", "name": "¿Se integra con mi software de nóminas?", "acceptedAnswer": { "@type": "Answer", "text": "Sí, mediante API y exportación a Excel y CSV. Las integraciones directas están disponibles en los planes Pro y Enterprise." } },
+    { "@type": "Question", "name": "¿Puedo cancelar cuando quiera?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. No hay permanencia. Cancelas desde el panel y la baja es inmediata y sin coste." } },
+    { "@type": "Question", "name": "¿Qué soporte incluye?", "acceptedAnswer": { "@type": "Answer", "text": "Soporte por email y chat en todos los planes. Pro y Enterprise incluyen soporte prioritario con respuesta en menos de 4 horas hábiles." } }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="design_system.css">
+<style>
+/* ============================================================================
+   TalentUP Fichaje — Landing
+   Consume design_system.css. Todo color y tipo referencia un token; este
+   archivo solo aporta composicion, nunca valores sueltos.
+   ========================================================================== */
+
+body { background: var(--bg-surface); }
+
+.container { max-width: var(--container); margin: 0 auto; padding-inline: var(--space-6); }
+
+section { padding-block: var(--space-25); }
+.band-sunken { background: var(--bg-sunken); }
+
+/* --- Navbar -------------------------------------------------------------- */
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-navbar);
+  height: var(--navbar-h);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding-inline: var(--space-8);
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-links { display: flex; align-items: center; gap: var(--space-7); }
+.nav-links a {
+  font-size: var(--text-body-sm); font-weight: 500;
+  color: var(--text-secondary); letter-spacing: var(--tracking-caption);
+  white-space: nowrap;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* Los anclas de seccion aterrizan debajo de la navbar fija si no se reserva
+   su altura. Se nota sobre todo al navegar desde el menu movil. */
+section[id], [id^="page-"] { scroll-margin-top: calc(var(--navbar-h) + var(--space-4)); }
+
+/* --- Navegacion movil -----------------------------------------------------
+   Por debajo de 980px .nav-links se oculta. Sin este panel los cinco enlaces
+   de seccion quedaban inalcanzables en movil y tablet vertical: la landing
+   perdia su navegacion entera justo en el dispositivo donde mas se consulta.
+   Es un desplegable bajo la barra, no una sheet a pantalla completa — son
+   cinco enlaces, no una app. */
+.nav-toggle {
+  display: none;
+  align-items: center; justify-content: center;
+  width: var(--touch-min); height: var(--touch-min);
+  margin-right: calc(var(--space-2) * -1);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  transition: background var(--dur-base) var(--ease-out);
+}
+.nav-toggle:hover { background: var(--bg-hover); }
+.nav-toggle-bars { position: relative; display: block; width: 18px; height: 12px; }
+.nav-toggle-bars::before,
+.nav-toggle-bars::after {
+  content: ''; position: absolute; left: 0; right: 0;
+  height: 1.5px; border-radius: 1px; background: currentColor;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.nav-toggle-bars::before { top: 2px; }
+.nav-toggle-bars::after  { bottom: 2px; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before { transform: translateY(3.25px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after  { transform: translateY(-3.25px) rotate(-45deg); }
+
+.nav-mobile {
+  display: none;
+  position: absolute; top: 100%; left: 0; right: 0;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-4) var(--space-5);
+  /* Opaco, no translucido como la barra. La barra flota permanentemente sobre
+     contenido en movimiento y el blur la integra; un panel de menu tapa el hero
+     y con fondo translucido el titular se lee por debajo de los enlaces. */
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-float);
+  max-height: calc(100vh - var(--navbar-h));
+  max-height: calc(100dvh - var(--navbar-h));
+  overflow-y: auto;
+  animation: tu-nav-drop var(--dur-base) var(--ease-out);
+}
+.nav-mobile a:not(.btn) {
+  display: flex; align-items: center;
+  min-height: var(--touch-min);
+  padding-inline: var(--space-2);
+  font-size: var(--text-body); font-weight: 500;
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.nav-mobile a:not(.btn):last-of-type { border-bottom: none; }
+.nav-mobile a:not(.btn):hover { color: var(--brand); }
+.nav-mobile .btn { margin-top: var(--space-4); }
+@keyframes tu-nav-drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* --- Hero ---------------------------------------------------------------- */
+.hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-20); }
+.hero-grid {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: var(--space-16); align-items: center;
+}
+.hero h1 {
+  font-size: var(--text-hero); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: 1.06;
+  margin-bottom: var(--space-5);
+}
+.hero-lead {
+  font-size: var(--text-lead); color: var(--text-secondary);
+  line-height: var(--leading-relaxed); max-width: 46ch;
+  margin-bottom: var(--space-8);
+}
+.hero-actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-8); }
+
+/* Hechos verificables, no metricas inventadas. Cada uno es comprobable en el
+   producto o en el contrato. */
+.hero-facts {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5);
+  font-size: var(--text-caption); color: var(--text-secondary);
+}
+.hero-facts li { display: flex; align-items: center; gap: var(--space-2); }
+.hero-facts svg { color: var(--success-strong); flex-shrink: 0; }
+
+/* --- Simulacion del terminal (elemento signature) -------------------------
+   Es el contenido de la pantalla del kiosco, no una foto del aparato ni un
+   marco de dispositivo dibujado.
+
+   Tema claro: unifica las cuatro superficies bajo el mismo sistema de tokens
+   (vision §2.4) y evita el unico bloque oscuro de una landing por lo demas
+   blanca, que leia como un recorte pegado. Sobre fondo blanco la pantalla
+   necesita un limite propio — de ahi el borde, que sustituye al contraste que
+   antes daba el fondo #0a0a14. La confirmacion sigue inundando la pantalla de
+   color solido: ese es el feedback que debe leerse a dos metros (vision §9.1),
+   y no depende del tema. */
+.terminal {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  max-width: 340px; width: 100%; margin-inline: auto;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-float);
+  isolation: isolate;
+}
+.terminal-screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  text-align: center;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.terminal-screen[hidden] { display: none; }
+
+.terminal-brand {
+  position: absolute; top: var(--space-5); left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  font-size: var(--text-micro); font-weight: 600;
+  letter-spacing: var(--tracking-wide); text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.terminal-clock {
+  font-size: 3rem; font-weight: 600; line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.terminal-date { font-size: var(--text-caption); color: var(--text-secondary); }
+.terminal-prompt {
+  margin-top: var(--space-6);
+  font-size: var(--text-body-sm); font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* La pantalla de confirmacion sigue siendo una superficie de color solido:
+   texto e iconos van en blanco aunque el resto del terminal sea claro. El
+   rotulo de cabecera flota sobre las tres pantallas, asi que invierte con el
+   estado en vez de tener un color fijo. */
+.terminal-confirm .terminal-prompt,
+.terminal-confirm .terminal-date { color: rgba(255,255,255,0.75); }
+.terminal-brand .tu-mark { color: inherit; }
+.terminal[data-state="confirmed"] .terminal-brand { color: rgba(255,255,255,0.6); }
+
+/* Arcos NFC — el gesto de acercar la tarjeta */
+.nfc-arcs { color: var(--brand); }
+.nfc-arcs path { opacity: 0.25; }
+.terminal[data-state="reading"] .nfc-arcs path { animation: nfc-wave 1.2s var(--ease-in-out) infinite; }
+.terminal[data-state="reading"] .nfc-arcs path:nth-child(2) { animation-delay: 0.15s; }
+.terminal[data-state="reading"] .nfc-arcs path:nth-child(3) { animation-delay: 0.30s; }
+@keyframes nfc-wave { 0%, 100% { opacity: 0.2; } 45% { opacity: 1; } }
+
+/* Confirmacion: la pantalla entera cambia de color. Tiene que leerse desde
+   dos metros, no solo de cerca (vision §9.1). */
+.terminal-confirm { background: var(--success-strong); }
+.terminal-confirm .confirm-name  { font-size: 1.5rem; font-weight: 600; color: #fff; letter-spacing: var(--tracking-snug); }
+.terminal-confirm .confirm-kind  { font-size: var(--text-caption); font-weight: 600; text-transform: uppercase; letter-spacing: var(--tracking-label); color: rgba(255,255,255,0.75); }
+.terminal-confirm .confirm-time  { font-size: 2.5rem; font-weight: 600; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: var(--tracking-tight); line-height: 1; }
+.terminal-confirm .confirm-check { color: #fff; }
+
+/* --text-tertiary (negro al 32%) sobre blanco da ~3.2:1 — por debajo del 4.5:1
+   que exige AA para texto normal. Pasa a --text-secondary (#6e6e73, 5.1:1) y
+   sube a 13px, porque la vision §11 prohibe expresamente usar ese gris por
+   debajo de 13px: a 11px queda al limite incluso cumpliendo el ratio. */
+.terminal-caption {
+  margin-top: var(--space-4);
+  font-size: var(--text-caption);
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-caption);
+  text-transform: none;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 34ch;
+  margin-inline: auto;
+}
+
+/* --- Banda de contexto legal --------------------------------------------- */
+.stake { padding-block: var(--space-16); border-block: 1px solid var(--border); }
+.stake-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-12); align-items: start; }
+.stake h2 { font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-snug); margin-bottom: var(--space-3); }
+.stake p  { font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+.stake-note {
+  padding: var(--space-5);
+  background: var(--bg-app);
+  border-radius: var(--radius-xl);
+  border-left: 3px solid var(--brand);
+}
+.stake-note p { font-size: var(--text-body-sm); }
+.stake-note strong { color: var(--text-primary); font-weight: 600; }
+
+/* --- Cabeceras de seccion ------------------------------------------------ */
+.section-head { max-width: 640px; margin-bottom: var(--space-12); }
+.section-eyebrow {
+  display: block;
+  font-size: var(--text-caption); font-weight: 600;
+  text-transform: uppercase; letter-spacing: var(--tracking-label);
+  color: var(--brand); margin-bottom: var(--space-3);
+}
+.section-head h2 {
+  font-size: var(--text-section); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: 1.15;
+  margin-bottom: var(--space-4);
+}
+.section-head p { font-size: var(--text-lead); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- Features ------------------------------------------------------------ */
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); }
+.feature {
+  padding: var(--space-8) var(--space-7);
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.feature:hover { transform: translateY(-4px); box-shadow: var(--shadow-float); }
+.feature-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin-bottom: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--brand-tint-08); color: var(--brand);
+}
+.feature h3 { font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-normal); margin-bottom: var(--space-2); }
+.feature p  { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- Pasos (contenido genuinamente ordinal) ------------------------------ */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-10); counter-reset: step; }
+.step { position: relative; padding-top: var(--space-6); border-top: 2px solid var(--brand-tint-35); counter-increment: step; }
+.step::before {
+  content: counter(step, decimal-leading-zero);
+  display: block; margin-bottom: var(--space-3);
+  font-family: var(--font-mono); font-size: var(--text-caption); font-weight: 600;
+  letter-spacing: var(--tracking-wide); color: var(--brand);
+}
+.step h3 { font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-normal); margin-bottom: var(--space-2); }
+.step p  { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- Kit ----------------------------------------------------------------- */
+.kit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8); }
+.kit-item { display: flex; gap: var(--space-4); align-items: flex-start; }
+.kit-item svg { flex-shrink: 0; color: var(--brand); margin-top: 2px; }
+.kit-item h3 { font-size: var(--text-body); font-weight: 600; margin-bottom: var(--space-1); letter-spacing: var(--tracking-normal); }
+.kit-item p  { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+.kit-price {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: var(--space-4);
+  padding: var(--space-6) var(--space-7);
+  background: var(--bg-app); border-radius: var(--radius-xl);
+}
+.kit-price-main { font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-snug); }
+.kit-price-note { font-size: var(--text-body-sm); color: var(--text-secondary); }
+
+/* --- Precios ------------------------------------------------------------- */
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); align-items: stretch; }
+.plan {
+  display: flex; flex-direction: column;
+  padding: var(--space-10) var(--space-8);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+.plan:hover { transform: translateY(-4px); box-shadow: var(--shadow-float); }
+.plan--featured { position: relative; border-color: var(--brand-tint-35); }
+.plan-flag {
+  position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
+  padding: var(--space-1) var(--space-4);
+  background: var(--brand); color: var(--text-on-brand);
+  font-size: var(--text-micro); font-weight: 600;
+  letter-spacing: var(--tracking-caption);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.plan-name { font-size: var(--text-caption); font-weight: 600; text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--text-secondary); margin-bottom: var(--space-3); }
+.plan-price { font-size: var(--text-section); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: 1; font-variant-numeric: tabular-nums; }
+.plan-price span { font-size: var(--text-body); font-weight: 400; color: var(--text-secondary); letter-spacing: var(--tracking-normal); }
+.plan-for { font-size: var(--text-body-sm); color: var(--text-secondary); margin-block: var(--space-2) var(--space-6); }
+.plan-features { flex: 1; margin-bottom: var(--space-7); display: flex; flex-direction: column; gap: var(--space-3); }
+.plan-features li { display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--text-body-sm); line-height: var(--leading-normal); }
+.plan-features svg { flex-shrink: 0; color: var(--brand); margin-top: 3px; }
+
+/* --- FAQ ----------------------------------------------------------------- */
+.faq { max-width: 760px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  min-height: var(--touch-min);
+  padding-block: var(--space-5);
+  font-size: 1.0625rem; font-weight: 600;
+  letter-spacing: var(--tracking-caption);
+  color: var(--text-primary);
+  cursor: pointer; list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-icon { flex-shrink: 0; color: var(--brand); transition: transform var(--dur-base) var(--ease-out); }
+.faq-item[open] .faq-icon { transform: rotate(45deg); }
+.faq-answer { padding-bottom: var(--space-5); font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); max-width: var(--measure); }
+
+/* --- CTA final ----------------------------------------------------------- */
+.cta { text-align: center; }
+.cta h2 { font-size: var(--text-section); font-weight: 600; letter-spacing: var(--tracking-tight); margin-bottom: var(--space-4); }
+.cta p  { font-size: var(--text-lead); color: var(--text-secondary); margin-bottom: var(--space-8); }
+
+/* --- Footer -------------------------------------------------------------- */
+.footer { padding-block: var(--space-12) var(--space-8); border-top: 1px solid var(--border); }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-8); }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.footer-links a { font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-links a:hover { color: var(--brand); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: var(--space-4);
+  padding-top: var(--space-6); border-top: 1px solid var(--border);
+  font-size: var(--text-caption); color: var(--text-secondary);
+}
+.footer-legal { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.footer-legal a { font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-legal a:hover { color: var(--brand); }
+
+/* --- Responsive ---------------------------------------------------------- */
+@media (max-width: 980px) {
+  .hero-grid  { grid-template-columns: minmax(0, 1fr); gap: var(--space-12); }
+  .stake-grid { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
+  .features, .plans, .kit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+  .nav-links { display: none; }
+  .nav-toggle { display: inline-flex; }
+  /* El panel solo puede abrirse dentro del breakpoint: si la ventana crece
+     mientras esta abierto, desaparece por CSS ademas de por JS. */
+  .nav-mobile:not([hidden]) { display: flex; }
+}
+@media (max-width: 720px) {
+  section { padding-block: var(--space-16); }
+  .container { padding-inline: var(--space-4); }
+  .nav { padding-inline: var(--space-4); }
+  .hero { padding-block: calc(var(--navbar-h) + var(--space-10)) var(--space-12); }
+  .features, .plans, .kit-grid { grid-template-columns: minmax(0, 1fr); }
+  .section-head { margin-bottom: var(--space-8); }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  /* "Entrar" vive ya dentro del panel; en la barra solo queda la accion
+     primaria, que es la regla de una sola primaria por pantalla. */
+  .nav-signin { display: none; }
+}
+@media (max-width: 420px) {
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions .btn { width: 100%; }
+  .terminal-clock { font-size: 2.5rem; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js'); document.body && document.body.classList.add('js');</script>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<!-- ===== SIMBOLOS SVG =====================================================
+     El glifo de marca: reloj + arcos NFC (direccion A del documento de vision).
+     Usa currentColor para heredar el contexto. La variante --sm oculta el arco
+     exterior por CSS, porque a 16px se emborrona.
+     ===================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="tu-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="12" r="6.5"/>
+    <path d="M5.9 12.1 8.1 14.3 12.4 9.6"/>
+    <path d="M15.5 6.5A8.5 8.5 0 0 1 15.5 17.5"/>
+    <path class="tu-mark-arc-outer" d="M18.3 6.2A11 11 0 0 1 18.3 17.8"/>
+  </symbol>
+</svg>
+
+<!-- ===== NAVBAR ========================================================== -->
+<nav class="nav">
+  <a href="#main" class="tu-lockup" aria-label="TalentUP Fichaje, inicio">
+    <svg class="tu-mark" width="26" height="26" aria-hidden="true"><use href="#tu-mark"/></svg>
+    <span class="tu-wordmark">Talent<em>UP</em></span>
+  </a>
+  <div class="nav-links">
+    <a href="#producto">Producto</a>
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#kit">Kit</a>
+    <a href="#precios">Precios</a>
+    <a href="#faq">Preguntas</a>
+  </div>
+  <div class="nav-actions">
+    <a href="index.html" class="btn btn-ghost btn-sm nav-signin">Entrar</a>
+    <a href="index.html" class="btn btn-primary">Probar gratis</a>
+    <button type="button" class="nav-toggle" id="nav-toggle"
+            aria-expanded="false" aria-controls="nav-mobile" aria-label="Abrir menú">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <!-- Panel de navegacion movil (<= 980px). Sin JS queda oculto y los enlaces
+       siguen siendo alcanzables desde el footer, que los repite. -->
+  <div class="nav-mobile" id="nav-mobile" hidden>
+    <a href="#producto">Producto</a>
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#kit">Kit</a>
+    <a href="#precios">Precios</a>
+    <a href="#faq">Preguntas</a>
+    <a href="index.html" class="btn btn-secondary btn-lg btn-block">Entrar</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ===== HERO ============================================================ -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <h1>Tu equipo ficha en dos segundos</h1>
+      <p class="hero-lead">
+        Acercan la tarjeta y listo. Sin app que abrir, sin contraseñas, sin
+        libreta en la barra. Funciona aunque se caiga el wifi en pleno servicio,
+        y el registro cumple el RD-ley 8/2019 sin que tengas que tocar nada.
+      </p>
+      <div class="hero-actions">
+        <a href="index.html" class="btn btn-primary btn-lg">Empezar prueba de 14 días</a>
+        <a href="#como-funciona" class="btn btn-secondary btn-lg">Ver cómo funciona</a>
+      </div>
+      <ul class="hero-facts">
+        <li>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
+          Funciona sin conexión
+        </li>
+        <li>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
+          Datos alojados en la UE
+        </li>
+        <li>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
+          Sin permanencia
+        </li>
+        <li>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg>
+          Español, català y English
+        </li>
+      </ul>
+    </div>
+
+    <!-- Simulacion del terminal. Es interfaz real del producto, reproducida
+         con CSS; no es una foto ni un mockup de dispositivo. -->
+    <figure>
+      <div class="terminal" id="terminal" data-state="idle" role="img"
+           aria-label="Simulación del terminal de fichaje: reloj en espera, lectura de tarjeta NFC y confirmación de entrada.">
+        <div class="terminal-brand">
+          <svg class="tu-mark tu-mark--sm" width="14" height="14" aria-hidden="true"><use href="#tu-mark"/></svg>
+          Entrada principal
+        </div>
+
+        <!-- Estado 1 · reposo -->
+        <div class="terminal-screen" data-screen="idle">
+          <div class="terminal-clock" id="terminal-clock">08:57</div>
+          <div class="terminal-date" id="terminal-date">Viernes, 8 de agosto</div>
+          <div class="terminal-prompt">Acerca tu tarjeta</div>
+        </div>
+
+        <!-- Estado 2 · leyendo -->
+        <div class="terminal-screen" data-screen="reading" hidden>
+          <svg class="nfc-arcs" width="88" height="88" viewBox="0 0 88 88" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" aria-hidden="true">
+            <path d="M30 30a20 20 0 0 1 0 28"/>
+            <path d="M42 22a32 32 0 0 1 0 44"/>
+            <path d="M54 14a44 44 0 0 1 0 60"/>
+          </svg>
+          <div class="terminal-prompt">Leyendo tarjeta</div>
+        </div>
+
+        <!-- Estado 3 · confirmado -->
+        <div class="terminal-screen terminal-confirm" data-screen="confirmed" hidden>
+          <svg class="confirm-check" width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 27.5 22 36.5 39 16"/>
+          </svg>
+          <div class="confirm-kind">Entrada registrada</div>
+          <div class="confirm-name">Marta Ruiz</div>
+          <div class="confirm-time">08:57</div>
+        </div>
+      </div>
+      <figcaption class="terminal-caption">
+        Terminal de mostrador. Interfaz real del producto, no un montaje.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===== POR QUE IMPORTA ================================================= -->
+<section class="stake band-sunken" id="producto">
+  <div class="container stake-grid">
+    <div>
+      <h2>Registrar la jornada es obligatorio. Hacerlo en papel, un problema tuyo.</h2>
+      <p>
+        Desde 2019 todas las empresas están obligadas a registrar diariamente la
+        jornada de cada trabajador y a conservar ese registro cuatro años. En un
+        local con turnos partidos, refuerzos de fin de semana y bajas de última
+        hora, la libreta de la barra deja de cuadrar la primera semana.
+      </p>
+    </div>
+    <div class="stake-note">
+      <p>
+        <strong>Lo que cambia con TalentUP:</strong> el registro se genera solo,
+        cada fichaje queda con hora exacta y método (NFC, PIN o QR), y el informe
+        que pide una inspección se descarga en un clic. Tú solo revisas
+        excepciones: quien no ha fichado, quien acumula extras, quien está de
+        vacaciones.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ======================================================== -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Producto</span>
+      <h2>Lo que hace, sin adornos</h2>
+      <p>Seis cosas. Todas resuelven algo que hoy haces a mano.</p>
+    </div>
+    <div class="features">
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="12" r="6"/><path d="M9 9v3l2 1.5"/><path d="M17 7.5a7 7 0 0 1 0 9"/><path d="M20 5a11 11 0 0 1 0 14"/>
+          </svg>
+        </div>
+        <h3>Fichaje en un gesto</h3>
+        <p>Tarjeta NFC, PIN de cuatro dígitos o QR. El empleado elige lo que le
+        resulte natural y el sistema registra lo mismo en los tres casos.</p>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>
+        <h3>Sigue funcionando sin wifi</h3>
+        <p>Si se cae la conexión, el fichaje se guarda en el dispositivo y sube
+        solo cuando vuelve. El empleado ve su confirmación igual.</p>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h5"/>
+          </svg>
+        </div>
+        <h3>Turnos y calendario</h3>
+        <p>Planificas la semana, el sistema avisa de solapes y descansos que no
+        cuadran. Festivos por comunidad autónoma ya cargados.</p>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>
+          </svg>
+        </div>
+        <h3>Informes y nóminas</h3>
+        <p>Horas ordinarias, extras, nocturnidad y ausencias calculadas solas.
+        Exportas a Excel, CSV o PDF, o lo mandas por API a tu gestoría.</p>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3 20 6.5V12c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6.5z"/><path d="M8.8 12.2 11 14.4l4.2-4.6"/>
+          </svg>
+        </div>
+        <h3>RGPD y RD-ley 8/2019</h3>
+        <p>Datos cifrados y alojados en la UE, DPA firmado y registro conservado
+        cuatro años. Preparado para una inspección desde el primer día.</p>
+      </article>
+
+      <article class="feature reveal">
+        <div class="feature-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/>
+          </svg>
+        </div>
+        <h3>Varios locales, una cuenta</h3>
+        <p>Cada centro con su plantilla, sus turnos y sus informes. Tú ves el
+        conjunto o entras a uno concreto sin cambiar de sesión.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMO FUNCIONA (secuencia real) ================================== -->
+<section class="band-sunken" id="como-funciona">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Puesta en marcha</span>
+      <h2>De cero a fichando, en una tarde</h2>
+      <p>El orden importa: cada paso deja listo el siguiente.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <h3>Das de alta el local</h3>
+        <p>Nombre, dirección y convenio. Añades a tu gente a mano o importando
+        el Excel que ya tienes.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Repartes tarjetas o PIN</h3>
+        <p>Cada empleado recibe su tarjeta NFC o su PIN. No hay que instalar
+        nada ni crear contraseñas.</p>
+      </div>
+      <div class="step reveal">
+        <h3>Revisas excepciones</h3>
+        <p>A partir de aquí el registro va solo. Tú entras al panel a mirar lo
+        que se sale de lo normal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== KIT ============================================================= -->
+<section id="kit">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Hardware</span>
+      <h2>El kit es opcional</h2>
+      <p>Puedes empezar hoy con PIN o QR desde cualquier móvil. Si prefieres un
+      punto fijo en la entrada, te mandamos la caja montada.</p>
+    </div>
+    <div class="kit-grid">
+      <div class="kit-item reveal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M9 18h6"/></svg>
+        <div>
+          <h3>Terminal de mostrador</h3>
+          <p>Pantalla táctil con lector NFC. Se conecta al wifi del local y no
+          necesita nada más que un enchufe.</p>
+        </div>
+      </div>
+      <div class="kit-item reveal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M2 10h20"/><path d="M6 14h3"/></svg>
+        <div>
+          <h3>10 tarjetas NFC</h3>
+          <p>Llaveros para el manojo de casa. Si alguien pierde el suyo, lo
+          desactivas desde el panel y emites otro.</p>
+        </div>
+      </div>
+      <div class="kit-item reveal">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3"/><path d="M20 20h1"/><path d="M17 21h-3"/></svg>
+        <div>
+          <h3>Códigos QR impresos</h3>
+          <p>La alternativa sin hardware. Un QR por empleado, en llavero o imán
+          de nevera.</p>
+        </div>
+      </div>
+    </div>
+    <div class="kit-price reveal">
+      <div>
+        <div class="kit-price-main">49 € una sola vez</div>
+        <div class="kit-price-note">Terminal, 10 tarjetas y los QR impresos. Envío gratuito en 48 h.</div>
+      </div>
+      <a href="contacto.html" class="btn btn-secondary btn-lg">Pedir el kit</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRECIOS ========================================================= -->
+<section class="band-sunken" id="precios">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Precios</span>
+      <h2>Por local, sin letra pequeña</h2>
+      <p>Catorce días de prueba en todos los planes. Sin tarjeta para empezar y
+      sin permanencia después.</p>
+    </div>
+    <div class="plans">
+
+      <article class="plan reveal">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">29 <span>€/mes</span></div>
+        <p class="plan-for">Hasta 15 empleados en un local</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Fichaje NFC, PIN y QR</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Modo sin conexión</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Turnos y calendario</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Informe de presencia exportable</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Registro conforme al RD-ley 8/2019</li>
+        </ul>
+        <a href="index.html" class="btn btn-secondary btn-lg btn-block">Probar Starter</a>
+      </article>
+
+      <article class="plan plan--featured reveal">
+        <span class="plan-flag">El que elige la mayoría</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">99 <span>€/mes</span></div>
+        <p class="plan-for">Hasta 50 empleados en un local</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Todo lo de Starter</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Cálculo automático de nómina</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Vacaciones y bajas</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Integración con contabilidad</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Soporte prioritario, menos de 4 h hábiles</li>
+        </ul>
+        <a href="index.html" class="btn btn-primary btn-lg btn-block">Probar Pro</a>
+      </article>
+
+      <article class="plan reveal">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">499 <span>€/mes</span></div>
+        <p class="plan-for">Empleados ilimitados, varios locales</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Todo lo de Pro</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Multi-empresa y multi-centro</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> API y webhooks</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> SSO y permisos por rol</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> DPA y alta acompañada</li>
+        </ul>
+        <a href="contacto.html" class="btn btn-secondary btn-lg btn-block">Hablar con ventas</a>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ============================================================= -->
+<section id="faq">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Preguntas</span>
+      <h2>Lo que preguntan antes de contratar</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary>¿Qué pasa si se cae el wifi en pleno servicio?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">El fichaje se guarda en el propio dispositivo y sube solo cuando vuelve la conexión. El empleado ve su confirmación en pantalla igual que siempre, y en tu panel ese fichaje aparece marcado como pendiente de sincronizar hasta que llega al servidor. No se pierde ninguno.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Cumple el RGPD y el registro obligatorio?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">Sí. Los datos se cifran y se alojan en servidores de la Unión Europea, firmamos un DPA con cada cliente y el registro diario se conserva cuatro años, como exige el RD-ley 8/2019. El informe que pide una inspección se descarga en PDF desde el panel.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Necesito comprar hardware?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">No. Puedes trabajar solo con PIN o QR desde cualquier móvil o tablet que ya tengas. El kit de 49 € con terminal y 10 tarjetas NFC es opcional, y se paga una sola vez.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Se integra con mi gestoría?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">Sí. Exportas a Excel y CSV en cualquier plan. En Pro y Enterprise hay integración directa con los principales programas de contabilidad y nóminas, y en Enterprise además API y webhooks para automatizar el envío.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Puedo cancelar cuando quiera?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">Sí. No hay permanencia. Cancelas desde el panel, la baja es inmediata y sin coste, y puedes exportar todo tu histórico antes de irte.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿En qué idiomas está?
+          <span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        </summary>
+        <div class="faq-answer">Panel, terminal y app están en español, català e inglés. Cada empleado elige el suyo sin que afecte al resto del equipo.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA FINAL ======================================================= -->
+<section class="cta band-sunken" id="contacto">
+  <div class="container">
+    <h2>Pruébalo con tu turno de mañana</h2>
+    <p>Catorce días completos. Sin tarjeta, sin llamada de ventas.</p>
+    <a href="index.html" class="btn btn-primary btn-xl">Crear cuenta</a>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== FOOTER ========================================================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <a href="#main" class="tu-lockup" aria-label="TalentUP Fichaje, inicio">
+        <svg class="tu-mark" width="24" height="24" aria-hidden="true"><use href="#tu-mark"/></svg>
+        <span class="tu-wordmark">Talent<em>UP</em></span>
+      </a>
+      <nav class="footer-links" aria-label="Secciones">
+        <a href="#producto">Producto</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#kit">Kit de fichaje</a>
+        <a href="#precios">Precios</a>
+        <a href="#faq">Preguntas</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 TalentUP. Hecho en Catalunya.</span>
+      <nav class="footer-legal" aria-label="Legal">
+        <a href="terminos.html">Términos</a>
+        <a href="terminos.html#privacidad">Privacidad</a>
+        <a href="terminos.html#dpa">DPA</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================================
+   Landing — comportamiento
+   Sin dependencias. Si el JS falla, la pagina sigue siendo legible y navegable:
+   el contenido no depende de el.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* --- Reveal al entrar en viewport -------------------------------------- */
+  var revealables = document.querySelectorAll('.reveal');
+  if (reduced || !('IntersectionObserver' in window)) {
+    revealables.forEach(function (el) { el.classList.add('is-visible'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    revealables.forEach(function (el, i) {
+      el.style.transitionDelay = Math.min(i % 3, 2) * 60 + 'ms';
+      io.observe(el);
+    });
+  }
+
+  /* --- Navegacion movil ---------------------------------------------------
+     Por debajo de 980px .nav-links se oculta por CSS. Este panel es lo que
+     hace que esos enlaces sigan existiendo en movil. */
+  var navToggle = document.getElementById('nav-toggle');
+  var navMobile = document.getElementById('nav-mobile');
+
+  if (navToggle && navMobile) {
+    var navOpen = function () { return navToggle.getAttribute('aria-expanded') === 'true'; };
+
+    var setNav = function (open) {
+      navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      navToggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      navMobile.hidden = !open;
+    };
+
+    navToggle.addEventListener('click', function () { setNav(!navOpen()); });
+
+    /* Al navegar se cierra: el panel tapa justo la seccion a la que se salta. */
+    navMobile.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setNav(false);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (navOpen() && !e.target.closest('.nav')) setNav(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !navOpen()) return;
+      setNav(false);
+      navToggle.focus();   /* devolver el foco donde estaba, no al principio */
+    });
+
+    /* Si la ventana cruza el breakpoint el panel desaparece por CSS. El estado
+       ARIA tiene que seguirlo, o un lector de pantalla anuncia un menu abierto
+       que ya no existe. */
+    var desktop = window.matchMedia('(min-width: 981px)');
+    var syncNav = function () { if (desktop.matches) setNav(false); };
+    if (desktop.addEventListener) desktop.addEventListener('change', syncNav);
+    else if (desktop.addListener) desktop.addListener(syncNav);
+
+    setNav(false);
+  }
+
+  /* --- Simulacion del terminal -------------------------------------------
+     Un solo bucle de tres estados. Con reduced-motion se congela en el estado
+     confirmado, que es el que comunica el resultado: la animacion es un
+     refuerzo, no el mensaje. */
+  var terminal = document.getElementById('terminal');
+  if (!terminal) return;
+
+  var screens = {};
+  terminal.querySelectorAll('[data-screen]').forEach(function (el) {
+    screens[el.getAttribute('data-screen')] = el;
+  });
+
+  function show(state) {
+    terminal.setAttribute('data-state', state);
+    Object.keys(screens).forEach(function (key) {
+      screens[key].hidden = (key !== state);
+    });
+  }
+
+  /* Reloj en vivo del estado de reposo. tabular-nums evita que la cifra salte
+     de ancho al cambiar de minuto. */
+  var clockEl = document.getElementById('terminal-clock');
+  var dateEl  = document.getElementById('terminal-date');
+  var confirmTimeEl = terminal.querySelector('.confirm-time');
+
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+  function tick() {
+    var now = new Date();
+    var hhmm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+    clockEl.textContent = hhmm;
+    confirmTimeEl.textContent = hhmm;
+    dateEl.textContent = now.toLocaleDateString('es-ES', {
+      weekday: 'long', day: 'numeric', month: 'long'
+    }).replace(/^./, function (c) { return c.toUpperCase(); });
+  }
+  tick();
+
+  if (reduced) { show('confirmed'); return; }
+
+  var sequence = [
+    { state: 'idle',      hold: 3200 },
+    { state: 'reading',   hold: 1400 },
+    { state: 'confirmed', hold: 2600 }
+  ];
+  var step = 0;
+  var loopTimer = null;
+  var clockTimer = null;
+  var running = false;
+
+  function advance() {
+    var current = sequence[step % sequence.length];
+    show(current.state);
+    step++;
+    loopTimer = setTimeout(advance, current.hold);
+  }
+
+  /* Arranque y parada explicitos. La version anterior solo tenia rama de
+     entrada: `advance()` se reagendaba con setTimeout indefinidamente y el
+     observer nunca cancelaba nada, asi que el bucle seguia repintando el hero
+     con el usuario tres secciones mas abajo. Ahora salir del viewport corta el
+     timer del bucle y el del reloj, y volver a entrar los reanuda. */
+  function start() {
+    if (running) return;
+    running = true;
+    tick();
+    clockTimer = setInterval(tick, 20000);
+    advance();
+  }
+
+  function stop() {
+    if (!running) return;
+    running = false;
+    clearTimeout(loopTimer);
+    clearInterval(clockTimer);
+    loopTimer = clockTimer = null;
+  }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) start(); else stop();
+    }, { threshold: 0.25 }).observe(terminal);
+  } else {
+    start();
+  }
+
+  /* Una pestana en segundo plano no es "a la vista": el observer no dispara al
+     cambiar de pestana, asi que se atiende aparte. */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stop();
+    else if (terminal.getBoundingClientRect().bottom > 0 &&
+             terminal.getBoundingClientRect().top < window.innerHeight) start();
+  });
+})();
+</script>
+
+<!-- Service Worker (PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw_v2.js');
+    });
+  }
+</script>
+
+</body>
+</html>
