@@ -83,7 +83,7 @@ body { background: var(--bg-surface); }
 
 .container { max-width: var(--container); margin: 0 auto; padding-inline: var(--space-6); }
 
-section { padding-block: var(--space-25); }
+section { padding-block: clamp(3rem, 6vh, 5rem); }
 .band-sunken { background: var(--bg-sunken); }
 
 /* --- Navbar -------------------------------------------------------------- */
@@ -210,12 +210,17 @@ section[id], [id^="page-"] { scroll-margin-top: calc(var(--navbar-h) + var(--spa
   position: relative;
   aspect-ratio: 3 / 4;
   max-width: 340px; width: 100%; margin-inline: auto;
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-2xl, 24px);
   overflow: hidden;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-float);
+  background: var(--bg-surface, #fff);
+  border: 1px solid var(--border-strong, rgba(0,0,0,0.12));
+  box-shadow: 0 10px 30px -5px rgba(255,107,53,0.08), 0 20px 40px -15px rgba(0,0,0,0.06);
   isolation: isolate;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+.terminal:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px -5px rgba(255,107,53,0.12), 0 30px 50px -15px rgba(0,0,0,0.08);
 }
 .terminal-screen {
   position: absolute; inset: 0;
