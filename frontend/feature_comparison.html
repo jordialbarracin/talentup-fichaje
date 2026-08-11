@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Comparativa de Planes</title>
+<meta name="description" content="Compara las funcionalidades de los planes Starter, Pro y Enterprise de TalentUP Fichaje. SaaS de fichaje para hostelería.">
+<style>
+  :root {
+    --orange: #FF6B35;
+    --orange-soft: #FFF3EC;
+    --neon: #D4FF32;
+    --ink: #1D1D1F;
+    --gray: #6E6E73;
+    --gray-mid: #86868B;
+    --bg: #F1F1EE;
+    --line: #D2D2D7;
+    --radius: 12px;
+    --max: 1080px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'Geist Mono', 'SF Mono', Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 3px solid var(--neon); outline-offset: 2px; }
+  a { color: var(--orange); text-decoration: none; }
+
+  /* Nav */
+  nav { position: sticky; top: 0; z-index: 50; background: rgba(241,241,238,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); }
+  .nav-inner { max-width: var(--max); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
+  .logo { font-weight: 700; font-size: 17px; }
+  .logo span { color: var(--orange); }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a { color: var(--gray); font-size: 14px; font-weight: 500; }
+  .nav-links a:hover { color: var(--ink); }
+
+  /* Toggle */
+  .toggle-container { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 32px 24px 16px; }
+  .toggle-container label { font-size: 15px; font-weight: 500; color: var(--gray); cursor: pointer; }
+  .toggle-container label.active { color: var(--ink); }
+  .toggle-switch { position: relative; width: 52px; height: 30px; background: var(--line); border-radius: 100px; cursor: pointer; transition: background 0.2s; }
+  .toggle-switch.active { background: var(--orange); }
+  .toggle-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle-switch.active::after { transform: translateX(22px); }
+  .save-badge { font-size: 12px; color: var(--orange); font-weight: 600; font-family: var(--mono); }
+
+  /* Table */
+  .table-container { max-width: var(--max); margin: 0 auto; padding: 24px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 14px 16px; text-align: center; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 17px; font-weight: 700; padding: 20px 16px; border-bottom: 2px solid var(--ink); }
+  thead th.highlight { color: var(--orange); }
+  .plan-price { font-family: var(--mono); font-size: 28px; font-weight: 700; margin-top: 4px; }
+  .plan-period { font-size: 13px; color: var(--gray); }
+  .plan-cta { display: inline-block; margin-top: 12px; padding: 10px 24px; border-radius: 100px; font-size: 14px; font-weight: 600; }
+  .plan-cta.primary { background: var(--orange); color: #fff; }
+  .plan-cta.secondary { border: 1px solid var(--line); color: var(--ink); }
+  .plan-cta:hover { opacity: 0.85; }
+
+  .category-row td { background: rgba(255,107,53,0.06); font-weight: 700; font-size: 14px; color: var(--orange); text-transform: uppercase; letter-spacing: 0.04em; }
+  .feature-name { font-size: 14px; color: var(--ink); }
+  .check { color: var(--orange); font-size: 18px; }
+  .cross { color: var(--gray-mid); font-size: 18px; }
+  .partial { color: var(--gray); font-size: 13px; font-style: italic; }
+
+  /* SVG pictos */
+  .picto-row { display: flex; align-items: center; gap: 10px; }
+  .picto-row svg { width: 20px; height: 20px; color: var(--orange); flex-shrink: 0; }
+
+  /* FAQ */
+  .faq { max-width: var(--max); margin: 0 auto; padding: 60px 24px; }
+  .faq h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .faq-item { border-bottom: 1px solid var(--line); padding: 16px 0; cursor: pointer; }
+  .faq-item h3 { font-size: 16px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .faq-item h3::after { content: '+'; color: var(--orange); font-size: 22px; font-weight: 300; }
+  .faq-item.open h3::after { content: '−'; }
+  .faq-item p { font-size: 15px; color: var(--gray); margin-top: 12px; display: none; }
+  .faq-item.open p { display: block; }
+
+  /* CTA */
+  .cta-section { max-width: var(--max); margin: 0 auto; padding: 60px 24px 80px; text-align: center; }
+  .cta-section h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .cta-section p { font-size: 17px; color: var(--gray); margin-bottom: 28px; }
+  .cta-section a { display: inline-block; background: var(--orange); color: #fff; padding: 16px 36px; border-radius: 100px; font-weight: 600; font-size: 16px; }
+
+  footer { border-top: 1px solid var(--line); padding: 32px 24px; text-align: center; font-size: 13px; color: var(--gray); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    table { font-size: 13px; }
+    th, td { padding: 10px 8px; }
+    thead th { font-size: 14px; }
+    .plan-price { font-size: 22px; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1D1D1F; --ink: #F1F1EE; --gray: #86868B; --line: #38383A; }
+    body { background: #1D1D1F; }
+    nav { background: rgba(29,29,31,0.85); }
+    .category-row td { background: rgba(255,107,53,0.1); }
+    .plan-cta.secondary { border-color: #38383A; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom SVG pictograms -->
+<svg style="display:none">
+  <symbol id="picto-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7 L12 12 L16 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="picto-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 20 Q3 14 9 14 Q15 14 15 20" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/></symbol>
+  <symbol id="picto-chart" viewBox="0 0 24 24"><path d="M4 20 L4 4 M4 20 L20 20 M8 16 L8 12 M12 16 L12 8 M16 16 L16 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="picto-plug" viewBox="0 0 24 24"><path d="M9 3 L9 9 M15 3 L15 9 M7 9 L17 9 L17 13 Q17 18 12 18 Q7 18 7 13 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 18 L12 21" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="picto-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 1 L9 4 M12 1 L12 4 M15 1 L15 4 M9 20 L9 23 M12 20 L12 23 M15 20 L15 23 M1 9 L4 9 M1 12 L4 12 M1 15 L4 15 M20 9 L23 9 M20 12 L23 12 M20 15 L23 15" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="picto-lifebuoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 5.5 L8.5 8.5 M15.5 8.5 L18.5 5.5 M5.5 18.5 L8.5 15.5 M15.5 15.5 L18.5 18.5" stroke="currentColor" stroke-width="2"/></symbol>
+</svg>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Talent<span>UP</span> Fichaje</div>
+    <div class="nav-links">
+      <a href="landing_new.html">Inicio</a>
+      <a href="pricing.html">Precios</a>
+      <a href="feature_comparison.html">Comparativa</a>
+      <a href="faqs.html">FAQ</a>
+      <a href="dashboard_new.html">Demo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Toggle -->
+<div class="toggle-container">
+  <label id="label-monthly" class="active">Mensual</label>
+  <div class="toggle-switch" id="toggle" role="switch" aria-checked="false" tabindex="0"></div>
+  <label id="label-annual">Anual</label>
+  <span class="save-badge">Ahorra 20%</span>
+</div>
+
+<!-- Table -->
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Funcionalidad</th>
+        <th>Starter</th>
+        <th class="highlight">Pro</th>
+        <th>Enterprise</th>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <div class="plan-price" id="price-starter">19€</div>
+          <div class="plan-period">/mes</div>
+          <a href="#" class="plan-cta secondary">Empezar</a>
+        </td>
+        <td>
+          <div class="plan-price" id="price-pro">39€</div>
+          <div class="plan-period">/mes</div>
+          <a href="#" class="plan-cta primary">Empezar</a>
+        </td>
+        <td>
+          <div class="plan-price" id="price-enterprise">99€</div>
+          <div class="plan-period">/mes</div>
+          <a href="#" class="plan-cta secondary">Contactar</a>
+        </td>
+      </tr>
+    </thead>
+    <tbody id="features-body">
+      <!-- Fichaje -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-clock"/></svg> Fichaje</div></td></tr>
+      <tr><td class="feature-name">Fichaje NFC con ESP32</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Fichaje web (QR/manual)</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Fichaje móvil (PWA)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Dispositivos NFC simultáneos</td><td>1</td><td>3</td><td>Ilimitados</td></tr>
+      <tr><td class="feature-name">Geolocalización de fichaje</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Reconocimiento facial</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+
+      <!-- Gestión -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-people"/></svg> Gestión</div></td></tr>
+      <tr><td class="feature-name">Empleados</td><td>Hasta 10</td><td>Hasta 50</td><td>Ilimitados</td></tr>
+      <tr><td class="feature-name">Centros de trabajo</td><td>1</td><td>Hasta 5</td><td>Ilimitados</td></tr>
+      <tr><td class="feature-name">Roles y permisos</td><td>2</td><td>5</td><td>Personalizados</td></tr>
+      <tr><td class="feature-name">Turnos y rotaciones</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Planificación automática</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Gestión de vacaciones</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Multi-tenant / multi-empresa</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+
+      <!-- Reportes -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-chart"/></svg> Reportes</div></td></tr>
+      <tr><td class="feature-name">Exportación CSV/PDF</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Dashboard en tiempo real</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Reportes mensuales automáticos</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Cumplimiento RD-ley 8/2019</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Cálculo de horas extra</td><td>Manual</td><td>Automático</td><td>Automático</td></tr>
+      <tr><td class="feature-name">Alertas de exceso de jornada</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Auditoría completa</td><td><span class="cross">—</span></td><td><span class="partial">30 días</span></td><td><span class="check">Ilimitado</span></td></tr>
+
+      <!-- Integraciones -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-plug"/></svg> Integraciones</div></td></tr>
+      <tr><td class="feature-name">API REST</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Webhooks</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Stripe (pagos)</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Exportación nóminas (SIGLO)</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">SSO (SAML/OAuth)</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Integración custom</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+
+      <!-- Hardware -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-chip"/></svg> Hardware</div></td></tr>
+      <tr><td class="feature-name">ESP32 CYD incluido</td><td>1 unidad</td><td>3 unidades</td><td>Bajo pedido</td></tr>
+      <tr><td class="feature-name">Pantalla táctil TFT 2.8"</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Lector NFC PN532</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">OTA (actualización remota)</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Modo offline (caché local)</td><td>4h</td><td>24h</td><td>72h</td></tr>
+      <tr><td class="feature-name">SIM 4G (backup conectividad)</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+
+      <!-- Soporte -->
+      <tr class="category-row"><td colspan="4"><div class="picto-row"><svg><use href="#picto-lifebuoy"/></svg> Soporte</div></td></tr>
+      <tr><td class="feature-name">Email soporte</td><td>48h respuesta</td><td>24h respuesta</td><td>4h respuesta</td></tr>
+      <tr><td class="feature-name">Chat en vivo</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Onboarding guiado</td><td><span class="cross">—</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">Gestor de cuenta dedicado</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td class="feature-name">SLA garantizado</td><td>99,5%</td><td>99,9%</td><td>99,99%</td></tr>
+      <tr><td class="feature-name">Formación on-site</td><td><span class="cross">—</span></td><td><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FAQ -->
+<section class="faq">
+  <h2>Preguntas frecuentes sobre planes</h2>
+  <div class="faq-item">
+    <h3>¿Puedo cambiar de plan en cualquier momento?</h3>
+    <p>Sí. Los cambios de plan son inmediatos y prorrateados. Si subes de plan, pagas la diferencia del periodo restante. Si bajas, el cambio aplica en el siguiente ciclo de facturación.</p>
+  </div>
+  <div class="faq-item">
+    <h3>¿El hardware ESP32 tiene coste adicional?</h3>
+    <p>El plan Starter incluye 1 unidad, Pro incluye 3 y Enterprise bajo pedido. Las unidades adicionales cuestan 131€ (BOM completo: ESP32 CYD + PN532 + carcasa + SIM opcional). No hay coste recurrente de hardware.</p>
+  </div>
+  <div class="faq-item">
+    <h3>¿Qué pasa si cancelo mi suscripción?</h3>
+    <p>Puedes cancelar en cualquier momento desde el dashboard. La cancelación es inmediata sin penalización. Tus datos se conservan 90 días por si decides volver, tras lo cual se eliminan permanentemente.</p>
+  </div>
+  <div class="faq-item">
+    <h3>¿El plan anual tiene descuento?</h3>
+    <p>Sí, el plan anual ofrece un 20% de descuento sobre el precio mensual. Se factura anualmente por adelantado. Puedes cambiar de mensual a anual desde el panel de billing en cualquier momento.</p>
+  </div>
+  <div class="faq-item">
+    <h3>¿Necesito el plan Enterprise para cumplir el RD-ley 8/2019?</h3>
+    <p>No. Todos los planes (Starter, Pro y Enterprise) incluyen cumplimiento del RD-ley 8/2019 de registro horario. La diferencia está en el número de empleados, centros de trabajo y funcionalidades avanzadas como auditoría completa y multi-tenant.</p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>¿Listo para digitalizar tu fichaje?</h2>
+  <p>Prueba 14 días gratis. Sin tarjeta. Sin compromiso.</p>
+  <a href="#">Empezar prueba gratis</a>
+</section>
+
+<footer>© 2026 TalentUP Fichaje · Cumple RD-ley 8/2019 · talentup.es</footer>
+
+<script>
+  // Toggle mensual/anual
+  const toggle = document.getElementById('toggle');
+  const labelM = document.getElementById('label-monthly');
+  const labelA = document.getElementById('label-annual');
+  const prices = {
+    starter: { monthly: '19€', annual: '15€' },
+    pro: { monthly: '39€', annual: '31€' },
+    enterprise: { monthly: '99€', annual: '79€' }
+  };
+  let isAnnual = false;
+  function updatePrices() {
+    document.getElementById('price-starter').textContent = isAnnual ? prices.starter.annual : prices.starter.monthly;
+    document.getElementById('price-pro').textContent = isAnnual ? prices.pro.annual : prices.pro.monthly;
+    document.getElementById('price-enterprise').textContent = isAnnual ? prices.enterprise.annual : prices.enterprise.monthly;
+  }
+  toggle.addEventListener('click', () => {
+    isAnnual = !isAnnual;
+    toggle.classList.toggle('active', isAnnual);
+    toggle.setAttribute('aria-checked', isAnnual);
+    labelM.classList.toggle('active', !isAnnual);
+    labelA.classList.toggle('active', isAnnual);
+    updatePrices();
+  });
+  toggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); } });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', () => item.classList.toggle('open'));
+  });
+</script>
+</body>
+</html>

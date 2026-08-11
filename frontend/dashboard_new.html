@@ -29,15 +29,17 @@
   #sidebar {
     position: fixed; top: var(--navbar-h); left: 0; bottom: 0;
     z-index: var(--z-sidebar);
-    width: var(--sidebar-w);
-    padding: var(--space-4) var(--space-3);
-    background: var(--bg-surface);
+    width: var(--sidebar-w, 240px);
+    padding: var(--space-4, 16px) var(--space-3, 12px);
+    background: var(--sidebar-bg, #F5F5F7);
     border-right: 1px solid var(--border);
     overflow-y: auto;
+    flex-shrink: 0;
   }
   #sidebar nav ul { display: flex; flex-direction: column; gap: 2px; }
-  .nav-section-label { padding: var(--space-4) var(--space-3) var(--space-1); }
-  #sidebar .nav-item { width: 100%; text-align: left; background: none; border: none; }
+  #sidebar svg, #sidebar .nav-item svg { width: 20px !important; height: 20px !important; max-width: 20px; flex-shrink: 0; }
+  .nav-section-label { padding: var(--space-4, 16px) var(--space-3, 12px) var(--space-1, 4px); }
+  #sidebar .nav-item { width: 100%; text-align: left; background: none; border: none; display: flex; align-items: center; gap: 10px; }
 
   .sidebar-scrim {
     position: fixed; inset: 0; top: var(--navbar-h);
@@ -78,6 +80,8 @@
   .kpi-spark { width: 100%; height: 34px; display: block; }
   .live-dot { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
   .live-dot::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--success); animation: tu-ping 1.8s var(--ease-out) infinite; }
+  @keyframes live-pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+  .presence { animation: live-pulse 2s infinite; }
 
   /* --- Progreso semanal (Dashboard) ------------------------------------------- */
   .progress-card { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-4); }
@@ -252,6 +256,8 @@
   /* --- Graficos SVG -------------------------------------------------------------- */
   .chart-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
   .chart-card svg { width: 100%; height: auto; display: block; }
+  .chart-card svg circle, .chart-card svg rect { transition: transform 0.2s var(--ease-spring); transform-origin: center; }
+  .chart-card svg circle:hover, .chart-card svg rect:hover { transform: scale(1.15); }
   .chart-axis-label  { font-size: 9px; fill: var(--text-secondary); font-family: var(--font-sans); }
   .chart-value-label { font-size: 9px; font-weight: 600; fill: var(--text-primary); font-family: var(--font-sans); }
   .donut-wrap { display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
@@ -329,7 +335,107 @@
   .logo-drop { width: 88px; height: 88px; border-radius: var(--radius-lg); border: 1.5px dashed var(--border-strong); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); flex-shrink: 0; }
   .form-actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-2); }
 
-  @keyframes tu-ping { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(2.2); } }
+  /* --- Hero: reloj de fichaje + KPIs ------------------------------------------- */
+  .hero-grid { display: grid; grid-template-columns: minmax(280px, 5fr) 7fr; gap: var(--space-4); align-items: stretch; margin-bottom: var(--space-4); }
+
+  .clock-hero { display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
+  .clock-hero-face { position: relative; flex-shrink: 0; }
+  .clock-svg { width: 168px; height: 168px; display: block; }
+  .clock-ring-bg { fill: none; stroke: var(--border); stroke-width: 2; }
+  .clock-ring-progress {
+    fill: none; stroke: var(--brand); stroke-width: 2; stroke-linecap: round;
+    transform: rotate(-90deg); transform-origin: 100px 100px;
+    transition: stroke-dashoffset 900ms var(--ease-out);
+  }
+  .clock-tick { stroke: var(--text-quaternary); stroke-width: 2; }
+  .clock-tick--major { stroke: var(--text-tertiary); stroke-width: 2.5; }
+  .clock-hand { stroke: var(--text-primary); stroke-linecap: round; transform-origin: 100px 100px; }
+  .clock-hand--hour { stroke-width: 5; }
+  .clock-hand--min  { stroke-width: 3.5; }
+  .clock-hand--sec  { stroke: var(--brand); stroke-width: 2; }
+  .clock-center { fill: var(--brand); }
+
+  .clock-hero-info { flex: 1; min-width: 200px; }
+  .clock-digital { font-size: 2.375rem; font-weight: 600; letter-spacing: var(--tracking-tight); line-height: 1.1; margin: 2px 0; }
+  .clock-status { display: flex; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 var(--space-4); }
+  .clock-actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+  /* --- KPIs: micro-animaciones (hover, spark que se dibuja, cifra que sube) --- */
+  .kpi-grid--hero { grid-template-columns: repeat(2, 1fr); margin-bottom: 0; }
+  .kpi-icon { transition: transform var(--dur-base) var(--ease-out); }
+  .kpi-card:hover .kpi-icon { transform: scale(1.1) rotate(6deg); }
+  .kpi-spark path { transition: stroke-dashoffset 900ms var(--ease-out); }
+  .kpi-num { display: inline-block; }
+
+  /* --- Feed de fichajes en vivo ------------------------------------------------ */
+  .content-grid--live { grid-template-columns: 1.15fr 1fr; }
+  .live-feed-card .card-body { max-height: 392px; overflow-y: auto; }
+  .feed-list { display: flex; flex-direction: column; }
+  .feed-item {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-dot {
+    width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feed-dot svg { width: 13px; height: 13px; stroke-width: 2.25; }
+  .feed-dot--in  { background: var(--success-tint); color: var(--success-strong); }
+  .feed-dot--out { background: var(--danger-tint);  color: var(--danger); }
+  .feed-body { min-width: 0; flex: 1; }
+  .feed-name { font-size: var(--text-body-sm); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feed-meta { font-size: var(--text-caption); color: var(--text-secondary); margin-top: 1px; }
+  /* La entrada nueva se anuncia con un flash breve del mismo naranja del sistema,
+     nunca con un color ajeno a la paleta — sigue siendo "acento, no protagonista". */
+  .feed-item--new { animation: tu-feed-in var(--dur-slow) var(--ease-out), tu-feed-flash 1.8s var(--ease-out) forwards; }
+
+  /* --- Mapa de calor del restaurante -------------------------------------------- */
+  .zone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+  .zone-tile {
+    padding: var(--space-4); border-radius: var(--radius-lg);
+    display: flex; flex-direction: column; gap: 4px;
+    background: var(--bg-app); color: var(--text-tertiary);
+    transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+  }
+  .zone-icon { width: 19px; height: 19px; stroke-width: 1.6; margin-bottom: 2px; }
+  .zone-name { font-size: var(--text-caption); font-weight: 600; color: var(--text-primary); }
+  .zone-count { font-size: var(--text-body); font-weight: 600; }
+  .zone-bar { height: 4px; border-radius: var(--radius-pill); background: rgba(0,0,0,0.08); overflow: hidden; margin-top: 2px; }
+  .zone-bar span { display: block; height: 100%; background: currentColor; border-radius: inherit; transition: width var(--dur-slow) var(--ease-out); }
+  .zone-tile[data-lvl="1"] { background: var(--info-tint); color: var(--info); }
+  .zone-tile[data-lvl="2"] { background: var(--brand-tint-06); color: var(--brand); }
+  .zone-tile[data-lvl="3"] { background: var(--brand-tint-12); color: var(--brand); }
+  .zone-tile[data-lvl="4"] { background: var(--brand-tint-35); color: var(--brand-hover); }
+  .zone-tile[data-lvl="5"] { background: var(--danger-tint); color: var(--danger); }
+  .zone-tile[data-lvl="4"], .zone-tile[data-lvl="5"] { animation: tu-zone-pulse 2.4s var(--ease-in-out) infinite; }
+  .zone-legend { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); font-size: var(--text-micro); color: var(--text-secondary); }
+  .zone-legend-scale { flex: 1; max-width: 120px; height: 6px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--info-tint), var(--brand), var(--danger)); }
+
+  /* --- Sidebar: iconos animados y resaltado deslizante -------------------------- */
+  #sidebar nav { position: relative; }
+  .nav-highlight {
+    position: absolute; left: 0; right: 0; top: 0;
+    height: var(--touch-min);
+    background: var(--brand-tint-08);
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transform: translateY(0);
+    transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+    pointer-events: none; z-index: 0;
+  }
+  .nav-highlight.is-visible { opacity: 1; }
+  #sidebar .nav-item { position: relative; z-index: 1; }
+  .nav-item svg { transition: transform var(--dur-base) var(--ease-out); }
+  .nav-item:hover svg { transform: scale(1.14) rotate(-5deg); }
+  .nav-item.active svg { animation: tu-icon-breathe 2.6s var(--ease-in-out) infinite; }
+
+  @keyframes tu-ping        { 0% { opacity: 0.7; transform: scale(1); } 100% { opacity: 0; transform: scale(2.2); } }
+  @keyframes tu-feed-in     { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  @keyframes tu-feed-flash  { from { background: var(--brand-tint-08); } to { background: transparent; } }
+  @keyframes tu-zone-pulse  { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 4px var(--brand-tint-06); } }
+  @keyframes tu-icon-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 
   @media (max-width: 900px) {
     .mobile-only { display: inline-flex; }
@@ -341,6 +447,9 @@
     .chart-grid { grid-template-columns: 1fr; }
     .stat-grid-3 { grid-template-columns: 1fr; }
     .settings-grid { grid-template-columns: 1fr; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .content-grid--live { grid-template-columns: 1fr; }
+    .zone-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 480px) {
@@ -386,6 +495,7 @@
 
 <aside id="sidebar">
   <nav aria-label="Navegacion principal">
+    <div class="nav-highlight" id="nav-highlight" aria-hidden="true"></div>
     <ul id="nav-list">
       <li><button type="button" class="nav-item active" data-view="dashboard" aria-current="page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
@@ -442,8 +552,67 @@
       </div>
     </div>
 
-    <section class="kpi-grid" aria-label="Indicadores clave" id="kpi-grid">
-      <!-- Generado por JS: renderKpis() -->
+    <section class="hero-grid">
+      <article class="card card-pad-lg clock-hero" aria-label="Reloj de fichaje en vivo">
+        <div class="clock-hero-face">
+          <svg class="clock-svg" viewBox="0 0 200 200" role="img" aria-hidden="true">
+            <circle class="clock-ring-bg" cx="100" cy="100" r="92"/>
+            <circle class="clock-ring-progress" id="clock-ring-progress" cx="100" cy="100" r="92"/>
+            <g id="clock-ticks"></g>
+            <line id="hand-hour" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="60"/>
+            <line id="hand-min"  class="clock-hand clock-hand--min"  x1="100" y1="100" x2="100" y2="42"/>
+            <line id="hand-sec"  class="clock-hand clock-hand--sec"  x1="100" y1="112" x2="100" y2="34"/>
+            <circle class="clock-center" cx="100" cy="100" r="4.5"/>
+          </svg>
+        </div>
+        <div class="clock-hero-info">
+          <p class="t-label" id="clock-greeting">—</p>
+          <p class="clock-digital tabular" id="clock-digital">00:00:00</p>
+          <p class="t-body-sm t-muted" id="clock-date">—</p>
+          <div class="clock-status">
+            <span class="live-dot"></span>
+            <span class="t-caption" id="clock-status-text">—</span>
+          </div>
+          <div class="clock-actions">
+            <button class="btn btn-primary btn-lg" id="btn-fichar-in">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+              Fichar entrada
+            </button>
+            <button class="btn btn-secondary btn-lg" id="btn-fichar-out">Fichar salida</button>
+          </div>
+        </div>
+      </article>
+
+      <section class="kpi-grid kpi-grid--hero" aria-label="Indicadores clave" id="kpi-grid">
+        <!-- Generado por JS: renderKpis() -->
+      </section>
+    </section>
+
+    <section class="content-grid content-grid--live">
+      <div class="card live-feed-card">
+        <div class="card-header">
+          <h3>Fichajes en vivo</h3>
+          <span class="presence"><span class="dot"></span>En directo</span>
+        </div>
+        <div class="card-body" style="padding: var(--space-2) 0;">
+          <div class="feed-list" id="live-feed"></div>
+        </div>
+      </div>
+
+      <div class="card zone-card">
+        <div class="card-header">
+          <h3>Mapa de calor del restaurante</h3>
+          <span class="t-caption t-muted" id="zone-updated">actualizado ahora</span>
+        </div>
+        <div class="card-body">
+          <div class="zone-grid" id="zone-grid"></div>
+          <div class="zone-legend">
+            <span>Frio</span>
+            <span class="zone-legend-scale"></span>
+            <span>Caliente</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="card card-pad progress-card" aria-label="Progreso semanal">
@@ -544,49 +713,24 @@
       </div>
     </section>
 
-    <section class="content-grid">
-      <div class="card">
-        <div class="card-header">
-          <h3>Fichajes de hoy</h3>
-          <button type="button" class="btn btn-ghost btn-sm" data-goto="fichajes">Ver todos</button>
-        </div>
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Empleado</th>
-                <th>Entrada</th>
-                <th>Salida</th>
-                <th>Horas</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="dash-today-tbody">
-              <!-- Generado por JS: renderDashToday() -->
-            </tbody>
-          </table>
+    <div class="card">
+      <div class="card-header">
+        <h3>Turnos — esta semana</h3>
+        <div class="flex gap-1">
+          <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana anterior">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana siguiente">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-header">
-          <h3>Turnos — esta semana</h3>
-          <div class="flex gap-1">
-            <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana anterior">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <button class="btn btn-icon btn-ghost btn-sm" aria-label="Semana siguiente">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="card-body calendar-scroll">
-          <div class="calendar-grid" id="dash-calendar">
-            <!-- Generado por JS: renderDashCalendar() -->
-          </div>
+      <div class="card-body calendar-scroll">
+        <div class="calendar-grid" id="dash-calendar">
+          <!-- Generado por JS: renderDashCalendar() -->
         </div>
       </div>
-    </section>
+    </div>
   </section>
 
   <!-- ======================= VISTA: EMPLEADOS ======================= -->
@@ -1019,6 +1163,24 @@
     { id: 4, nombre: 'Terraza',           ubicacion: 'Acceso exterior',  online: true,  bateria: 55, ultima: 'hace 6 min' }
   ];
 
+  /* Zonas del local para el mapa de calor del dashboard. "people/cap" es
+     ocupacion en vivo — no plantilla asignada — por eso vive aparte de
+     EMPLOYEES y se recalcula sola con simulateZoneTick(). */
+  var ZONES = [
+    { id: 'cocina',    nombre: 'Cocina',           people: 5, cap: 6,
+      icon: '<path d="M8 3c0 2-2 3-2 5a4 4 0 0 0 8 0c0-2-2-3-2-5"/><path d="M6 15h12v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-4Z"/><path d="M6 15a3 3 0 0 1 0-6"/><path d="M18 15a3 3 0 0 0 0-6"/>' },
+    { id: 'barra',     nombre: 'Barra',            people: 4, cap: 5,
+      icon: '<path d="M5 3h14l-1.5 9h-11L5 3Z"/><path d="M8 12v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7"/><path d="M9 21h6"/>' },
+    { id: 'sala',      nombre: 'Sala principal',   people: 7, cap: 12,
+      icon: '<circle cx="12" cy="6" r="2.4"/><path d="M6 21v-4a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4"/><path d="M3 21h18"/>' },
+    { id: 'terraza',   nombre: 'Terraza',          people: 3, cap: 10,
+      icon: '<circle cx="12" cy="12" r="3.5"/><path d="M12 3v2.4M12 18.6V21M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M3 12h2.4M18.6 12H21M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>' },
+    { id: 'recepcion', nombre: 'Recepcion',        people: 1, cap: 2,
+      icon: '<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-5a3 3 0 0 1 6 0v5"/>' },
+    { id: 'almacen',   nombre: 'Almacen',          people: 0, cap: 2,
+      icon: '<path d="M3 8l9-5 9 5-9 5-9-5Z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/>' }
+  ];
+
   var AREA_CLASS = { Cocina: 'cocina', Sala: 'sala', Barra: 'barra', Soporte: 'soporte' };
   var AREA_COLOR = { Cocina: 'var(--brand)', Sala: 'var(--info)', Barra: 'var(--success-strong)', Soporte: 'var(--warning-strong)' };
   var STATUS_LABEL = { ok: 'A tiempo', tarde: 'Tarde', pendiente: 'En curso', sinfichar: 'Sin fichar', baja: 'De baja', vacaciones: 'Vacaciones' };
@@ -1076,15 +1238,16 @@
     var incAbiertas = INCIDENTS.filter(function (i) { return i.estado !== 'resuelta'; }).length;
     var horasSemana = Math.round(EMPLOYEES.reduce(function (s, e) { return s + e.horas; }, 0) / 4.33);
     var mediaEmp = (horasSemana / EMPLOYEES.length).toFixed(1);
+    var pctFichados = Math.round(fichados / EMPLOYEES.length * 100);
 
     var cards = [
-      { icon: 'brand',   spark: 'brand',   label: 'Plantilla total',    value: EMPLOYEES.length, delta: activos + ' activos hoy', deltaClass: 't-muted',
+      { icon: 'brand',   spark: 'brand',   label: 'Plantilla total',    num: EMPLOYEES.length, suffix: '', delta: activos + ' activos hoy', deltaClass: 't-muted',
         path: '<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-      { icon: 'success', spark: 'success', label: 'Fichajes hoy',       value: fichados + ' <span class="t-caption t-muted">/ ' + EMPLOYEES.length + '</span>', delta: Math.round(fichados / EMPLOYEES.length * 100) + '% de la plantilla', deltaClass: 't-muted',
+      { icon: 'success', spark: 'success', label: 'Fichajes hoy',       num: fichados, suffix: ' <span class="t-caption t-muted">/ ' + EMPLOYEES.length + '</span>', delta: pctFichados + '% de la plantilla', deltaClass: 't-muted',
         path: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>' },
-      { icon: 'danger',  spark: 'danger',  label: 'Incidencias abiertas', value: incAbiertas, delta: incAbiertas > 0 ? 'requieren revision' : 'todo en orden', deltaClass: incAbiertas > 0 ? 't-danger' : 't-success',
+      { icon: 'danger',  spark: 'danger',  label: 'Incidencias abiertas', num: incAbiertas, suffix: '', delta: incAbiertas > 0 ? 'requieren revision' : 'todo en orden', deltaClass: incAbiertas > 0 ? 't-danger' : 't-success',
         path: '<path d="M10.3 3.9 2.6 18.1a1.6 1.6 0 0 0 1.4 2.4h16a1.6 1.6 0 0 0 1.4-2.4L13.7 3.9a1.6 1.6 0 0 0-2.8 0Z"/><path d="M12 9.5v4M12 16.8v.1"/>' },
-      { icon: 'info',    spark: 'info',    label: 'Horas esta semana',  value: horasSemana + '<span class="t-caption t-muted">h</span>', delta: 'Media ' + mediaEmp + 'h/empleado', deltaClass: 't-muted',
+      { icon: 'info',    spark: 'info',    label: 'Horas esta semana',  num: horasSemana, suffix: '<span class="t-caption t-muted">h</span>', delta: 'Media ' + mediaEmp + 'h/empleado', deltaClass: 't-muted',
         path: '<path d="M3 21V9M10 21V3M17 21v-7"/>' }
     ];
 
@@ -1092,10 +1255,195 @@
       return '<article class="card card-pad kpi-card">' +
         '<div class="kpi-top">' +
           '<div class="kpi-icon kpi-icon--' + c.icon + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + c.path + '</svg></div>' +
-          '<div><p class="t-label">' + c.label + '</p><p class="kpi-value tabular">' + c.value + '</p><p class="t-caption ' + c.deltaClass + ' kpi-delta">' + c.delta + '</p></div>' +
+          '<div><p class="t-label">' + c.label + '</p><p class="kpi-value tabular"><span class="kpi-num" data-target="' + c.num + '">0</span>' + c.suffix + '</p><p class="t-caption ' + c.deltaClass + ' kpi-delta">' + c.delta + '</p></div>' +
         '</div>' + sparkline(c.spark) +
       '</article>';
     }).join('');
+
+    animateKpiCounts();
+    drawSparklines();
+    updateClockRing(pctFichados);
+
+    var statusText = document.getElementById('clock-status-text');
+    if (statusText) statusText.textContent = fichados + ' de ' + EMPLOYEES.length + ' fichados ahora mismo';
+  }
+
+  /* La cifra sube desde 0 en vez de aparecer de golpe — un empujon visual
+     minimo, coherente con "confianza silenciosa" del design system. */
+  function animateKpiCounts() {
+    document.querySelectorAll('.kpi-num').forEach(function (el) {
+      var target = parseFloat(el.getAttribute('data-target')) || 0;
+      var dur = 700, t0 = null;
+      function step(ts) {
+        if (!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* El sparkline se "dibuja" ajustando stroke-dashoffset a la longitud real
+     del trazo — sin esto un stroke-dasharray fijo no cuadra con cada path. */
+  function drawSparklines() {
+    document.querySelectorAll('.kpi-spark path').forEach(function (path) {
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { path.style.strokeDashoffset = 0; });
+      });
+    });
+  }
+
+  /* ==========================================================================
+     3b. RELOJ DE FICHAJE — analogico + digital, hora real del navegador.
+     El anillo exterior no marca el avance del dia sino el % de plantilla que
+     ya ha fichado hoy: es el unico dato que un gerente quiere ver de un
+     vistazo al entrar, asi que el reloj hace doble trabajo.
+     ========================================================================== */
+
+  function buildClockTicks() {
+    var g = document.getElementById('clock-ticks');
+    if (!g || g.childElementCount) return;
+    var html = '';
+    for (var i = 0; i < 12; i++) {
+      var major = i % 3 === 0;
+      var r1 = major ? 74 : 80, r2 = 88;
+      var rad = (i * 30 - 90) * Math.PI / 180;
+      var x1 = (100 + r1 * Math.cos(rad)).toFixed(1), y1 = (100 + r1 * Math.sin(rad)).toFixed(1);
+      var x2 = (100 + r2 * Math.cos(rad)).toFixed(1), y2 = (100 + r2 * Math.sin(rad)).toFixed(1);
+      html += '<line class="clock-tick' + (major ? ' clock-tick--major' : '') + '" x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"/>';
+    }
+    g.innerHTML = html;
+  }
+
+  function tickClock() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    var hHour = document.getElementById('hand-hour');
+    var hMin = document.getElementById('hand-min');
+    var hSec = document.getElementById('hand-sec');
+    if (hHour) hHour.style.transform = 'rotate(' + ((h % 12) * 30 + m * 0.5) + 'deg)';
+    if (hMin)  hMin.style.transform  = 'rotate(' + (m * 6 + s * 0.1) + 'deg)';
+    if (hSec)  hSec.style.transform  = 'rotate(' + (s * 6) + 'deg)';
+
+    var digital = document.getElementById('clock-digital');
+    if (digital) digital.textContent = [h, m, s].map(function (v) { return String(v).padStart(2, '0'); }).join(':');
+
+    var greetEl = document.getElementById('clock-greeting');
+    if (greetEl) greetEl.textContent = h < 6 ? 'Buenas noches' : h < 13 ? 'Buenos dias' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+
+    var dateEl = document.getElementById('clock-date');
+    if (dateEl) {
+      var fmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
+      dateEl.textContent = fmt.charAt(0).toUpperCase() + fmt.slice(1);
+    }
+  }
+
+  function updateClockRing(pct) {
+    var ring = document.getElementById('clock-ring-progress');
+    if (!ring) return;
+    var r = 92, c = 2 * Math.PI * r;
+    ring.setAttribute('stroke-dasharray', c);
+    ring.style.strokeDashoffset = c - (c * Math.min(100, pct) / 100);
+  }
+
+  /* ==========================================================================
+     3c. FEED DE FICHAJES EN VIVO — timeline compacta que crece sola. Arranca
+     con los fichajes reales de EMPLOYEES y despues simula nueva actividad
+     cada pocos segundos para que el dashboard se sienta "vivo" sin backend.
+     ========================================================================== */
+
+  var FEED_MAX = 8;
+
+  function feedItemHtml(ev, isNew) {
+    var icon = ev.type === 'in'
+      ? '<path d="M5 12l5 5L20 7"/>'
+      : '<path d="M18 6L6 18M6 6l12 12"/>';
+    var verb = ev.type === 'in' ? 'ha fichado entrada' : 'ha fichado salida';
+    return '<div class="feed-item' + (isNew ? ' feed-item--new' : '') + '">' +
+      '<span class="feed-dot feed-dot--' + ev.type + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg></span>' +
+      '<span class="emp-avatar ' + avatarClass(ev.area) + '">' + ev.ini + '</span>' +
+      '<div class="feed-body"><p class="feed-name">' + esc(ev.nombre) + ' <span class="t-muted">' + verb + '</span></p>' +
+      '<p class="feed-meta"><span class="tabular">' + ev.time + '</span> · ' + ev.area + '</p></div>' +
+    '</div>';
+  }
+
+  function buildInitialFeed() {
+    var events = [];
+    EMPLOYEES.forEach(function (e) {
+      if (e.entrada) events.push({ nombre: e.nombre, ini: e.ini, area: e.area, type: 'in', time: e.entrada });
+      if (e.salida)  events.push({ nombre: e.nombre, ini: e.ini, area: e.area, type: 'out', time: e.salida });
+    });
+    events.sort(function (a, b) { return b.time.localeCompare(a.time); });
+    return events.slice(0, FEED_MAX);
+  }
+
+  function renderFeedInitial() {
+    var list = buildInitialFeed();
+    document.getElementById('live-feed').innerHTML = list.length
+      ? list.map(function (ev) { return feedItemHtml(ev, false); }).join('')
+      : '<div class="empty-state"><div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div><h4>Nada todavia</h4><p>Los fichajes de hoy apareceran aqui en cuanto entren.</p></div>';
+  }
+
+  function pushFeedEvent(ev) {
+    var container = document.getElementById('live-feed');
+    if (!container) return;
+    container.insertAdjacentHTML('afterbegin', feedItemHtml(ev, true));
+    while (container.children.length > FEED_MAX) container.removeChild(container.lastElementChild);
+  }
+
+  function simulateFeedTick() {
+    var candidates = EMPLOYEES.filter(function (e) { return e.statusHoy === 'ok' || e.statusHoy === 'tarde' || e.statusHoy === 'pendiente'; });
+    if (!candidates.length) return;
+    var e = candidates[Math.floor(Math.random() * candidates.length)];
+    var type = (e.statusHoy === 'pendiente' && Math.random() < 0.5) ? 'out' : 'in';
+    var now = new Date();
+    var time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    pushFeedEvent({ nombre: e.nombre, ini: e.ini, area: e.area, type: type, time: time });
+  }
+
+  /* ==========================================================================
+     3d. MAPA DE CALOR DEL RESTAURANTE — zonas del local coloreadas por
+     ocupacion en vivo (people/cap), reutilizando la escala de acento del
+     design system: info (frio) -> naranja (activo) -> rojo (por encima de
+     capacidad). Nunca un color fuera de la paleta del sistema.
+     ========================================================================== */
+
+  function heatLvl(pct) {
+    if (pct <= 0) return 0;
+    if (pct < 0.35) return 1;
+    if (pct < 0.65) return 2;
+    if (pct < 0.9)  return 3;
+    if (pct <= 1.05) return 4;
+    return 5;
+  }
+
+  function renderZones() {
+    var grid = document.getElementById('zone-grid');
+    if (!grid) return;
+    grid.innerHTML = ZONES.map(function (z) {
+      var pct = z.people / z.cap;
+      var lvl = heatLvl(pct);
+      return '<div class="zone-tile" data-lvl="' + lvl + '">' +
+        '<svg class="zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + z.icon + '</svg>' +
+        '<p class="zone-name">' + z.nombre + '</p>' +
+        '<p class="zone-count tabular">' + z.people + '<span class="t-muted">/' + z.cap + '</span></p>' +
+        '<div class="zone-bar"><span style="width:' + Math.min(100, Math.round(pct * 100)) + '%;"></span></div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function simulateZoneTick() {
+    var z = ZONES[Math.floor(Math.random() * ZONES.length)];
+    var delta = Math.random() < 0.5 ? -1 : 1;
+    z.people = Math.max(0, Math.min(z.cap + 1, z.people + delta));
+    renderZones();
+    var updated = document.getElementById('zone-updated');
+    if (updated) updated.textContent = 'actualizado ahora';
   }
 
   var ALERTS = [
@@ -1110,17 +1458,6 @@
     document.getElementById('dash-alerts').innerHTML = ALERTS.map(function (a) {
       return '<div class="alert-item"><div class="alert-icon alert-icon--' + a.icon + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + a.path + '</svg></div>' +
         '<div><p class="alert-title">' + esc(a.titulo) + '</p><p class="alert-sub">' + esc(a.sub) + '</p></div></div>';
-    }).join('');
-  }
-
-  function renderDashToday() {
-    var rows = EMPLOYEES.filter(function (e) { return e.statusHoy !== 'baja' && e.statusHoy !== 'vacaciones'; }).slice(0, 6);
-    document.getElementById('dash-today-tbody').innerHTML = rows.map(function (e) {
-      return '<tr><td><div class="emp-cell"><span class="emp-avatar ' + avatarClass(e.area) + '">' + e.ini + '</span>' + esc(e.nombre) + '</div></td>' +
-        '<td class="tabular">' + (e.entrada || '—') + '</td>' +
-        '<td class="tabular">' + (e.salida || '—') + '</td>' +
-        '<td class="tabular">' + calcHoras(e.entrada, e.salida) + '</td>' +
-        '<td><span class="badge ' + STATUS_BADGE[e.statusHoy] + '">' + STATUS_LABEL[e.statusHoy] + '</span></td></tr>';
     }).join('');
   }
 
@@ -1453,15 +1790,25 @@
     ajustes:     function () { renderDevices(); }
   };
 
+  function moveNavHighlight(btn) {
+    var highlight = document.getElementById('nav-highlight');
+    if (!highlight || !btn) return;
+    highlight.style.transform = 'translateY(' + btn.offsetTop + 'px)';
+    highlight.style.height = btn.offsetHeight + 'px';
+    highlight.classList.add('is-visible');
+  }
+
   function switchView(name) {
     document.querySelectorAll('.view').forEach(function (v) {
       v.classList.toggle('is-active', v.getAttribute('data-view') === name);
     });
+    var activeBtn = null;
     document.querySelectorAll('#nav-list .nav-item').forEach(function (btn) {
       var active = btn.getAttribute('data-view') === name;
       btn.classList.toggle('active', active);
-      if (active) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+      if (active) { btn.setAttribute('aria-current', 'page'); activeBtn = btn; } else btn.removeAttribute('aria-current');
     });
+    moveNavHighlight(activeBtn);
 
     if (!viewLoaded[name]) {
       var section = document.getElementById('view-' + name);
@@ -1595,14 +1942,34 @@
     btn.addEventListener('click', function () { switchView(btn.getAttribute('data-goto')); });
   });
 
+  var btnFicharIn = document.getElementById('btn-fichar-in');
+  var btnFicharOut = document.getElementById('btn-fichar-out');
+  if (btnFicharIn) btnFicharIn.addEventListener('click', function () { showToast('Entrada registrada a las ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }), 'success'); });
+  if (btnFicharOut) btnFicharOut.addEventListener('click', function () { showToast('Salida registrada a las ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }), 'info'); });
+
+  window.addEventListener('resize', function () {
+    moveNavHighlight(document.querySelector('#nav-list .nav-item.active'));
+  });
+
   renderDate();
   renderKpis();
   renderAlerts();
-  renderDashToday();
   renderDashCalendar();
   renderDonut('dash-donut');
   renderWeekProgress();
   renderIncidencias();
+
+  buildClockTicks();
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  renderFeedInitial();
+  setInterval(simulateFeedTick, 7500);
+
+  renderZones();
+  setInterval(simulateZoneTick, 9000);
+
+  moveNavHighlight(document.querySelector('#nav-list .nav-item.active'));
 })();
 </script>
 </body>

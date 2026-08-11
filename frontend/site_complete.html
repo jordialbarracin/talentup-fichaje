@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentUP Fichaje — Fichaje digital NFC para hostelería</title>
+<meta name="description" content="Fichaje digital NFC, PIN y offline para hostelería. Nóminas automáticas, gestión de turnos y cumplimiento RGPD y RD-ley 8/2019. Prueba gratis 14 días.">
+<meta name="theme-color" content="#FF6B35">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://talentup.es/">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest_v2.json">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalentUP Fichaje — Fichaje digital NFC para hostelería">
+<meta property="og:description" content="Fichaje NFC, PIN y offline. Nóminas automáticas, gestión de turnos. Cumple RGPD y RD-ley 8/2019. Prueba gratis 14 días.">
+<meta property="og:image" content="https://talentup.es/og-image.png">
+<meta property="og:url" content="https://talentup.es/">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="TalentUP Fichaje">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TalentUP Fichaje — Fichaje digital NFC para hostelería">
+<meta name="twitter:description" content="Fichaje NFC, PIN y offline. Nóminas automáticas, gestión de turnos. Cumple RGPD y RD-ley 8/2019.">
+
+<!-- Design System -->
+<link rel="stylesheet" href="design_system.css">
+
+<style>
+/* ========================================================================
+   TalentUP Fichaje — Site Complete (SPA)
+   Consume design_system.css. Todo color y tipo referencia un token.
+   Aqui solo la composicion de la pagina y el routing de la SPA.
+   ======================================================================== */
+
+/* --- Layout base ------------------------------------------------------- */
+body { background: var(--bg-app); }
+.container { max-width: var(--container); margin: 0 auto; padding-inline: var(--space-6); }
+section[id] { scroll-margin-top: calc(var(--navbar-h) + var(--space-4)); }
+
+/* --- SPA Views --------------------------------------------------------- */
+.view { display: none; }
+.view.active { display: block; }
+
+/* --- Navbar (shared) --------------------------------------------------- */
+.nav {
+  position: fixed; inset: 0 0 auto 0; z-index: var(--z-navbar);
+  height: var(--navbar-h);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding-inline: var(--space-8);
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+.nav-links { display: flex; align-items: center; gap: var(--space-7); }
+.nav-links a {
+  font-size: var(--text-body-sm); font-weight: 500;
+  color: var(--text-secondary); letter-spacing: var(--tracking-caption);
+  white-space: nowrap; cursor: pointer;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a.active { color: var(--brand); }
+.nav-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* --- Logo lockup ------------------------------------------------------- */
+.tu-lockup { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-primary); }
+.tu-lockup:hover { color: var(--text-primary); }
+.tu-mark { color: var(--brand); }
+.tu-wordmark { font-size: var(--text-h2); font-weight: 600; letter-spacing: var(--tracking-normal); }
+.tu-wordmark em { font-style: normal; color: var(--brand); }
+
+/* --- Buttons ----------------------------------------------------------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  font-size: var(--text-body-sm); font-weight: 600;
+  letter-spacing: var(--tracking-caption);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  cursor: pointer; white-space: nowrap; min-height: var(--touch-min);
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--brand); color: var(--text-on-brand); }
+.btn-primary:hover { background: var(--brand-hover); color: var(--text-on-brand); }
+.btn-secondary { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-lg { padding: var(--space-4) var(--space-7); font-size: var(--text-body); min-height: 52px; }
+.btn-xl { padding: var(--space-4) var(--space-8); font-size: var(--text-body); min-height: 52px; }
+.btn-block { width: 100%; }
+
+/* ========================================================================
+   LANDING
+   ======================================================================== */
+
+/* --- Hero -------------------------------------------------------------- */
+.hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-20); }
+.hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-16); align-items: center; }
+.hero h1 {
+  font-size: var(--text-hero); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: var(--leading-tight);
+  margin-bottom: var(--space-5);
+}
+.hero-lead { font-size: var(--text-lead); color: var(--text-secondary); max-width: var(--measure); margin-bottom: var(--space-8); line-height: var(--leading-relaxed); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-8); }
+.hero-facts { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.hero-facts li { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-body-sm); color: var(--text-secondary); }
+.hero-facts svg { color: var(--success); }
+
+/* Terminal simulation */
+.terminal {
+  background: var(--bg-surface); border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-float); border: 1px solid var(--border);
+  padding: var(--space-8); text-align: center; min-height: 280px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: var(--space-3);
+}
+.terminal-brand { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-caption); color: var(--text-secondary); margin-bottom: var(--space-4); }
+.terminal-clock { font-size: var(--text-display); font-weight: 600; letter-spacing: var(--tracking-tight); color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.terminal-date { font-size: var(--text-body-sm); color: var(--text-secondary); }
+.terminal-prompt { font-size: var(--text-body); color: var(--brand); font-weight: 500; margin-top: var(--space-4); }
+.terminal-confirm .confirm-kind { font-size: var(--text-body-sm); color: var(--success-strong); font-weight: 600; margin-top: var(--space-2); }
+.terminal-confirm .confirm-name { font-size: var(--text-h2); font-weight: 600; color: var(--text-primary); }
+.terminal-confirm .confirm-time { font-size: var(--text-body); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.terminal-caption { font-size: var(--text-caption); color: var(--text-tertiary); text-align: center; margin-top: var(--space-3); }
+.nfc-arcs { color: var(--brand); }
+
+/* --- Bands ------------------------------------------------------------- */
+.band-sunken { background: var(--bg-sunken); }
+
+/* --- Section heads ----------------------------------------------------- */
+.section-head { text-align: center; max-width: 56ch; margin: 0 auto var(--space-10); }
+.section-eyebrow {
+  display: block; font-size: var(--text-micro); font-weight: 600;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--brand); margin-bottom: var(--space-3);
+}
+.section-head h2 {
+  font-size: var(--text-section); font-weight: 600;
+  letter-spacing: var(--tracking-tight); line-height: var(--leading-tight);
+  margin-bottom: var(--space-3);
+}
+.section-head p { font-size: var(--text-lead); color: var(--text-secondary); }
+
+/* --- Stake section ----------------------------------------------------- */
+.stake { padding-block: var(--space-20); }
+.stake-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); align-items: start; }
+.stake h2 { font-size: var(--text-section); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: var(--leading-snug); }
+.stake p { font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); margin-top: var(--space-4); }
+.stake-note { background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-7); border: 1px solid var(--border); }
+.stake-note strong { color: var(--text-primary); }
+
+/* --- Features ---------------------------------------------------------- */
+.features-section { padding-block: var(--space-20); }
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+.feature { background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-7); border: 1px solid var(--border); }
+.feature-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--brand-tint-08); color: var(--brand); display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-5); }
+.feature h3 { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-2); }
+.feature p { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- Steps ------------------------------------------------------------- */
+.steps-section { padding-block: var(--space-20); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); counter-reset: step; }
+.step { counter-increment: step; position: relative; }
+.step::before { content: counter(step); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--brand); color: var(--text-on-brand); font-size: var(--text-body-sm); font-weight: 600; margin-bottom: var(--space-4); }
+.step h3 { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-2); }
+.step p { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- Kit --------------------------------------------------------------- */
+.kit-section { padding-block: var(--space-20); }
+.kit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-bottom: var(--space-10); }
+.kit-item { display: flex; gap: var(--space-4); align-items: flex-start; }
+.kit-item svg { flex-shrink: 0; color: var(--brand); }
+.kit-item h3 { font-size: var(--text-body); font-weight: 600; margin-bottom: var(--space-1); }
+.kit-item p { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+.kit-price { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4); background: var(--bg-sunken); border-radius: var(--radius-xl); padding: var(--space-7); border: 1px solid var(--border-hairline); }
+.kit-price-main { font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-snug); }
+.kit-price-note { font-size: var(--text-body-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+
+/* --- Plans (landing preview) ------------------------------------------- */
+.plans-section { padding-block: var(--space-20); }
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+.plan { background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-8); border: 1px solid var(--border); position: relative; }
+.plan--featured { border-color: var(--brand-tint-35); border-width: 2px; box-shadow: var(--shadow-card); }
+.plan-flag { display: inline-block; font-size: var(--text-micro); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--brand); margin-bottom: var(--space-2); }
+.plan-name { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-2); }
+.plan-price { font-size: var(--text-display); font-weight: 600; letter-spacing: var(--tracking-tight); }
+.plan-price span { font-size: var(--text-body); color: var(--text-secondary); font-weight: 400; }
+.plan-for { font-size: var(--text-body-sm); color: var(--text-secondary); margin-block: var(--space-4); }
+.plan-features { display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-7); }
+.plan-features li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-body-sm); }
+.plan-features svg { flex-shrink: 0; color: var(--brand); margin-top: 2px; }
+
+/* --- FAQ --------------------------------------------------------------- */
+.faq-section { padding-block: var(--space-20); }
+.faq { max-width: 760px; margin: 0 auto; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item summary { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); padding: var(--space-5) 0; font-size: var(--text-body); font-weight: 500; cursor: pointer; list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item[open] summary { color: var(--brand); }
+.faq-icon { flex-shrink: 0; color: var(--text-secondary); transition: transform var(--dur-base) var(--ease-out); }
+.faq-item[open] .faq-icon { transform: rotate(45deg); color: var(--brand); }
+.faq-answer { padding-bottom: var(--space-5); font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); }
+
+/* --- CTA --------------------------------------------------------------- */
+.cta { padding-block: var(--space-20); text-align: center; }
+.cta h2 { font-size: var(--text-section); font-weight: 600; letter-spacing: var(--tracking-tight); margin-bottom: var(--space-3); }
+.cta p { font-size: var(--text-lead); color: var(--text-secondary); margin-bottom: var(--space-6); }
+
+/* ========================================================================
+   PRICING
+   ======================================================================== */
+.pricing-hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-8); text-align: center; }
+.page-label { font-size: var(--text-micro); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--brand); margin-bottom: var(--space-3); }
+.pricing-hero h1 { font-size: var(--text-hero); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: 1.06; margin-bottom: var(--space-4); }
+.pricing-hero p { font-size: var(--text-lead); color: var(--text-secondary); max-width: 46ch; margin: 0 auto; }
+
+.billing-toggle { display: flex; justify-content: center; margin-top: var(--space-7); }
+.segmented { display: inline-flex; background: var(--bg-sunken); border-radius: var(--radius-pill); padding: 3px; border: 1px solid var(--border); }
+.segmented button { padding: var(--space-2) var(--space-5); border-radius: var(--radius-pill); font-size: var(--text-body-sm); font-weight: 500; color: var(--text-secondary); transition: all var(--dur-base) var(--ease-out); }
+.segmented button.active { background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--shadow-hairline); }
+.save-badge { font-size: var(--text-micro); font-weight: 600; color: var(--brand); margin-left: var(--space-1); }
+
+.plans-grid-section { padding-block: var(--space-8) var(--space-20); }
+.plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-bottom: var(--space-12); }
+.plan-card { background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-8); border: 1px solid var(--border); position: relative; }
+.plan-card--featured { border-color: var(--brand-tint-35); border-width: 2px; box-shadow: var(--shadow-card); }
+.plan-badge { display: inline-block; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--brand); color: var(--text-on-brand); font-size: var(--text-micro); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; padding: var(--space-1) var(--space-4); border-radius: var(--radius-pill); }
+.plan-desc { font-size: var(--text-body-sm); color: var(--text-secondary); margin-block: var(--space-3); }
+.plan-billing-note { font-size: var(--text-caption); color: var(--text-tertiary); margin-top: var(--space-1); margin-bottom: var(--space-5); }
+
+.pricing-faq { max-width: 760px; margin: 0 auto; }
+.pricing-faq h2 { font-size: var(--text-section); font-weight: 600; text-align: center; margin-bottom: var(--space-8); }
+
+/* ========================================================================
+   CONTACTO
+   ======================================================================== */
+.contact-hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-10); text-align: center; }
+.contact-hero h1 { font-size: var(--text-hero); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: 1.06; margin-bottom: var(--space-4); }
+.contact-hero p { font-size: var(--text-lead); color: var(--text-secondary); max-width: 46ch; margin: 0 auto; }
+
+.contact-section { padding-block: var(--space-8) var(--space-20); }
+.contact-inner { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: var(--space-10); align-items: start; }
+.form-card { background: var(--bg-surface); border-radius: var(--radius-xl); padding: var(--space-10); box-shadow: var(--shadow-raised); border: 1px solid var(--border); }
+.form-card h2 { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-2); }
+.form-sub { font-size: var(--text-body); color: var(--text-secondary); margin-bottom: var(--space-8); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4); }
+.field { margin-bottom: var(--space-4); }
+.field label { display: block; font-size: var(--text-caption); font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2); }
+.field input, .field textarea { width: 100%; padding: var(--space-3) var(--space-4); font-size: var(--text-body); font-family: inherit; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-strong); border-radius: var(--radius-md); transition: border-color var(--dur-base) var(--ease-out); }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--brand); }
+.field textarea { resize: vertical; min-height: 120px; }
+.field-hint { font-size: var(--text-caption); color: var(--text-tertiary); }
+
+.info-panel { display: flex; flex-direction: column; gap: var(--space-5); }
+.info-card { background: var(--bg-sunken); border-radius: var(--radius-xl); padding: var(--space-7); border: 1px solid var(--border-hairline); }
+.info-card h3 { font-size: var(--text-micro); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--brand); margin-bottom: var(--space-3); }
+.info-title { font-size: var(--text-h2); font-weight: 600; margin-bottom: var(--space-2); }
+.info-card p { font-size: var(--text-body-sm); color: var(--text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-4); }
+.info-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.info-list li { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-body-sm); }
+.info-list svg { flex-shrink: 0; color: var(--brand); margin-top: 2px; }
+
+.form-success { display: none; text-align: center; padding: var(--space-6); background: var(--success-tint); border-radius: var(--radius-md); margin-top: var(--space-5); }
+.form-success.show { display: block; }
+.form-success h3 { font-size: var(--text-body); font-weight: 600; margin-bottom: var(--space-1); color: var(--text-primary); }
+.form-success p { font-size: var(--text-body-sm); color: var(--text-secondary); }
+
+/* ========================================================================
+   LEGAL (terminos + privacidad)
+   ======================================================================== */
+.legal-hero { padding-block: calc(var(--navbar-h) + var(--space-16)) var(--space-8); text-align: center; }
+.legal-hero h1 { font-size: var(--text-hero); font-weight: 600; letter-spacing: var(--tracking-tight); line-height: 1.06; margin-bottom: var(--space-3); }
+.legal-meta { font-size: var(--text-body-sm); color: var(--text-secondary); }
+
+.legal-section { padding-block: var(--space-8) var(--space-20); }
+.legal-inner { max-width: 760px; margin: 0 auto; }
+.legal-intro { font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-8); }
+
+.toc { background: var(--bg-sunken); border-radius: var(--radius-xl); padding: var(--space-7); margin-bottom: var(--space-10); border: 1px solid var(--border-hairline); }
+.toc-title { font-size: var(--text-micro); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--brand); margin-bottom: var(--space-4); }
+.toc-list { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2) var(--space-6); }
+.toc-list a { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-body-sm); color: var(--text-secondary); }
+.toc-list a:hover { color: var(--brand); }
+.toc-num { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: var(--radius-pill); background: var(--brand-tint-12); color: var(--brand); font-size: var(--text-micro); font-weight: 600; flex-shrink: 0; }
+
+.term-section { margin-bottom: var(--space-10); }
+.term-section h2 { font-size: var(--text-h1); font-weight: 600; letter-spacing: var(--tracking-snug); margin-bottom: var(--space-4); }
+.term-section h3 { font-size: var(--text-h2); font-weight: 600; margin-top: var(--space-6); margin-bottom: var(--space-3); }
+.term-section p { font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-4); }
+.term-section ul { list-style: disc; padding-left: var(--space-6); margin-bottom: var(--space-4); }
+.term-section ul li { font-size: var(--text-body); color: var(--text-secondary); line-height: var(--leading-relaxed); margin-bottom: var(--space-2); }
+.term-section a { color: var(--brand); }
+
+.rights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-block: var(--space-6); }
+.right-card { background: var(--bg-sunken); border-radius: var(--radius-lg); padding: var(--space-5); border: 1px solid var(--border-hairline); }
+.right-card h4 { font-size: var(--text-body); font-weight: 600; margin-bottom: var(--space-2); }
+.right-card p { font-size: var(--text-body-sm); color: var(--text-secondary); margin: 0; }
+
+.treatments-wrap { overflow-x: auto; margin-block: var(--space-5); }
+.treatments, .cookies-table { width: 100%; border-collapse: collapse; font-size: var(--text-body-sm); }
+.treatments th, .cookies-table th { text-align: left; padding: var(--space-3) var(--space-4); background: var(--bg-sunken); font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--border-strong); }
+.treatments td, .cookies-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+
+.cookie-cat { display: inline-block; font-size: var(--text-micro); font-weight: 600; padding: var(--space-1) var(--space-3); border-radius: var(--radius-pill); }
+.cookie-cat--nec { background: var(--success-tint); color: var(--success-strong); }
+.cookie-cat--pref { background: var(--brand-tint-12); color: var(--brand); }
+.cookie-cat--stat { background: var(--info-tint); color: var(--info); }
+.cookie-cat--mark { background: var(--warning-tint); color: var(--warning-strong); }
+
+.dpo-box { background: var(--brand-tint-06); border-radius: var(--radius-lg); padding: var(--space-6); margin-block: var(--space-6); border: 1px solid var(--brand-tint-12); }
+.dpo-box h4 { font-size: var(--text-body); font-weight: 600; margin-bottom: var(--space-3); }
+.dpo-box p { font-size: var(--text-body-sm); color: var(--text-secondary); margin-bottom: var(--space-2); }
+
+.back-link { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-body-sm); font-weight: 500; color: var(--brand); margin-top: var(--space-8); }
+
+/* ========================================================================
+   FOOTER
+   ======================================================================== */
+.footer { padding-block: var(--space-12) var(--space-8); border-top: 1px solid var(--border); background: var(--bg-surface); }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-8); margin-bottom: var(--space-8); }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.footer-links a { font-size: var(--text-caption); color: var(--text-secondary); cursor: pointer; }
+.footer-links a:hover { color: var(--brand); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-4); padding-top: var(--space-6); border-top: 1px solid var(--border); font-size: var(--text-caption); color: var(--text-secondary); }
+.footer-legal { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.footer-legal a { font-size: var(--text-caption); color: var(--text-secondary); cursor: pointer; }
+.footer-legal a:hover { color: var(--brand); }
+
+/* ========================================================================
+   RESPONSIVE
+   ======================================================================== */
+@media (max-width: 980px) {
+  .nav-links { display: none; }
+  .hero-grid { grid-template-columns: 1fr; gap: var(--space-10); }
+  .stake-grid { grid-template-columns: 1fr; gap: var(--space-6); }
+  .features { grid-template-columns: 1fr 1fr; }
+  .steps, .kit-grid, .plans, .plans-grid { grid-template-columns: 1fr; }
+  .contact-inner { grid-template-columns: 1fr; }
+  .rights-grid { grid-template-columns: 1fr 1fr; }
+  .toc-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .nav { padding-inline: var(--space-4); }
+  .hero { padding-block: calc(var(--navbar-h) + var(--space-10)) var(--space-12); }
+  .features { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+  .form-card { padding: var(--space-7) var(--space-5); }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+  .rights-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<!-- ===== SIMBOLOS SVG ===================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="tu-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="12" r="6.5"/>
+    <path d="M5.9 12.1 8.1 14.3 12.4 9.6"/>
+    <path d="M15.5 6.5A8.5 8.5 0 0 1 15.5 17.5"/>
+    <path class="tu-mark-arc-outer" d="M18.3 6.2A11 11 0 0 1 18.3 17.8"/>
+  </symbol>
+</svg>
+
+<!-- ===== NAVBAR ========================================================== -->
+<nav class="nav">
+  <a href="#" class="tu-lockup" data-route="landing" aria-label="TalentUP Fichaje, inicio">
+    <svg class="tu-mark" width="26" height="26" aria-hidden="true"><use href="#tu-mark"/></svg>
+    <span class="tu-wordmark">Talent<em>UP</em></span>
+  </a>
+  <div class="nav-links">
+    <a data-route="landing" class="active">Producto</a>
+    <a data-route="pricing">Precios</a>
+    <a data-route="contacto">Contacto</a>
+    <a data-route="terminos">Términos</a>
+    <a data-route="privacidad">Privacidad</a>
+  </div>
+  <div class="nav-actions">
+    <a href="index.html" class="btn btn-primary">Probar gratis</a>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ======================================================================== -->
+<!-- VIEW: LANDING                                                            -->
+<!-- ======================================================================== -->
+<div class="view active" id="view-landing">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <h1>Tu equipo ficha en dos segundos</h1>
+      <p class="hero-lead">
+        Acercan la tarjeta y listo. Sin app que abrir, sin contraseñas, sin
+        libreta en la barra. Funciona aunque se caiga el wifi en pleno servicio,
+        y el registro cumple el RD-ley 8/2019 sin que tengas que tocar nada.
+      </p>
+      <div class="hero-actions">
+        <a href="index.html" class="btn btn-primary btn-lg">Empezar prueba de 14 días</a>
+        <a href="#" class="btn btn-secondary btn-lg" data-scroll="como-funciona">Ver cómo funciona</a>
+      </div>
+      <ul class="hero-facts">
+        <li><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Funciona sin conexión</li>
+        <li><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Datos alojados en la UE</li>
+        <li><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Sin permanencia</li>
+        <li><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Español, català y English</li>
+      </ul>
+    </div>
+    <figure>
+      <div class="terminal" id="terminal" data-state="idle" role="img"
+           aria-label="Simulación del terminal de fichaje">
+        <div class="terminal-brand">
+          <svg class="tu-mark tu-mark--sm" width="14" height="14" aria-hidden="true"><use href="#tu-mark"/></svg>
+          Entrada principal
+        </div>
+        <div class="terminal-screen" data-screen="idle">
+          <div class="terminal-clock" id="terminal-clock">08:57</div>
+          <div class="terminal-date">Viernes, 8 de agosto</div>
+          <div class="terminal-prompt">Acerca tu tarjeta</div>
+        </div>
+        <div class="terminal-screen" data-screen="reading" hidden>
+          <svg class="nfc-arcs" width="88" height="88" viewBox="0 0 88 88" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" aria-hidden="true">
+            <path d="M30 30a20 20 0 0 1 0 28"/><path d="M42 22a32 32 0 0 1 0 44"/><path d="M54 14a44 44 0 0 1 0 60"/>
+          </svg>
+          <div class="terminal-prompt">Leyendo tarjeta</div>
+        </div>
+        <div class="terminal-screen terminal-confirm" data-screen="confirmed" hidden>
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--success)"><path d="M13 27.5 22 36.5 39 16"/></svg>
+          <div class="confirm-kind">Entrada registrada</div>
+          <div class="confirm-name">Marta Ruiz</div>
+          <div class="confirm-time">08:57</div>
+        </div>
+      </div>
+      <figcaption class="terminal-caption">Terminal de mostrador. Interfaz real del producto, no un montaje.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- POR QUE IMPORTA -->
+<section class="stake band-sunken" id="producto">
+  <div class="container stake-grid">
+    <div>
+      <h2>Registrar la jornada es obligatorio. Hacerlo en papel, un problema tuyo.</h2>
+      <p>Desde 2019 todas las empresas están obligadas a registrar diariamente la jornada de cada trabajador y a conservar ese registro cuatro años. En un local con turnos partidos, refuerzos de fin de semana y bajas de última hora, la libreta de la barra deja de cuadrar la primera semana.</p>
+    </div>
+    <div class="stake-note">
+      <p><strong>Lo que cambia con TalentUP:</strong> el registro se genera solo, cada fichaje queda con hora exacta y método (NFC, PIN o QR), y el informe que pide una inspección se descarga en un clic. Tú solo revisas excepciones: quien no ha fichado, quien acumula extras, quien está de vacaciones.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Producto</span>
+      <h2>Lo que hace, sin adornos</h2>
+      <p>Seis cosas. Todas resuelven algo que hoy haces a mano.</p>
+    </div>
+    <div class="features">
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><path d="M9 9v3l2 1.5"/><path d="M17 7.5a7 7 0 0 1 0 9"/><path d="M20 5a11 11 0 0 1 0 14"/></svg></div>
+        <h3>Fichaje en un gesto</h3>
+        <p>Tarjeta NFC, PIN de cuatro dígitos o QR. El empleado elige lo que le resulte natural y el sistema registra lo mismo en los tres casos.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
+        <h3>Sigue funcionando sin wifi</h3>
+        <p>Si se cae la conexión, el fichaje se guarda en el dispositivo y sube solo cuando vuelve. El empleado ve su confirmación igual.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M8 14h5"/></svg></div>
+        <h3>Turnos y calendario</h3>
+        <p>Planificas la semana, el sistema avisa de solapes y descansos que no cuadran. Festivos por comunidad autónoma ya cargados.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></div>
+        <h3>Informes y nóminas</h3>
+        <p>Horas ordinarias, extras, nocturnidad y ausencias calculadas solas. Exportas a Excel, CSV o PDF, o lo mandas por API a tu gestoría.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 6.5V12c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6.5z"/><path d="M8.8 12.2 11 14.4l4.2-4.6"/></svg></div>
+        <h3>RGPD y RD-ley 8/2019</h3>
+        <p>Datos cifrados y alojados en la UE, DPA firmado y registro conservado cuatro años. Preparado para una inspección desde el primer día.</p>
+      </article>
+      <article class="feature">
+        <div class="feature-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="15" width="7" height="5" rx="1.5"/><rect x="14" y="15" width="7" height="5" rx="1.5"/></svg></div>
+        <h3>Varios locales, una cuenta</h3>
+        <p>Cada centro con su plantilla, sus turnos y sus informes. Tú ves el conjunto o entras a uno concreto sin cambiar de sesión.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section class="steps-section band-sunken" id="como-funciona">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Puesta en marcha</span>
+      <h2>De cero a fichando, en una tarde</h2>
+      <p>El orden importa: cada paso deja listo el siguiente.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><h3>Das de alta el local</h3><p>Nombre, dirección y convenio. Añades a tu gente a mano o importando el Excel que ya tienes.</p></div>
+      <div class="step"><h3>Repartes tarjetas o PIN</h3><p>Cada empleado recibe su tarjeta NFC o su PIN. No hay que instalar nada ni crear contraseñas.</p></div>
+      <div class="step"><h3>Revisas excepciones</h3><p>A partir de aquí el registro va solo. Tú entras al panel a mirar lo que se sale de lo normal.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- KIT -->
+<section class="kit-section" id="kit">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Hardware</span>
+      <h2>El kit es opcional</h2>
+      <p>Puedes empezar hoy con PIN o QR desde cualquier móvil. Si prefieres un punto fijo en la entrada, te mandamos la caja montada.</p>
+    </div>
+    <div class="kit-grid">
+      <div class="kit-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M9 18h6"/></svg><div><h3>Terminal de mostrador</h3><p>Pantalla táctil con lector NFC. Se conecta al wifi del local y no necesita nada más que un enchufe.</p></div></div>
+      <div class="kit-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2.5"/><path d="M2 10h20"/><path d="M6 14h3"/></svg><div><h3>10 tarjetas NFC</h3><p>Llaveros para el manojo de casa. Si alguien pierde el suyo, lo desactivas desde el panel y emites otro.</p></div></div>
+      <div class="kit-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3"/><path d="M20 20h1"/><path d="M17 21h-3"/></svg><div><h3>Códigos QR impresos</h3><p>La alternativa sin hardware. Un QR por empleado, en llavero o imán de nevera.</p></div></div>
+    </div>
+    <div class="kit-price">
+      <div><div class="kit-price-main">49 € una sola vez</div><div class="kit-price-note">Terminal, 10 tarjetas y los QR impresos. Envío gratuito en 48 h.</div></div>
+      <a href="#" class="btn btn-secondary btn-lg" data-route="contacto">Pedir el kit</a>
+    </div>
+  </div>
+</section>
+
+<!-- PRECIOS PREVIEW -->
+<section class="plans-section band-sunken" id="precios">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Precios</span>
+      <h2>Por local, sin letra pequeña</h2>
+      <p>Catorce días de prueba en todos los planes. Sin tarjeta para empezar y sin permanencia después.</p>
+    </div>
+    <div class="plans">
+      <article class="plan">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price">29 <span>€/mes</span></div>
+        <p class="plan-for">Hasta 15 empleados en un local</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Fichaje NFC, PIN y QR</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Modo sin conexión</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Turnos y calendario</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Informe exportable</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Conforme al RD-ley 8/2019</li>
+        </ul>
+        <a href="index.html" class="btn btn-secondary btn-lg btn-block">Probar Starter</a>
+      </article>
+      <article class="plan plan--featured">
+        <span class="plan-flag">El que elige la mayoría</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">99 <span>€/mes</span></div>
+        <p class="plan-for">Hasta 50 empleados en un local</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Todo lo de Starter</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Cálculo automático de nómina</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Vacaciones y bajas</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Integración con contabilidad</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Soporte prioritario, menos de 4 h</li>
+        </ul>
+        <a href="index.html" class="btn btn-primary btn-lg btn-block">Probar Pro</a>
+      </article>
+      <article class="plan">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-price">499 <span>€/mes</span></div>
+        <p class="plan-for">Empleados ilimitados, varios locales</p>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Todo lo de Pro</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> Multi-empresa y multi-centro</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> API y webhooks</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> SSO y permisos por rol</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5 6.5 11.5 12.5 4.5"/></svg> DPA y alta acompañada</li>
+        </ul>
+        <a href="#" class="btn btn-secondary btn-lg btn-block" data-route="contacto">Hablar con ventas</a>
+      </article>
+    </div>
+    <div style="text-align:center;">
+      <a href="#" class="btn btn-secondary" data-route="pricing">Ver comparativa completa →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Preguntas</span>
+      <h2>Lo que preguntan antes de contratar</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary>¿Qué pasa si se cae el wifi en pleno servicio?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">El fichaje se guarda en el propio dispositivo y sube solo cuando vuelve la conexión. El empleado ve su confirmación en pantalla igual que siempre, y en tu panel ese fichaje aparece marcado como pendiente de sincronizar hasta que llega al servidor. No se pierde ninguno.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Cumple el RGPD y el registro obligatorio?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">Sí. Los datos se cifran y se alojan en servidores de la Unión Europea, firmamos un DPA con cada cliente y el registro diario se conserva cuatro años, como exige el RD-ley 8/2019. El informe que pide una inspección se descarga en PDF desde el panel.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Necesito comprar hardware?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">No. Puedes trabajar solo con PIN o QR desde cualquier móvil o tablet que ya tengas. El kit de 49 € con terminal y 10 tarjetas NFC es opcional, y se paga una sola vez.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Se integra con mi gestoría?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">Sí. Exportas a Excel y CSV en cualquier plan. En Pro y Enterprise hay integración directa con los principales programas de contabilidad y nóminas, y en Enterprise además API y webhooks para automatizar el envío.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿Puedo cancelar cuando quiera?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">Sí. No hay permanencia. Cancelas desde el panel, la baja es inmediata y sin coste, y puedes exportar todo tu histórico antes de irte.</div>
+      </details>
+      <details class="faq-item">
+        <summary>¿En qué idiomas está?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+        <div class="faq-answer">Panel, terminal y app están en español, català e inglés. Cada empleado elige el suyo sin que afecte al resto del equipo.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta band-sunken">
+  <div class="container">
+    <h2>Pruébalo con tu turno de mañana</h2>
+    <p>Catorce días completos. Sin tarjeta, sin llamada de ventas.</p>
+    <a href="index.html" class="btn btn-primary btn-xl">Crear cuenta</a>
+  </div>
+</section>
+
+</div><!-- /view-landing -->
+
+<!-- ======================================================================== -->
+<!-- VIEW: PRICING                                                            -->
+<!-- ======================================================================== -->
+<div class="view" id="view-pricing">
+
+<section class="pricing-hero">
+  <div class="container">
+    <div class="page-label">Precios</div>
+    <h1>Elige tu plan</h1>
+    <p>Sin permanencia. Sin coste de configuración. Empieza hoy y cancela cuando quieras.</p>
+    <div class="billing-toggle">
+      <div class="segmented" role="tablist" aria-label="Periodo de facturación">
+        <button class="active" data-billing="monthly" role="tab" aria-selected="true">Mensual</button>
+        <button data-billing="annual" role="tab" aria-selected="false">Anual <span class="save-badge">−20%</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="plans-grid-section">
+  <div class="container">
+    <div class="plans-grid">
+      <!-- Starter -->
+      <div class="plan-card" data-plan="starter">
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">Para pequeños equipos que necesitan fichaje básico.</div>
+        <div class="plan-price"><span class="currency">€</span> <span class="amount" data-amount>29</span> <span class="period">/ mes</span></div>
+        <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+        <a href="#" class="btn btn-secondary btn-lg btn-block" data-route="contacto">Empezar gratis</a>
+        <ul class="plan-features" style="margin-top:var(--space-5)">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Hasta 5 empleados</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Fichaje NFC y QR</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> App móvil PWA</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Exportación CSV mensual</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Soporte por email</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 1 sede</li>
+        </ul>
+      </div>
+      <!-- Pro -->
+      <div class="plan-card plan-card--featured" data-plan="pro">
+        <div class="plan-badge">Más popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Para hostelería en crecimiento con varias sedes.</div>
+        <div class="plan-price"><span class="currency">€</span> <span class="amount" data-amount>99</span> <span class="period">/ mes</span></div>
+        <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+        <a href="index.html" class="btn btn-primary btn-lg btn-block">Probar 14 días gratis</a>
+        <ul class="plan-features" style="margin-top:var(--space-5)">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Hasta 50 empleados</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Fichaje NFC, QR y geolocalización</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Gestión de incidencias</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Hasta 5 sedes</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Exportación PDF y Excel</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Soporte prioritario (chat + email)</li>
+        </ul>
+      </div>
+      <!-- Enterprise -->
+      <div class="plan-card" data-plan="enterprise">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-desc">Para cadenas y grupos con necesidades avanzadas.</div>
+        <div class="plan-price"><span class="currency">€</span> <span class="amount" data-amount>499</span> <span class="period">/ mes</span></div>
+        <div class="plan-billing-note" data-note>Ilimitado durante 14 días</div>
+        <a href="#" class="btn btn-secondary btn-lg btn-block" data-route="contacto">Hablar con ventas</a>
+        <ul class="plan-features" style="margin-top:var(--space-5)">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Empleados ilimitados</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Sedes ilimitadas</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> API y integraciones personalizadas</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Single Sign-On (SSO)</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> SLA 99,9% y gestor de cuenta</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Pricing FAQ -->
+    <div class="pricing-faq">
+      <h2>Preguntas sobre precios</h2>
+      <div class="faq">
+        <details class="faq-item" open>
+          <summary>¿Hay permanencia o coste de configuración?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+          <div class="faq-answer">No. No hay permanencia ni coste de configuración. Cancelas cuando quieras desde el panel, sin penalización.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Qué métodos de pago aceptáis?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+          <div class="faq-answer">Tarjeta de crédito/débito y domiciliación bancaria (SEPA). La facturación es mensual o anual, según el periodo elegido.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿Puedo cambiar de plan?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+          <div class="faq-answer">Sí, en cualquier momento desde el panel. El cambio se aplica inmediatamente y se prorratea en la siguiente factura.</div>
+        </details>
+        <details class="faq-item">
+          <summary>¿La prueba de 14 días tiene alguna limitación?<span class="faq-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></summary>
+          <div class="faq-answer">No. Durante los 14 días tienes acceso a todas las funcionalidades del plan que pruebes, sin limitación de empleados ni fichajes.</div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /view-pricing -->
+
+<!-- ======================================================================== -->
+<!-- VIEW: CONTACTO                                                           -->
+<!-- ======================================================================== -->
+<div class="view" id="view-contacto">
+
+<section class="contact-hero">
+  <div class="container">
+    <div class="page-label">Contacto</div>
+    <h1>Hablemos</h1>
+    <p>Cuéntanos qué necesitas. Te respondemos en menos de 24 horas hábiles.</p>
+  </div>
+</section>
+
+<section class="contact-section">
+  <div class="container">
+    <div class="contact-inner">
+      <div class="form-card">
+        <h2>Envíanos un mensaje</h2>
+        <p class="form-sub">Rellena el formulario y te contactaremos por email. Sin compromiso.</p>
+        <form id="contactForm" novalidate>
+          <div class="field-row">
+            <div class="field"><label for="name">Nombre</label><input type="text" id="name" name="name" placeholder="Tu nombre" required autocomplete="name"></div>
+            <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" placeholder="tucorreo@empresa.com" required autocomplete="email"></div>
+          </div>
+          <div class="field"><label for="company">Empresa</label><input type="text" id="company" name="company" placeholder="Nombre de tu empresa" autocomplete="organization"></div>
+          <div class="field"><label for="message">Mensaje</label><textarea id="message" name="message" placeholder="Cuéntanos en qué te podemos ayudar" required rows="6"></textarea></div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Enviar mensaje</button>
+          <p class="field-hint" style="text-align:center; margin-top:var(--space-4);">Al enviar aceptas nuestra política de privacidad y el tratamiento de tus datos para responder tu consulta.</p>
+        </form>
+        <div class="form-success" id="formSuccess" role="status" aria-live="polite">
+          <h3>Mensaje enviado</h3>
+          <p>Gracias por contactar con TalentUP. Te responderemos lo antes posible.</p>
+        </div>
+      </div>
+      <aside class="info-panel">
+        <div class="info-card">
+          <h3>Soporte técnico</h3>
+          <div class="info-title">¿Ya eres cliente?</div>
+          <p>Accede a nuestro centro de ayuda o escríbenos directamente. Los planes Pro y Enterprise incluyen soporte prioritario con respuesta en menos de 4 horas hábiles.</p>
+          <ul class="info-list">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="8" rx="1"/><path d="M2 5l6 4 6-4" stroke-linecap="round" stroke-linejoin="round"/></svg> soporte@talentup.es</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h3>Ventas</h3>
+          <div class="info-title">Equipo comercial</div>
+          <p>¿Quieres ver TalentUP Fichaje en acción? Solicita una demo personalizada para tu empresa de hostelería y te ayudamos a configurar tu prueba de 14 días.</p>
+          <ul class="info-list">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="8" rx="1"/><path d="M2 5l6 4 6-4" stroke-linecap="round" stroke-linejoin="round"/></svg> ventas@talentup.es</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="8" rx="1"/><path d="M2 5l6 4 6-4" stroke-linecap="round" stroke-linejoin="round"/></svg> hola@talentup.es</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h3>Datos legales</h3>
+          <div class="info-title">TalentUP</div>
+          <p>Proveedor del servicio de fichaje digital TalentUP Fichaje, con domicilio en España. CIF disponible bajo solicitud.</p>
+          <ul class="info-list">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 14V6l4-4 4 4v8H4Z"/></svg> España</li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l2.5 1.5"/></svg> Lun-Vie, 9:00-18:00 (CET)</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+</div><!-- /view-contacto -->
+
+<!-- ======================================================================== -->
+<!-- VIEW: TERMINOS                                                           -->
+<!-- ======================================================================== -->
+<div class="view" id="view-terminos">
+
+<section class="legal-hero">
+  <div class="container">
+    <div class="page-label">Legal</div>
+    <h1>Términos de Servicio</h1>
+    <div class="legal-meta">Última actualización: 9 de agosto de 2026</div>
+  </div>
+</section>
+
+<section class="legal-section">
+  <div class="container">
+    <div class="legal-inner">
+      <p class="legal-intro">Estos Términos de Servicio regulan el uso de TalentUP Fichaje, plataforma SaaS B2B de fichaje digital y control horario dirigida a empresas del sector hostelería. Al contratar o utilizar el Servicio, el Cliente acepta estos Términos.</p>
+
+      <nav class="toc" aria-label="Tabla de contenidos">
+        <div class="toc-title">Contenido</div>
+        <div class="toc-list">
+          <a href="#term-s1"><span class="toc-num">1</span>Descripción del servicio</a>
+          <a href="#term-s2"><span class="toc-num">2</span>Alta y cuentas</a>
+          <a href="#term-s3"><span class="toc-num">3</span>Obligaciones del cliente</a>
+          <a href="#term-s4"><span class="toc-num">4</span>Propiedad intelectual</a>
+          <a href="#term-s5"><span class="toc-num">5</span>Limitación de responsabilidad</a>
+          <a href="#term-s6"><span class="toc-num">6</span>Suspensión y cancelación</a>
+          <a href="#term-s7"><span class="toc-num">7</span>Modificación del servicio</a>
+          <a href="#term-s8"><span class="toc-num">8</span>Modificación de los términos</a>
+          <a href="#term-s9"><span class="toc-num">9</span>Datos y protección</a>
+          <a href="#term-s10"><span class="toc-num">10</span>Ley aplicable y jurisdicción</a>
+        </div>
+      </nav>
+
+      <section class="term-section" id="term-s1">
+        <h2>1. Descripción del servicio</h2>
+        <p>TalentUP Fichaje es una plataforma de software como servicio (SaaS) de fichaje digital y control horario dirigida a empresas del sector hostelería. El Servicio incluye:</p>
+        <ul>
+          <li>Registro de fichajes mediante NFC, PIN y código QR, con funcionamiento offline y sincronización automática.</li>
+          <li>Gestión de empleados, turnos, centros de trabajo y calendarios laborales.</li>
+          <li>Cálculo de horas trabajadas, horas extras, vacaciones y bajas.</li>
+          <li>Generación de nóminas automáticas y reportes exportables a Excel y PDF.</li>
+          <li>Aplicación móvil para Android e iOS para empleados y responsables.</li>
+          <li>Integraciones con herramientas de contabilidad y nóminas mediante API.</li>
+          <li>Kit de fichaje opcional (dispositivo NFC y tarjetas) disponible como compra única.</li>
+        </ul>
+        <p>El Servicio se presta íntegramente en modalidad de suscripción mensual, accesible desde un navegador web, y se aloja en servidores ubicados en la Unión Europea. El Proveedor se compromete a mantener un nivel de disponibilidad del 99,5 % mensual, excluyendo las interrupciones por mantenimiento programado comunicadas con al menos 72 horas de antelación.</p>
+      </section>
+
+      <section class="term-section" id="term-s2">
+        <h2>2. Alta y cuentas</h2>
+        <p>Para utilizar el Servicio, el Cliente debe completar el proceso de alta facilitando los datos de identificación de la empresa: razón social, CIF/NIF, persona de contacto, email corporativo y datos de facturación. El Cliente declara que los datos facilitados son veraces y se mantienen actualizados.</p>
+        <p>El Cliente es responsable de mantener la confidencialidad de sus credenciales de acceso y de toda actividad realizada desde su cuenta. Deberá notificar de forma inmediata al Proveedor cualquier uso no autorizado del Servicio o cualquier compromiso de la seguridad de la cuenta.</p>
+        <p>El Servicio está dirigido exclusivamente a empresas (B2B). El Cliente declara que actúa en nombre de una empresa y que tiene capacidad legal para vincularla a estos Términos.</p>
+      </section>
+
+      <section class="term-section" id="term-s3">
+        <h2>3. Obligaciones del cliente</h2>
+        <p>El Cliente se compromete a:</p>
+        <ul>
+          <li>Utilizar el Servicio de conformidad con la ley, estos Términos y el RD-ley 8/2019, de 8 de marzo, de control horario.</li>
+          <li>Proporcionar información veraz y mantenerla actualizada, incluyendo los datos de empleados y centros de trabajo.</li>
+          <li>Obtener el consentimiento de los trabajadores para el tratamiento de sus datos de fichaje, en cumplimiento del RGPD (Reglamento UE 2016/679).</li>
+          <li>No compartir, sublicenciar ni revender el acceso al Servicio a terceros sin autorización expresa del Proveedor.</li>
+          <li>No utilizar el Servicio para almacenar o procesar datos que no guarden relación con la gestión de fichaje y control horario.</li>
+          <li>No intentar acceder a sistemas, datos o redes del Proveedor que no le hayan sido expresamente puestos a disposición.</li>
+          <li>No introducir software malicioso, ni realizar ingeniería inversa, descompilación o desensamblaje del Servicio, salvo donde la ley lo permita expresamente.</li>
+          <li>Abonar las cuotas de suscripción en los plazos establecidos en el plan contratado.</li>
+        </ul>
+        <p>El Cliente es responsable de la configuración del Servicio (turnos, calendarios, permisos de usuarios) y de la veracidad de los datos de fichaje registrados. El Proveedor no interviene en la relación laboral entre el Cliente y sus trabajadores.</p>
+      </section>
+
+      <section class="term-section" id="term-s4">
+        <h2>4. Propiedad intelectual</h2>
+        <p>El Servicio, incluyendo el software, el diseño, el código, los logotipos, las marcas, la documentación y las interfaces, es propiedad de TalentUP y está protegido por la legislación sobre propiedad intelectual e industrial aplicable en España y la Unión Europea.</p>
+        <p>La contratación del Servicio concede al Cliente un derecho de uso limitado, no exclusivo, intransferible y revocable sobre la plataforma, estrictamente para su uso interno empresarial durante la vigencia de la suscripción. Este derecho no incluye licencia para modificar, copiar, distribuir, explotar ni crear obras derivadas del Servicio.</p>
+        <p>El Cliente conserva la propiedad de todos los datos que introduzca en el Servicio (datos de empleados, fichajes, turnos, reportes). El Proveedor actúa como encargado del tratamiento de estos datos conforme al contrato de encargado de tratamiento (DPA) firmado entre las partes y al RGPD.</p>
+        <p>El kit de fichaje opcional se entrega en concepto de cesión de uso mientras exista una suscripción activa. A la finalización del contrato, el Cliente deberá devolver el hardware en un plazo de 30 días.</p>
+      </section>
+
+      <section class="term-section" id="term-s5">
+        <h2>5. Limitación de responsabilidad</h2>
+        <p>El Servicio se presta «tal cual» y según disponibilidad. El Proveedor no garantiza que el Servicio sea ininterrumpido o esté exento de errores, ni que los resultados obtenidos sean exactos en todas las circunstancias, dado que dependen de la configuración y los datos introducidos por el Cliente.</p>
+        <p>En ningún caso el Proveedor será responsable de daños indirectos, incidentales, especiales, consecuenciales ni de lucro cesante, pérdida de datos o de negocio derivados del uso o la imposibilidad de uso del Servicio.</p>
+        <p>La responsabilidad total acumulada del Proveedor por cualquier reclamación relacionada con el Servicio queda limitada a la cuantía abonada por el Cliente al Proveedor en los 12 meses inmediatamente anteriores al evento que dio lugar a la reclamación.</p>
+        <p>El Proveedor no asume responsabilidad sobre las obligaciones laborales, fiscales o de Seguridad Social del Cliente frente a sus trabajadores, ni sobre las sanciones derivadas del incumplimiento por parte del Cliente de la normativa aplicable, incluido el RD-ley 8/2019 y el RGPD.</p>
+      </section>
+
+      <section class="term-section" id="term-s6">
+        <h2>6. Suspensión y cancelación</h2>
+        <h3>6.1 Suspensión</h3>
+        <p>El Proveedor podrá suspender el acceso del Cliente al Servicio de forma inmediata, previa comunicación cuando sea razonablemente posible, en los siguientes supuestos:</p>
+        <ul>
+          <li>Incumplimiento del pago de las cuotas correspondientes transcurridos 10 días desde el vencimiento.</li>
+          <li>Uso del Servicio contrario a la ley, a estos Términos o que pueda dañar al Proveedor o a terceros.</li>
+          <li>Detección de acceso no autorizado, fraude o actividad sospechosa en la cuenta.</li>
+          <li>Requerimiento de autoridad pública o judicial.</li>
+        </ul>
+        <p>Durante la suspensión, el Proveedor conservará los datos del Cliente durante 90 días para permitir la subsanación. Transcurrido dicho plazo sin resolución, el Proveedor podrá cancelar la cuenta y suprimir los datos.</p>
+        <h3>6.2 Cancelación</h3>
+        <p>El Cliente podrá cancelar su suscripción en cualquier momento sin permanencia ni penalización, desde el panel de control o comunicándolo a soporte. La cancelación surtirá efecto al final del periodo de facturación en curso y no generará reembolso de cuotas ya abonadas, salvo en los supuestos legalmente previstos.</p>
+        <p>Tras la cancelación, el Cliente podrá exportar sus datos durante 30 días. Finalizado este plazo, el Proveedor suprimirá los datos del Cliente salvo obligación legal de conservación.</p>
+      </section>
+
+      <section class="term-section" id="term-s7">
+        <h2>7. Modificación del servicio</h2>
+        <p>El Proveedor podrá modificar, ampliar, reducir o discontinuar funcionalidades del Servicio con el fin de mejorarlo, adaptarlo a la normativa o por razones técnicas u operativas. Las modificaciones sustanciales que afecten negativamente al uso contratado serán comunicadas al Cliente con al menos 30 días de antelación.</p>
+        <p>En caso de modificación sustancial que reduzca de forma relevante las funcionalidades contratadas, el Cliente podrá resolver el contrato sin penalización, comunicándolo al Proveedor en un plazo de 30 días desde la notificación, y tendrá derecho al reembolso proporcional de la parte no disfrutada del periodo facturado.</p>
+      </section>
+
+      <section class="term-section" id="term-s8">
+        <h2>8. Modificación de los términos</h2>
+        <p>El Proveedor podrá actualizar estos Términos cuando sea necesario, ya sea por cambios normativos, jurisprudenciales, técnicos o de la actividad. Las modificaciones se publicarán en esta página y se comunicarán al Cliente por email con al menos 30 días de antelación a su entrada en vigor, salvo cambios menores o puramente aclaratorios que podrán aplicarse de forma inmediata.</p>
+        <p>El uso continuado del Servicio tras la entrada en vigor de las modificaciones implica la aceptación de los Términos actualizados. Si el Cliente no está de acuerdo, podrá cancelar la suscripción conforme a la cláusula 6.2 antes de la fecha de aplicación.</p>
+      </section>
+
+      <section class="term-section" id="term-s9">
+        <h2>9. Datos y protección de datos</h2>
+        <p>El tratamiento de datos personales en el Servicio se realiza conforme al Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).</p>
+        <p>El Cliente actúa como responsable del tratamiento de los datos de sus trabajadores. El Proveedor actúa como encargado del tratamiento, formalizándose esta relación mediante el Acuerdo de Protección de Datos (DPA) que ambos firman al contratar el Servicio. Los datos se cifran en tránsito y en reposo y se alojan en servidores de la Unión Europea.</p>
+        <p>La <a href="#" data-route="privacidad">política de privacidad</a> específica detalla la información sobre ejercicio de derechos, conservación de datos y medidas de seguridad aplicables.</p>
+      </section>
+
+      <section class="term-section" id="term-s10">
+        <h2>10. Ley aplicable y jurisdicción</h2>
+        <p>Estos Términos se rigen e interpretan conforme a la legislación española. En particular, resultan de aplicación el Real Decreto Legislativo 1/2007, de 16 de noviembre, por el que se aprueba el texto refundido de la Ley General para la Defensa de los Consumidores y Usuarios, en lo que resulte aplicable, y la Ley 34/2002, de 11 de julio, de servicios de la sociedad de la información y de comercio electrónico (LSSI-CE).</p>
+        <p>Las partes, con renuncia al fuero que pudiera corresponderles, se someten a los Juzgados y Tribunales de la ciudad donde tenga su domicilio el Cliente, salvo en aquellos supuestos en que la normativa de protección de datos o de consumo atribuya competencia a los tribunales del domicilio del consumidor.</p>
+        <p>Antes de acudir a vía judicial, las partes se comprometen a intentar resolver las controversias de forma amistosa. Asimismo, el Cliente podrá presentar reclamaciones ante la Agencia Española de Protección de Datos (AEPD).</p>
+      </section>
+
+      <a href="#" class="back-link" data-route="landing">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8L10 4"/></svg>
+        Volver a la página principal
+      </a>
+    </div>
+  </div>
+</section>
+
+</div><!-- /view-terminos -->
+
+<!-- ======================================================================== -->
+<!-- VIEW: PRIVACIDAD                                                         -->
+<!-- ======================================================================== -->
+<div class="view" id="view-privacidad">
+
+<section class="legal-hero">
+  <div class="container">
+    <div class="page-label">Legal</div>
+    <h1>Política de Privacidad y Cookies</h1>
+    <div class="legal-meta">Última actualización: 9 de agosto de 2026</div>
+  </div>
+</section>
+
+<section class="legal-section">
+  <div class="container">
+    <div class="legal-inner">
+      <p class="legal-intro">TalentUP Fichaje («el Proveedor», «nosotros») trata los datos personales de los usuarios del Servicio con la máxima confidencialidad y de conformidad con el Reglamento (UE) 2016/679, General de Protección de Datos (RGPD), la Ley Orgánica 3/2018 de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD) y el resto de normativa europea y española de aplicación.</p>
+
+      <nav class="toc" aria-label="Tabla de contenidos">
+        <div class="toc-title">Contenido</div>
+        <div class="toc-list">
+          <a href="#priv-s1"><span class="toc-num">1</span>Responsable del tratamiento</a>
+          <a href="#priv-s2"><span class="toc-num">2</span>Datos que tratamos</a>
+          <a href="#priv-s3"><span class="toc-num">3</span>Finalidad y base legal</a>
+          <a href="#priv-s4"><span class="toc-num">4</span>Destinatarios y transferencias</a>
+          <a href="#priv-s5"><span class="toc-num">5</span>Conservación de datos</a>
+          <a href="#priv-s6"><span class="toc-num">6</span>Derechos de los usuarios</a>
+          <a href="#priv-s7"><span class="toc-num">7</span>Medidas de seguridad</a>
+          <a href="#priv-s8"><span class="toc-num">8</span>Encargado del tratamiento</a>
+          <a href="#priv-s9"><span class="toc-num">9</span>Política de cookies</a>
+          <a href="#priv-s10"><span class="toc-num">10</span>Cambios y contacto</a>
+        </div>
+      </nav>
+
+      <section class="term-section" id="priv-s1">
+        <h2>1. Responsable del tratamiento</h2>
+        <p>El responsable del tratamiento de los datos personales recogidos a través del Servicio es:</p>
+        <ul>
+          <li><strong>Responsable:</strong> TalentUP (en adelante, «el Proveedor»).</li>
+          <li><strong>Domicilio:</strong> España (Catalunya).</li>
+          <li><strong>Correo de contacto:</strong> hola@talentup.es</li>
+          <li><strong>Correo del DPO:</strong> dpo@talentup.es</li>
+        </ul>
+        <p>Para el ejercicio de derechos puede dirigirse a cualquiera de los correos indicados. El CIF y la dirección postal completa se facilitan a los clientes en el acuerdo de prestación de servicios y, a petición, a cualquier interesado.</p>
+      </section>
+
+      <section class="term-section" id="priv-s2">
+        <h2>2. Datos que tratamos</h2>
+        <p>TalentUP Fichaje es un servicio B2B de control horario. Tratamos datos de dos categorías de interesados:</p>
+        <h3>2.1 Datos del cliente (empresa)</h3>
+        <ul>
+          <li><strong>Identificación de empresa:</strong> razón social, CIF/NIF, domicilio fiscal, persona de contacto, email corporativo y teléfono.</li>
+          <li><strong>Datos de facturación:</strong> datos bancarios para el cobro de la suscripción (gestionados por un proveedor de pagos; no los almacenamos directamente).</li>
+          <li><strong>Credenciales de acceso:</strong> email y contraseña cifrada para autenticación en la plataforma.</li>
+        </ul>
+        <h3>2.2 Datos de los trabajadores del cliente</h3>
+        <ul>
+          <li><strong>Identificación:</strong> nombre y apellidos, DNI/NIE, foto (opcional) y datos de contacto.</li>
+          <li><strong>Datos laborales:</strong> categoría profesional, centro de trabajo, turno, calendario, contrato y fecha de alta.</li>
+          <li><strong>Datos de fichaje:</strong> hora, fecha, ubicación, dispositivo y método (NFC, PIN, QR) de cada entrada y salida.</li>
+          <li><strong>Datos biométricos:</strong> el Servicio no utiliza datos biométricos identificativos. El PIN no es biométrico.</li>
+        </ul>
+        <p>El tratamiento de los datos de los trabajadores del cliente es responsabilidad del cliente, que actúa como responsable del tratamiento. TalentUP actúa como encargado del tratamiento (ver sección 8).</p>
+      </section>
+
+      <section class="term-section" id="priv-s3">
+        <h2>3. Finalidad y base legal</h2>
+        <p>Tratamos los datos para las siguientes finalidades, cada una amparada en una base de legitimación distinta conforme al artículo 6 del RGPD:</p>
+        <div class="treatments-wrap">
+          <table class="treatments">
+            <thead><tr><th>Finalidad</th><th>Base legal</th><th>Datos</th></tr></thead>
+            <tbody>
+              <tr><td>Prestación del Servicio SaaS</td><td>Ejecución de contrato (art. 6.1.b)</td><td>Identificación de empresa, credenciales</td></tr>
+              <tr><td>Gestión de fichaje y control horario</td><td>Ejecución de contrato (art. 6.1.b)</td><td>Datos de trabajadores del cliente</td></tr>
+              <tr><td>Facturación y cobro</td><td>Ejecución de contrato (art. 6.1.b)</td><td>Datos de facturación</td></tr>
+              <tr><td>Atención al cliente y soporte</td><td>Consentimiento (art. 6.1.a)</td><td>Email, contenido de la consulta</td></tr>
+              <tr><td>Información comercial</td><td>Consentimiento (art. 6.1.a)</td><td>Email</td></tr>
+              <tr><td>Cumplimiento de obligaciones legales</td><td>Obligación legal (art. 6.1.c)</td><td>Datos de facturación y fiscales</td></tr>
+              <tr><td>Conservación de logs de seguridad</td><td>Interés legítimo (art. 6.1.f)</td><td>Direcciones IP, eventos de acceso</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="term-section" id="priv-s4">
+        <h2>4. Destinatarios y transferencias</h2>
+        <p>No vendemos ni cedemos tus datos personales a terceros. Los datos pueden comunicarse a los siguientes destinatarios, bajo las garantías exigidas por el RGPD:</p>
+        <ul>
+          <li><strong>Proveedores de hosting y cloud:</strong> alojamientos situados en la Unión Europea, encargados del tratamiento, con contrato firmado.</li>
+          <li><strong>Proveedores de pasarelas de pago:</strong> para el cobro de la suscripción. Solo reciben los datos estrictamente necesarios.</li>
+          <li><strong>Proveedores de correo transaccional y soporte:</strong> para el envío de notificaciones y la gestión de incidencias.</li>
+          <li><strong>Administraciones públicas:</strong> cuando exista obligación legal de comunicación.</li>
+        </ul>
+        <p><strong>No se realizan transferencias internacionales</strong> de datos a países terceros no adecuados, salvo cuando un proveedor lo requiera, en cuyo caso se aplican las cláusulas contractuales tipo aprobadas por la Comisión Europea.</p>
+      </section>
+
+      <section class="term-section" id="priv-s5">
+        <h2>5. Conservación de datos</h2>
+        <p>Los datos se conservan durante el tiempo necesario para cumplir la finalidad para la que fueron recogidos y, en su caso, durante los plazos legales aplicables:</p>
+        <ul>
+          <li><strong>Datos de fichaje de los trabajadores:</strong> el cliente determina el plazo conforme a sus obligaciones laborales (RD-ley 8/2019). Tras la cancelación, 30 días para permitir su exportación, luego supresión.</li>
+          <li><strong>Datos de cuenta y facturación:</strong> durante la vigencia del contrato y, tras su finalización, durante los plazos de prescripción (hasta 6 años).</li>
+          <li><strong>Logs de seguridad:</strong> 12 meses, conforme a la LOPDGDD.</li>
+          <li><strong>Datos de consultas y soporte:</strong> 2 años desde la última interacción.</li>
+          <li><strong>Datos de marketing:</strong> hasta la retirada del consentimiento.</li>
+        </ul>
+      </section>
+
+      <section class="term-section" id="priv-s6">
+        <h2>6. Derechos de los usuarios</h2>
+        <p>Cualquier interesado puede ejercer los siguientes derechos reconocidos por el RGPD y la LOPDGDD:</p>
+        <div class="rights-grid">
+          <div class="right-card"><h4>Acceso</h4><p>Conocer qué datos tuyos tratamos y para qué.</p></div>
+          <div class="right-card"><h4>Rectificación</h4><p>Corregir datos inexactos o incompletos.</p></div>
+          <div class="right-card"><h4>Supresión</h4><p>Solicitar la baja de datos cuando ya no sean necesarios.</p></div>
+          <div class="right-card"><h4>Limitación</h4><p>Bloquear el tratamiento mientras se verifica una oposición.</p></div>
+          <div class="right-card"><h4>Portabilidad</h4><p>Recibir tus datos en formato estructurado.</p></div>
+          <div class="right-card"><h4>Oposición</h4><p>Oponerte al tratamiento por tu situación particular.</p></div>
+        </div>
+        <p>Puedes ejercerlos escribiendo a <a href="mailto:dpo@talentup.es">dpo@talentup.es</a> o <a href="mailto:hola@talentup.es">hola@talentup.es</a>, adjuntando copia de un documento identificativo. Responderemos en el plazo máximo de un mes, prorrogable a tres cuando sea necesario.</p>
+        <p>Tienes derecho a retirar el consentimiento en cualquier momento, sin que ello afecte a la licitud del tratamiento anterior. También puedes presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong> (www.aepd.es).</p>
+      </section>
+
+      <section class="term-section" id="priv-s7">
+        <h2>7. Medidas de seguridad</h2>
+        <p>TalentUP aplica las medidas técnicas y organizativas apropiadas para garantizar un nivel de seguridad adecuado al riesgo, conforme al artículo 32 del RGPD:</p>
+        <ul>
+          <li><strong>Cifrado en tránsito:</strong> TLS 1.3 para toda la comunicación entre cliente y servidor.</li>
+          <li><strong>Cifrado en reposo:</strong> AES-256 para el almacenamiento de datos.</li>
+          <li><strong>Control de accesos:</strong> autenticación con contraseña cifrada (bcrypt), rotación de credenciales y mínimo privilegio.</li>
+          <li><strong>Registro de actividad:</strong> logs de acceso conservados durante 12 meses.</li>
+          <li><strong>Backups cifrados:</strong> copias de seguridad periódicas con plan de recuperación.</li>
+          <li><strong>Revisión periódica:</strong> evaluaciones de impacto y auditorías según el riesgo.</li>
+        </ul>
+        <p>En caso de brecha de seguridad, TalentUP notificará a la autoridad competente en un plazo no superior a 72 horas, conforme al artículo 33 del RGPD, y comunicará a los interesados cuando el riesgo sea elevado.</p>
+      </section>
+
+      <section class="term-section" id="priv-s8">
+        <h2>8. Encargado del tratamiento (DPA)</h2>
+        <p>En su relación con los clientes, TalentUP actúa como <strong>encargado del tratamiento</strong> de los datos de los trabajadores del cliente, conforme al artículo 28 del RGPD. Esta relación se formaliza mediante un Acuerdo de Protección de Datos (DPA) firmado entre las partes.</p>
+        <p>Como encargado del tratamiento, TalentUP se compromete a:</p>
+        <ul>
+          <li>Tratar los datos únicamente por cuenta e instrucciones documentadas del cliente.</li>
+          <li>No comunicar los datos a terceros salvo autorización del cliente o por obligación legal.</li>
+          <li>Garantizar que el personal con acceso está sujeto a confidencialidad.</li>
+          <li>Aplicar las medidas de seguridad del artículo 32 del RGPD.</li>
+          <li>Asistir al cliente en el cumplimiento de sus obligaciones.</li>
+          <li>Suprimir o devolver los datos al cliente al finalizar la prestación.</li>
+        </ul>
+        <div class="dpo-box">
+          <h4>Delegado de Protección de Datos (DPO)</h4>
+          <p>TalentUP dispone de un DPO para supervisar el cumplimiento del RGPD. Comunicaciones a: <a href="mailto:dpo@talentup.es">dpo@talentup.es</a></p>
+        </div>
+      </section>
+
+      <section class="term-section" id="priv-s9">
+        <h2>9. Política de cookies</h2>
+        <p>TalentUP Fichaje utiliza cookies y tecnologías similares para el correcto funcionamiento del Servicio y, en su caso, para mejorar la experiencia y obtener estadísticas de uso.</p>
+        <h3>9.1 Tipos de cookies</h3>
+        <div class="treatments-wrap">
+          <table class="cookies-table">
+            <thead><tr><th>Categoría</th><th>Finalidad</th><th>Conservación</th><th>Consentimiento</th></tr></thead>
+            <tbody>
+              <tr><td><span class="cookie-cat cookie-cat--nec">Necesarias</span></td><td>Autenticación, sesión, seguridad.</td><td>Sesión / 12 meses</td><td>No requerido</td></tr>
+              <tr><td><span class="cookie-cat cookie-cat--pref">Preferencias</span></td><td>Idioma, tema, configuración.</td><td>12 meses</td><td>Requerido</td></tr>
+              <tr><td><span class="cookie-cat cookie-cat--stat">Estadísticas</span></td><td>Medición anónima de uso.</td><td>24 meses</td><td>Requerido</td></tr>
+              <tr><td><span class="cookie-cat cookie-cat--mark">Marketing</span></td><td>No utilizamos cookies de marketing de terceros.</td><td>—</td><td>Requerido</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>9.2 Gestión del consentimiento</h3>
+        <p>Al acceder por primera vez al Servicio, se muestra un banner que permite aceptar, rechazar o configurar las cookies no necesarias. El consentimiento se registra y puede retirarse en cualquier momento.</p>
+        <h3>9.3 Desactivación en el navegador</h3>
+        <p>El usuario puede gestionar y desactivar las cookies desde la configuración de su navegador:</p>
+        <ul>
+          <li><a href="https://support.google.com/chrome/answer/95647" rel="noopener" target="_blank">Google Chrome</a></li>
+          <li><a href="https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-sitios-web-rastrear-preferencias" rel="noopener" target="_blank">Mozilla Firefox</a></li>
+          <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" rel="noopener" target="_blank">Safari (macOS)</a></li>
+          <li><a href="https://support.microsoft.com/es-es/microsoft-edge/suprimir-las-cookies-en-microsoft-edge-63947406-40ac-c7b2-7eb8-7671d57b1f0e" rel="noopener" target="_blank">Microsoft Edge</a></li>
+        </ul>
+      </section>
+
+      <section class="term-section" id="priv-s10">
+        <h2>10. Cambios y contacto</h2>
+        <p>TalentUP podrá actualizar esta política de privacidad cuando sea necesario por cambios normativos, jurisprudenciales, técnicos o de la actividad. Las modificaciones se publicarán en esta página y se comunicarán a los clientes por email con al menos 30 días de antelación.</p>
+        <p>El uso continuado del Servicio tras la entrada en vigor de las modificaciones implica la aceptación de la política actualizada. Si tienes cualquier duda sobre el tratamiento de tus datos, puedes contactar con nosotros:</p>
+        <div class="dpo-box">
+          <h4>Contacto en materia de privacidad</h4>
+          <p><strong>DPO:</strong> <a href="mailto:dpo@talentup.es">dpo@talentup.es</a></p>
+          <p><strong>General:</strong> <a href="mailto:hola@talentup.es">hola@talentup.es</a></p>
+          <p><strong>Soporte:</strong> <a href="mailto:soporte@talentup.es">soporte@talentup.es</a></p>
+        </div>
+      </section>
+
+      <a href="#" class="back-link" data-route="landing">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8L10 4"/></svg>
+        Volver a la página principal
+      </a>
+    </div>
+  </div>
+</section>
+
+</div><!-- /view-privacidad -->
+
+</main>
+
+<!-- ===== FOOTER ========================================================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <a href="#" class="tu-lockup" data-route="landing" aria-label="TalentUP Fichaje, inicio">
+        <svg class="tu-mark" width="24" height="24" aria-hidden="true"><use href="#tu-mark"/></svg>
+        <span class="tu-wordmark">Talent<em>UP</em></span>
+      </a>
+      <nav class="footer-links" aria-label="Secciones">
+        <a data-route="landing">Producto</a>
+        <a data-route="pricing">Precios</a>
+        <a data-route="contacto">Contacto</a>
+        <a data-route="terminos">Términos</a>
+        <a data-route="privacidad">Privacidad</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 TalentUP. Hecho en Catalunya.</span>
+      <nav class="footer-legal" aria-label="Legal">
+        <a data-route="terminos">Términos</a>
+        <a data-route="privacidad">Privacidad</a>
+        <a data-route="contacto">Contacto</a>
+      </nav>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== SPA ROUTING + INTERACTIONS ======================================= -->
+<script>
+(function () {
+  'use strict';
+
+  var routes = ['landing', 'pricing', 'contacto', 'terminos', 'privacidad'];
+
+  /* --- Router: show/hide views ------------------------------------------- */
+  function navigate(route) {
+    if (routes.indexOf(route) === -1) route = 'landing';
+
+    // Hide all views
+    var views = document.querySelectorAll('.view');
+    for (var i = 0; i < views.length; i++) {
+      views[i].classList.remove('active');
+    }
+
+    // Show target view
+    var target = document.getElementById('view-' + route);
+    if (target) target.classList.add('active');
+
+    // Update nav active state
+    var navLinks = document.querySelectorAll('.nav-links a');
+    for (var j = 0; j < navLinks.length; j++) {
+      navLinks[j].classList.toggle('active', navLinks[j].getAttribute('data-route') === route);
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update hash without triggering hashchange loop
+    if (window.location.hash !== '#/' + route) {
+      history.replaceState(null, '', '#/' + route);
+    }
+
+    // Update title
+    var titles = {
+      landing: 'TalentUP Fichaje — Fichaje digital NFC para hostelería',
+      pricing: 'TalentUP Fichaje — Precios',
+      contacto: 'TalentUP Fichaje — Contacto',
+      terminos: 'TalentUP Fichaje — Términos de Servicio',
+      privacidad: 'TalentUP Fichaje — Política de Privacidad y Cookies'
+    };
+    document.title = titles[route] || titles.landing;
+  }
+
+  /* --- Bind all data-route elements -------------------------------------- */
+  function bindRoutes() {
+    var els = document.querySelectorAll('[data-route]');
+    for (var i = 0; i < els.length; i++) {
+      els[i].addEventListener('click', function (e) {
+        e.preventDefault();
+        var route = this.getAttribute('data-route');
+        navigate(route);
+      });
+    }
+  }
+
+  /* --- Bind data-scroll (in-page anchors on landing) --------------------- */
+  function bindScrolls() {
+    var els = document.querySelectorAll('[data-scroll]');
+    for (var i = 0; i < els.length; i++) {
+      els[i].addEventListener('click', function (e) {
+        e.preventDefault();
+        var target = document.getElementById(this.getAttribute('data-scroll'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  }
+
+  /* --- Bind TOC links (scroll to section within legal views) ------------- */
+  function bindTocLinks() {
+    var tocLinks = document.querySelectorAll('.toc-list a');
+    for (var i = 0; i < tocLinks.length; i++) {
+      tocLinks[i].addEventListener('click', function (e) {
+        e.preventDefault();
+        var targetId = this.getAttribute('href').replace('#', '');
+        var target = document.getElementById(targetId);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }
+
+  /* --- Contact form: progressive enhancement ----------------------------- */
+  function bindContactForm() {
+    var form = document.getElementById('contactForm');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = document.getElementById('name').value.trim();
+      var email = document.getElementById('email').value.trim();
+      var message = document.getElementById('message').value.trim();
+      if (!name || !email || !message) return;
+      var success = document.getElementById('formSuccess');
+      success.classList.add('show');
+      this.reset();
+      success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  /* --- Pricing billing toggle ------------------------------------------- */
+  function bindBillingToggle() {
+    var buttons = document.querySelectorAll('.segmented button');
+    var monthlyAmounts = { starter: 29, pro: 99, enterprise: 499 };
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener('click', function () {
+        for (var j = 0; j < buttons.length; j++) {
+          buttons[j].classList.remove('active');
+          buttons[j].setAttribute('aria-selected', 'false');
+        }
+        this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
+
+        var billing = this.getAttribute('data-billing');
+        var amounts = document.querySelectorAll('[data-amount]');
+        var notes = document.querySelectorAll('[data-note]');
+        for (var k = 0; k < amounts.length; k++) {
+          var plan = amounts[k].closest('[data-plan]');
+          if (!plan) continue;
+          var planName = plan.getAttribute('data-plan');
+          var base = monthlyAmounts[planName] || 0;
+          if (billing === 'annual') {
+            var annual = Math.round(base * 0.8);
+            amounts[k].textContent = annual;
+            if (notes[k]) notes[k].textContent = 'Facturado anualmente (−20%)';
+          } else {
+            amounts[k].textContent = base;
+            if (notes[k]) notes[k].textContent = 'Ilimitado durante 14 días';
+          }
+        }
+      });
+    }
+  }
+
+  /* --- Terminal animation (landing hero) -------------------------------- */
+  function startTerminalAnimation() {
+    var terminal = document.getElementById('terminal');
+    if (!terminal) return;
+
+    var screens = {
+      idle: terminal.querySelector('[data-screen="idle"]'),
+      reading: terminal.querySelector('[data-screen="reading"]'),
+      confirmed: terminal.querySelector('[data-screen="confirmed"]')
+    };
+
+    function showScreen(name) {
+      for (var key in screens) {
+        if (screens[key]) screens[key].hidden = (key !== name);
+      }
+    }
+
+    function cycle() {
+      showScreen('idle');
+      setTimeout(function () { showScreen('reading'); }, 3000);
+      setTimeout(function () { showScreen('confirmed'); }, 4500);
+      setTimeout(cycle, 7000);
+    }
+
+    // Only animate if terminal is visible
+    if (terminal.offsetParent !== null) {
+      cycle();
+    }
+  }
+
+  /* --- Init on DOM ready ------------------------------------------------- */
+  function init() {
+    bindRoutes();
+    bindScrolls();
+    bindTocLinks();
+    bindContactForm();
+    bindBillingToggle();
+    startTerminalAnimation();
+
+    // Parse initial route from hash
+    var hash = window.location.hash;
+    var initialRoute = 'landing';
+    if (hash && hash.indexOf('#/') === 0) {
+      var candidate = hash.replace('#/', '');
+      if (routes.indexOf(candidate) !== -1) initialRoute = candidate;
+    }
+    navigate(initialRoute);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Handle browser back/forward
+  window.addEventListener('hashchange', function () {
+    var hash = window.location.hash;
+    var route = 'landing';
+    if (hash && hash.indexOf('#/') === 0) {
+      var candidate = hash.replace('#/', '');
+      if (routes.indexOf(candidate) !== -1) route = candidate;
+    }
+    navigate(route);
+  });
+})();
+</script>
+
+</body>
+</html>

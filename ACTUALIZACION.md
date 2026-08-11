@@ -8,15 +8,15 @@ Este documento describe cómo se mantiene el frontend de TalentUP Fichaje vivo, 
 
 ## 1. Filosofía de mantenimiento
 
-El frontend de TalentUP se sostiene sobre una idea simple: **un solo sistema de diseño, cuatro superficies** (landing, dashboard, PWA móvil y terminal kiosco). Cualquier cambio visual o estructural se origina en `frontend/design_system.css` (894 líneas, 35 KB), la única fuente de verdad de tokens y componentes. Las ocho páginas del producto importan este archivo y consumen sus variables; ninguna declara colores, radios o espacios sueltos.
+El frontend de TalentUP se sostiene sobre una idea simple: **un solo sistema de diseño, cuatro superficies** (landing, dashboard, PWA móvil y terminal kiosco). Cualquier cambio visual o estructural se origina en `frontend/design_system.css` (898 líneas, 36 KB), la única fuente de verdad de tokens y componentes. Las siete páginas HTML del producto — `index.html` (SPA del dashboard), `landing.html`, `pricing.html`, `privacidad.html`, `terminos.html`, `contacto.html` y `offline.html` — importan este archivo y consumen sus variables; ninguna declara colores, radios o espacios sueltos.
 
 Esta arquitectura hace que mantener el frontend sea, en la práctica, mantener tres cosas:
 
 1. **Tokens** en `:root` de `design_system.css` — cualquier ajuste de marca, accesibilidad o densidad se hace aquí y se propaga solo.
-2. **Componentes** en el mismo archivo (18 secciones) — cada clase nueva o modificada se documenta en `COMPONENT_GUIDE.md` antes de llegar a producción.
+2. **Componentes** en el mismo archivo (18 secciones numeradas) — cada clase nueva o modificada se documenta en `COMPONENT_GUIDE.md` antes de llegar a producción.
 3. **Páginas** — consumen tokens y componentes; no aportan estilos propios salvo composición.
 
-El principio rector, recogido en `STYLE_GUIDE.md` (sección 13), es tajante: *si un color, radio o espacio no está definido en `:root`, no existe*. No se hardcodea. Esta regla es lo que permite que el sistema escale sin degradarse: un nuevo botón, una nueva tarjeta o un nuevo badge se construyen con los tokens existentes, y si hace falta un token nuevo, se añade con nombre y se documenta.
+El principio rector, recogido en `STYLE_GUIDE.md` (sección 13, *Reglas de uso*), es tajante: *si un color, radio o espacio no está definido en `:root`, no existe*. No se hardcodea. Esta regla es lo que permite que el sistema escale sin degradarse: un nuevo botón, una nueva tarjeta o un nuevo badge se construyen con los tokens existentes, y si hace falta un token nuevo, se añade con nombre y se documenta.
 
 ---
 
@@ -24,11 +24,11 @@ El principio rector, recogido en `STYLE_GUIDE.md` (sección 13), es tajante: *si
 
 Una *feature* frontend en TalentUP suele ser una nueva vista del dashboard, una nueva página pública o un flujo nuevo en la PWA móvil. El procedimiento es siempre el mismo:
 
-1. **Definir la ruta y el archivo físico.** Las páginas públicas (marketing/legales) se sirven como HTML estático en Vercel con redirecciones limpias en `vercel.json`. Las vistas del dashboard son secciones internas de la SPA `index.html`, conmutadas por la función `navigate(page)` con `data-page`; no usan router de URL. Una nueva vista del dashboard no crea un archivo nuevo, añade un `<section data-page="...">` al HTML existente y su lógica en `src/app.js` (125 KB).
+1. **Definir la ruta y el archivo físico.** Las páginas públicas (marketing/legales) se sirven como HTML estático en Vercel con redirecciones limpias en `frontend/vercel.json`. Las vistas del dashboard son secciones internas de la SPA `index.html`, conmutadas por la función `navigate(page)` con `data-page`; no usan router de URL. Hoy existen nueve vistas (`dashboard`, `fichajes`, `empleados`, `turnos`, `calendario`, `vacaciones`, `bajas`, `informes`, `configuracion`). Una nueva vista del dashboard no crea un archivo nuevo: añade un `<section data-page="...">` al HTML existente y su lógica en `frontend/src/app.js` (125 KB).
 
 2. **Consumir tokens y componentes existentes.** La feature se construye con `.btn`, `.card`, `.field`, `.badge`, `.table-scroll`, `.empty-state` y similares. Si la feature introduce un patrón visual que no existe (por ejemplo, un calendario de turnos), se evalúa si merece convertirse en componente del sistema o si es composición puntual de los existentes.
 
-3. **Conectar la API con `credentials: 'include'`.** Las llamadas son siempre relativas (`/api/...`) en producción; el proxy de Vercel enruta hacia el backend en Railway. En desarrollo, `API_BASE` se resuelve a `http://localhost:8080/api`. Los endpoints públicos de fichaje (`/api/clock*`, `/api/tenants`) no requieren JWT; los de gestión sí, pero viajan como cookies httpOnly que la SPA nunca lee en JS.
+3. **Conectar la API con `credentials: 'include'`.** Las llamadas son siempre relativas (`/api/...`) en producción; el proxy de Vercel enruta hacia el backend en Railway (`talentup-fichaje-backend.railway.app`). En desarrollo, `API_BASE` se resuelve a `http://localhost:8080/api`. Los endpoints públicos de fichaje (`/api/clock*`, `/api/tenants`) no requieren JWT; los de gestión sí, pero viajan como cookies httpOnly que la SPA nunca lee en JS.
 
 4. **Cubrir loading, error y vacío.** Toda pantalla de datos tiene skeleton (no spinner infinito), estado de error con mensaje humano (nunca código crudo) y `.empty-state` con icono, título, descripción y acción. Estas tres cubiertas son obligatorias; una vista que muestra una tabla en blanco no se acepta.
 
@@ -42,7 +42,7 @@ El catálogo de componentes vive en `design_system.css` y se documenta en `front
 
 El flujo para añadir un componente nuevo es:
 
-1. **Justificar la necesidad.** Un componente nuevo se crea cuando un patrón se repite en al menos dos páginas y no se resuelve con composición de los existentes. No se crean variantes unicas (one-off) como componentes del sistema; esas quedan en el HTML de la página.
+1. **Justificar la necesidad.** Un componente nuevo se crea cuando un patrón se repite en al menos dos páginas y no se resuelve con composición de los existentes. No se crean variantes únicas (*one-off*) como componentes del sistema; esas quedan en el HTML de la página.
 
 2. **Definir el nombre y la clase.** Convención: `.btn`, `.card`, `.badge`, `.field`, `.toast`, `.nav-item`. Las variantes se separan con `--`: `.btn-primary`, `.card-pad`, `.badge--pill`. Los estados se expresan con clases de estado (`.active`, `.is-success`) o atributos (`aria-invalid="true"`, `data-state="loading"`), nunca con selectores ad-hoc.
 
@@ -50,7 +50,7 @@ El flujo para añadir un componente nuevo es:
 
 4. **Documentar el componente en `COMPONENT_GUIDE.md`.** Se añade una sección con tabla de variaciones, criterios de uso, anti-patrones y ejemplo HTML. La regla es que ningún componente llega a producción sin su entrada en la guía: si no está documentado, no existe oficialmente.
 
-5. **Probar accesibilidad.** Todo componente interactivo tiene `:focus-visible` con outline 2 px `--brand`, target táctil ≥ 44 px (≥ 60 px en kiosco) y comportamiento en `prefers-reduced-motion`. Los tests E2E de Playwright (120 passing) cubren foco, contraste y teclado; un componente nuevo añade sus propios casos.
+5. **Probar accesibilidad.** Todo componente interactivo tiene `:focus-visible` con outline 2 px `--brand`, target táctil ≥ 44 px (≥ 60 px en kiosco) y comportamiento en `prefers-reduced-motion`. Los specs E2E de Playwright (`tests/e2e/*.spec.js`) cubren foco, contraste y teclado; un componente nuevo añade sus propios casos.
 
 6. **Actualizar el changelog.** Se registra el componente, sus variaciones y el número de líneas añadidas a `design_system.css`.
 
@@ -58,7 +58,7 @@ El flujo para añadir un componente nuevo es:
 
 ## 4. Extender los design tokens
 
-Los tokens se definen en `:root` de `design_system.css` y se agrupan en categorías: color, tipografía, espaciado, radios, sombras, movimiento, layout y z-index. La guía de referencia rápida está en `STYLE_GUIDE.md` (sección 14).
+Los tokens se definen en `:root` de `design_system.css` (sección 1, *TOKENS*) y se agrupan en categorías: color, tipografía, espaciado, radios, sombras, movimiento, layout y z-index. La guía de referencia rápida está en `STYLE_GUIDE.md` (sección 14).
 
 Para añadir o modificar un token:
 
@@ -111,14 +111,14 @@ El changelog no es decorativo: es el contrato entre el estado actual del fronten
 
 ## 6. Verificación continua
 
-Cada cambio se valida antes de llegar a `master`:
+Cada cambio se valida antes de llegar a `master`. El CI del proyecto (`.github/workflows/ci.yml`) ejecuta hoy los tests del **backend** en Python (pytest + cobertura con codecov); el frontend no tiene aún pipeline de test automático en CI, por lo que la verificación se apoya en tres capas locales y una manual:
 
-- **Lighthouse CI** en GitHub Actions: performance ≥ 90, accessibility, SEO y best practices.
-- **bundlewatch**: JS ≤ 170 KB gzip, CSS ≤ 30 KB gzip. Un componente nuevo que inflará el CSS se revisa antes de mergear.
-- **Playwright E2E**: 120 tests de accesibilidad y foco por teclado.
-- **Revisión manual de tokens**: un `grep` rápido confirma que no quedan valores hardcodeados en las páginas.
+- **Playwright E2E** (`frontend/playwright.config.cjs`, `tests/e2e/*.spec.js`): cinco specs cubren landing, login, dashboard, PWA y terminal; validan foco por teclado, contraste y estados de carga. Se lanzan en local con `npx playwright test`. *Pitfall conocido:* el `testMatch` del config apunta a `*.spec.cjs` mientras los archivos son `.spec.js`; renombrar o ajustar el glob antes de ejecutar.
+- **Vitest** (`frontend/vitest.config.js`, entorno jsdom): tests unitarios de lógica de presentación. Se lanzan con `npm test` desde `frontend/`.
+- **Deploy a GitHub Pages** (`.github/workflows/deploy-frontend.yml`): cada push a `master` bajo `frontend/**` publica el directorio en Pages, lo que sirve como smoke visual de que el build está intacto.
+- **Revisión manual de tokens**: un `grep` rápido confirma que no quedan valores hardcodeados en las páginas (`grep -rnE '#[0-9a-fA-F]{3,6}' frontend/*.html` debe devolver solo lo permitido).
 
-Con estos cuatro filtros, el frontend de TalentUP se mantiene actualizable: features nuevas sin deuda visual, componentes nuevos sin duplicar esfuerzo, tokens nuevos sin romper contraste, y un changelog que cuenta la historia de cada versión.
+Con estas capas, el frontend de TalentUP se mantiene actualizable: features nuevas sin deuda visual, componentes nuevos sin duplicar esfuerzo, tokens nuevos sin romper contraste, y un changelog que cuenta la historia de cada versión.
 
 ---
 
