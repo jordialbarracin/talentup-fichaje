@@ -3,6 +3,19 @@
 **SaaS de fichaje digital para hostelería.**
 Multi-tenant. Cumple el Real Decreto-ley 8/2019 de registro de jornada en España.
 
+## Design System v4.3 — 10/10 Antigravity Approved
+
+- Tipografia: Inter (UI) + Geist Mono (datos tabulares)
+- Fondo: #F1F1EE (gris calido, no blanco)
+- Acento marca: #FF6B35 (solo CTAs y 1-2 puntos foco)
+- Acento highlight: #D4FF32 (neon, focus-visible, highlights puntuales)
+- Glass: solo en 1 componente (estado fichado)
+- 12 pictogramas custom SVG (no Lucide)
+- Dark mode nativo con toggle
+- WCAG AA con focus-visible neon
+- 8pt grid, 4 breakpoints (kiosko/mobile/tablet/desktop)
+- Microanimaciones: live-pulse, chart hover scale, terminal hover lift
+
 [![CI](https://github.com/jordialbarracin/talentup-fichaje/actions/workflows/ci.yml/badge.svg)](https://github.com/jordialbarracin/talentup-fichaje/actions)
 
 ---
