@@ -96,7 +96,7 @@ button{-webkit-tap-highlight-color:transparent}
 .clock-btn:active{transform:scale(0.95);box-shadow:0 var(--space-1) var(--space-3) var(--brand-tint-35)}
 .clock-btn-label{display:flex;flex-direction:column;align-items:center;gap:var(--space-1)}
 .clock-btn-label svg{margin-bottom:var(--space-1)}
-.clock-status{font-size:var(--text-body-sm);color:var(--text-secondary);font-weight:400;text-align:center;min-height:var(--space-6)}
+.clock-status{font-size:var(--text-body-sm);color:var(--text-secondary);font-weight:400;text-align:center;min-height:var(--space-6);font-variant-numeric:var(--tnum)}
 
 /* ===== TOAST (override DS .toast — el PWA usa toggle .show, centrado abajo) ===== */
 .toast{
@@ -131,7 +131,7 @@ button{-webkit-tap-highlight-color:transparent}
 .history-item-type{font-weight:600;font-size:var(--text-body-sm)}
 .history-item-type.entrada{color:var(--success)}
 .history-item-type.salida{color:var(--brand)}
-.history-item-time{font-size:var(--text-caption);color:var(--text-secondary)}
+.history-item-time{font-size:var(--text-caption);color:var(--text-secondary);font-variant-numeric:var(--tnum)}
 .history-item-location{font-size:var(--text-micro);color:var(--text-tertiary);display:flex;align-items:center;gap:var(--space-1);margin-top:var(--space-1)}
 
 /* ===== OFFLINE BANNER ===== */
@@ -147,7 +147,8 @@ button{-webkit-tap-highlight-color:transparent}
 .pending-badge{
   display:inline-flex;align-items:center;gap:var(--space-1);
   background:var(--warning-tint);color:var(--warning-strong);
-  font-size:var(--text-micro);font-weight:500;padding:3px var(--space-2);border-radius:var(--radius-pill)
+  font-size:var(--text-micro);font-weight:500;padding:3px var(--space-2);border-radius:var(--radius-pill);
+  font-variant-numeric:var(--tnum)
 }
 
 /* ===== MODAL (bottom sheet — override DS .modal-overlay centrado) ===== */
